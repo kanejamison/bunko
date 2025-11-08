@@ -78,10 +78,19 @@ bundle exec rake release
 lib/bunko/           # Main gem code (currently minimal, awaiting implementation)
   version.rb         # Version constant
 test/                # Minitest test suite
+  dummy/             # Rails dummy app for integration testing (to be created)
   test_helper.rb     # Test configuration
   test_bunko.rb      # Main test file
 .github/workflows/   # CI/CD pipeline (runs rake: test + standard)
 ```
+
+### Test Dummy App
+
+Following standard Rails gem patterns, integration tests will run against a minimal Rails app in `test/dummy/`:
+- Created via `rails plugin new` or manually scaffolded
+- Provides real Rails environment for testing migrations, controllers, routes, views
+- Committed to git (excluding tmp/, log/, etc.)
+- Examples: Devise, Kaminari, and most Rails engines use this pattern
 
 ## Requirements
 
