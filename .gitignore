@@ -10,3 +10,4 @@
 # Don't commit Gemfile.lock for gems (only for applications)
 /Gemfile.lock
 /log
+Gemfile.lock
