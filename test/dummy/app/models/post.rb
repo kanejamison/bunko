@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+class Post < ApplicationRecord
+  acts_as_bunko_post
+
+  belongs_to :post_type
+
+  validates :title, presence: true
+  validates :slug, presence: true, uniqueness: {scope: :post_type_id}
+  validates :status, presence: true
+end
