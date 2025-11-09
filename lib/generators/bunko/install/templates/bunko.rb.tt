@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+Bunko.configure do |config|
+  # Reading speed for calculating estimated reading time (in words per minute)
+  # Default: 250
+  # config.reading_speed = 250
+
+  # Valid post statuses
+  # Default: %w[draft published scheduled]
+  # config.valid_statuses = %w[draft published scheduled]
+end

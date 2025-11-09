@@ -1,0 +1,34 @@
+# frozen_string_literal: true
+
+class CreatePosts < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+  def change
+    create_table :posts do |t|
+      t.string :title, null: false
+      t.string :slug, null: false
+      t.text :content
+      t.references :post_type, null: false, foreign_key: true
+      t.string :status, null: false, default: "draft"
+      t.datetime :published_at
+<% if include_seo_fields? -%>
+
+      # SEO fields
+      t.string :meta_title
+      t.text :meta_description
+<% end -%>
+<% if include_metrics? -%>
+
+      # Metrics
+      t.integer :word_count
+<% end -%>
+<% if include_metadata? -%>
+
+      # Custom metadata
+      t.jsonb :metadata
+<% end -%>
+
+      t.timestamps
+    end
+
+    add_index :posts, [:post_type_id, :slug], unique: true
+  end
+end

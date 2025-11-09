@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+class PostType < ApplicationRecord
+  has_many :posts, dependent: :destroy
+
+  validates :name, presence: true
+  validates :slug, presence: true, uniqueness: true
+end
