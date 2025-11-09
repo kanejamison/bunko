@@ -125,33 +125,10 @@ namespace :bunko do
       return false
     end
 
-    controller_content = <<~RUBY
-      # frozen_string_literal: true
-
-      class #{controller_name} < ApplicationController
-        bunko_collection :#{slug}
-
-        # The bunko_collection method automatically provides index and show actions.
-        #
-        # To customize, you can override these methods:
-        #
-        # def index
-        #   super # calls bunko_collection's index
-        #   # Add your customizations here
-        # end
-        #
-        # def show
-        #   super # calls bunko_collection's show
-        #   # Add your customizations here
-        # end
-        #
-        # Available instance variables in your views:
-        # - @posts (index action)
-        # - @post (show action)
-        # - @collection_name
-        # - @pagination
-      end
-    RUBY
+    controller_content = render_template("controller.rb.tt", {
+      controller_name: controller_name,
+      slug: slug
+    })
 
     File.write(controller_file, controller_content)
     puts "  ✓ Created #{slug}_controller.rb"
@@ -181,100 +158,20 @@ namespace :bunko do
   end
 
   def generate_index_view(slug)
-    collection_title = slug.titleize
-    path_helper = "#{slug}_path"
-    index_path_helper = "#{slug}_index_path"
-
-    <<~ERB
-      <div class="#{slug}-index">
-        <h1>#{collection_title}</h1>
-
-        <% if @posts.any? %>
-          <div class="posts">
-            <% @posts.each do |post| %>
-              <article class="post-preview">
-                <h2>
-                  <%= link_to post.title, #{path_helper}(post.slug) %>
-                </h2>
-
-                <div class="post-meta">
-                  <% if post.published_at %>
-                    <time datetime="<%= post.published_at.iso8601 %>">
-                      <%= post.published_at.strftime("%B %d, %Y") %>
-                    </time>
-                  <% end %>
-
-                  <% if post.reading_time %>
-                    <span class="reading-time">
-                      <%= post.reading_time %> min read
-                    </span>
-                  <% end %>
-                </div>
-
-                <% if post.content.present? %>
-                  <div class="post-excerpt">
-                    <%= truncate(post.content, length: 200) %>
-                  </div>
-                <% end %>
-              </article>
-            <% end %>
-          </div>
-
-          <% if @pagination[:total_pages] > 1 %>
-            <nav class="pagination">
-              <% if @pagination[:prev_page] %>
-                <%= link_to "← Previous", #{index_path_helper}(page: @pagination[:page] - 1), class: "pagination-prev" %>
-              <% end %>
-
-              <span class="pagination-info">
-                Page <%= @pagination[:page] %> of <%= @pagination[:total_pages] %>
-              </span>
-
-              <% if @pagination[:next_page] %>
-                <%= link_to "Next →", #{index_path_helper}(page: @pagination[:page] + 1), class: "pagination-next" %>
-              <% end %>
-            </nav>
-          <% end %>
-        <% else %>
-          <p class="no-posts">No #{collection_title.downcase} posts yet.</p>
-        <% end %>
-      </div>
-    ERB
+    render_template("index.html.erb.tt", {
+      slug: slug,
+      collection_title: slug.titleize,
+      path_helper: "#{slug}_path",
+      index_path_helper: "#{slug}_index_path"
+    })
   end
 
   def generate_show_view(slug)
-    index_path_helper = "#{slug}_index_path"
-    collection_title = slug.titleize
-
-    <<~ERB
-      <article class="post">
-        <header class="post-header">
-          <h1><%= @post.title %></h1>
-
-          <div class="post-meta">
-            <% if @post.published_at %>
-              <time datetime="<%= @post.published_at.iso8601 %>">
-                <%= @post.published_at.strftime("%B %d, %Y") %>
-              </time>
-            <% end %>
-
-            <% if @post.reading_time %>
-              <span class="reading-time">
-                <%= @post.reading_time %> min read
-              </span>
-            <% end %>
-          </div>
-        </header>
-
-        <div class="post-content">
-          <%= simple_format(@post.content) %>
-        </div>
-
-        <footer class="post-footer">
-          <%= link_to "← Back to #{collection_title}", #{index_path_helper}, class: "back-link" %>
-        </footer>
-      </article>
-    ERB
+    render_template("show.html.erb.tt", {
+      slug: slug,
+      collection_title: slug.titleize,
+      index_path_helper: "#{slug}_index_path"
+    })
   end
 
   def add_route(slug)
@@ -296,5 +193,18 @@ namespace :bunko do
     File.write(routes_file, updated_content)
     puts "  ✓ Added route for :#{slug}"
     true
+  end
+
+  def render_template(template_name, locals = {})
+    template_path = File.expand_path("../tasks/templates/#{template_name}", __dir__)
+    template_content = File.read(template_path)
+
+    # Create a binding with the local variables
+    b = binding
+    locals.each do |key, value|
+      b.local_variable_set(key, value)
+    end
+
+    ERB.new(template_content, trim_mode: "-").result(b)
   end
 end
