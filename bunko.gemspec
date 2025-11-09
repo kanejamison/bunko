@@ -9,15 +9,12 @@ Gem::Specification.new do |spec|
   spec.email = ["918780+kanejamison@users.noreply.github.com"]
 
   spec.summary = "A simple and lightweight content management system for Rails."
-  spec.description = "TODO: Write a longer description or delete this line."
+  spec.description = "Bunko provides a lightweight CMS structure for Rails based on a 'one model, infinite collections' philosophy. Create multiple content collections (blog, docs, changelog) without duplicate code or migrations."
   spec.homepage = "https://github.com/kanejamison/bunko"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.1.0"
-
-  spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
+  spec.required_ruby_version = ">= 3.2"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/kanejamison/bunko"
   spec.metadata["changelog_uri"] = "https://github.com/kanejamison/bunko/blob/main/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
@@ -34,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Runtime dependencies
-  spec.add_dependency "rails", ">= 8.0.0"
+  spec.add_dependency "rails", ">= 8.0"
 
   # Development dependencies
   spec.add_development_dependency "sqlite3", "~> 2.0"
