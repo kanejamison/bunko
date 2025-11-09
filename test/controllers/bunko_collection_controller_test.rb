@@ -48,7 +48,7 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
     get nonexistent_index_path
     assert_response :not_found
     assert_match(/PostType 'nonexistent' not found/, response.body)
-    assert_match(/PostType\.create!/, response.body)
+    assert_match(/rails bunko:setup\[nonexistent\]/, response.body)
   end
 
   test "index shows all published posts for the collection" do
@@ -98,7 +98,7 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
     get nonexistent_path("any-slug")
     assert_response :not_found
     assert_match(/PostType 'nonexistent' not found/, response.body)
-    assert_match(/PostType\.create!/, response.body)
+    assert_match(/rails bunko:setup\[nonexistent\]/, response.body)
   end
 
   test "show finds post by slug" do

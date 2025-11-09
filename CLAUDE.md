@@ -75,22 +75,34 @@ bundle exec rake release
 ## Project Structure
 
 ```
-lib/bunko/           # Main gem code (currently minimal, awaiting implementation)
-  version.rb         # Version constant
-test/                # Minitest test suite
-  dummy/             # Rails dummy app for integration testing (to be created)
-  test_helper.rb     # Test configuration
-  test_bunko.rb      # Main test file
-.github/workflows/   # CI/CD pipeline (runs rake: test + standard)
+lib/
+├── bunko/
+│   ├── version.rb           # Version constant
+│   ├── configuration.rb     # Configuration system with post_types
+│   ├── post.rb              # acts_as_bunko_post concern
+│   ├── controller.rb        # bunko_collection concern
+│   └── railtie.rb           # Rails integration (loads rake tasks)
+├── generators/bunko/install/
+│   ├── install_generator.rb    # rails generate bunko:install
+│   └── templates/              # Migration and model templates
+└── tasks/
+    ├── bunko_tasks.rake        # rails bunko:setup task
+    └── templates/              # Controller and view templates
+test/
+├── dummy/                  # Rails dummy app for integration testing
+├── controllers/            # Controller integration tests
+├── models/                 # Model tests
+├── generators/             # Generator tests
+└── tasks/                  # Rake task tests
+.github/workflows/         # CI/CD pipeline (runs rake: test + standard)
 ```
 
 ### Test Dummy App
 
-Following standard Rails gem patterns, integration tests will run against a minimal Rails app in `test/dummy/`:
-- Created via `rails plugin new` or manually scaffolded
+Integration tests run against a minimal Rails app in `test/dummy/`:
 - Provides real Rails environment for testing migrations, controllers, routes, views
 - Committed to git (excluding tmp/, log/, etc.)
-- Examples: Devise, Kaminari, and most Rails engines use this pattern
+- Database schema is managed via migrations in `test/dummy/db/migrate/`
 
 ## Requirements
 
@@ -103,8 +115,30 @@ Following standard Rails gem patterns, integration tests will run against a mini
 - This gem uses **Standard** for Ruby linting (configured in `.standard.yml`)
 - Tests use **Minitest** framework
 - CI runs on GitHub Actions (`.github/workflows/main.yml`) and executes `bundle exec rake`
-- The gem is in early development - core functionality not yet implemented
-- Future generator: `rails generate bunko:install` (marked as "coming soon")
+- Current test coverage: 52 tests, 126 assertions
+
+## Current Features (Implemented)
+
+**Milestone 1 - Post Model Behavior:**
+- `acts_as_bunko_post` concern with scopes (`.published`, `.draft`, `.scheduled`, `.by_post_type`)
+- Automatic slug generation from titles (URL-safe, unique within post_type)
+- Publishing workflow (auto-sets `published_at` when status changes to "published")
+- Reading time calculation based on word_count
+
+**Milestone 2 - Collection Controllers:**
+- `bunko_collection` concern for automatic index/show actions
+- Built-in pagination (configurable per_page, default: 10)
+- Scoped queries (each collection only sees its post_type)
+- Available instance variables: `@posts`, `@post`, `@collection_name`, `@pagination`
+
+**Milestone 3 - Installation Generator:**
+- Two-phase installation pattern:
+  1. `rails generate bunko:install` - Creates migrations, models, initializer
+  2. `rails bunko:setup` - Generates controllers, views, routes from configuration
+- Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`
+- Configuration-driven: Define post_types in `config/initializers/bunko.rb`
+- Idempotent setup task (safe to re-run when adding new collections)
+- Single-collection setup: `rails bunko:setup[slug]` for adding individual collections
 
 ## Development Roadmap
 

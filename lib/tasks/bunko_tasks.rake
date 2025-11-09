@@ -50,6 +50,16 @@ namespace :bunko do
     views_created = []
     routes_added = []
 
+    # Validate post_types configuration
+    post_types.each do |pt_config|
+      unless pt_config.is_a?(Hash) && pt_config[:name] && pt_config[:slug]
+        puts "⚠️  Invalid post type configuration: #{pt_config.inspect}"
+        puts "   Each post type must be a hash with :name and :slug keys."
+        puts "   Example: { name: \"Blog\", slug: \"blog\" }"
+        exit
+      end
+    end
+
     # Step 1: Create PostTypes
     puts "Creating PostTypes..."
     post_types.each do |pt_config|
@@ -185,9 +195,17 @@ namespace :bunko do
       return false
     end
 
-    # Find the last 'end' and insert before it
-    updated_content = routes_content.sub(/^end\s*$/) do |match|
-      "#{route_line}\n#{match}"
+    # Find the last 'end' in the file and insert before it
+    # This handles the closing end of Rails.application.routes.draw
+    lines = routes_content.lines
+    last_end_index = lines.rindex { |line| line.match?(/^end\s*$/) }
+
+    if last_end_index
+      lines.insert(last_end_index, "#{route_line}\n")
+      updated_content = lines.join
+    else
+      # Fallback: append before the last line if no 'end' found
+      updated_content = routes_content.sub(/\z/, "#{route_line}\n")
     end
 
     File.write(routes_file, updated_content)
@@ -196,7 +214,12 @@ namespace :bunko do
   end
 
   def render_template(template_name, locals = {})
-    template_path = File.expand_path("../tasks/templates/#{template_name}", __dir__)
+    template_path = File.expand_path("templates/#{template_name}", __dir__)
+
+    unless File.exist?(template_path)
+      raise "Template file not found: #{template_path}"
+    end
+
     template_content = File.read(template_path)
 
     # Create a binding with the local variables

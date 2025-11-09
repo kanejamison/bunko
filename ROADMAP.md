@@ -10,7 +10,7 @@
 
 - [x] **Milestone 1: Post Model Behavior** - ✅ COMPLETED
 - [x] **Milestone 2: Collection Controllers** - ✅ COMPLETED
-- [ ] **Milestone 3: Installation Generator** - 🚧 PENDING
+- [x] **Milestone 3: Installation Generator** - ✅ COMPLETED
 - [ ] **Milestone 4: Routing Helpers** - 🚧 PENDING
 - [ ] **Milestone 5: View Helpers** - 🚧 PENDING
 - [ ] **Milestone 6: Configuration** - 🚧 PENDING (core system exists, needs expansion)
@@ -155,6 +155,12 @@ end
 ## Milestone 3: Installation Generator
 
 **Spec:** Running `rails generate bunko:install` should create everything needed for a working blog.
+
+**Implementation Note:** This milestone was implemented as a two-phase pattern:
+1. `rails generate bunko:install` - Creates migrations, models, and initializer
+2. `rails bunko:setup` - Generates controllers, views, and routes based on configuration
+
+This approach allows users to customize their post types in the initializer before generating the controllers/views, and makes it easy to add new collections later.
 
 ### Required Behavior
 

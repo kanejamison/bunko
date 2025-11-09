@@ -42,7 +42,7 @@ module Bunko
       # Verify post type exists
       @post_type = PostType.find_by(slug: @collection_name)
       unless @post_type
-        render plain: "PostType '#{@collection_name}' not found. Create it with: PostType.create!(name: '#{@collection_name.titleize}', slug: '#{@collection_name}')", status: :not_found
+        render plain: "PostType '#{@collection_name}' not found. Add it to config/initializers/bunko.rb and run: rails bunko:setup[#{@collection_name}]", status: :not_found
         return
       end
 
@@ -63,7 +63,7 @@ module Bunko
       # Verify post type exists
       @post_type = PostType.find_by(slug: @collection_name)
       unless @post_type
-        render plain: "PostType '#{@collection_name}' not found. Create it with: PostType.create!(name: '#{@collection_name.titleize}', slug: '#{@collection_name}')", status: :not_found
+        render plain: "PostType '#{@collection_name}' not found. Add it to config/initializers/bunko.rb and run: rails bunko:setup[#{@collection_name}]", status: :not_found
         return
       end
 
