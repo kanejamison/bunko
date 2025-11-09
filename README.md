@@ -1,9 +1,9 @@
 # Bunko
-Bunko (文庫) in Japanese means library or book collection - a perfect name for a Rails gem that organizes your content elegantly.
+Bunko (文庫) in Japanese means a small personal library or book collection - a perfect name for a Rails gem that organizes your content elegantly.
 
 ## Philosophy
 
-**One model, infinite collections.** Bunko gives you a robust CMS structure in 5 minutes. Whether you just want a blog, or if you want dozens of post types across your site, Bunko scales to handle dozens of content collections without new database migrations or excessive code duplication every time you launch a new collection. All content are posts - and you can mount collections of posts to whatever routes you like with #index & #show actions.
+**One model, infinite collections.** Bunko gives you a robust CMS structure in 5 minutes. Whether you just want a classic blog, or if you want dozens of post types across your site, Bunko scales to handle dozens of content collections without new database migrations or excessive code duplication every time you launch a new collection. All content are posts - and you can mount collections of posts to whatever routes you like with #index & #show actions.
 
 ## Overview
 
@@ -19,7 +19,7 @@ Bunko (文庫) in Japanese means library or book collection - a perfect name for
 
 ```bash
 # Add to Gemfile
-gem 'bunko'
+gem "bunko"
 
 # Install
 $ bundle install
@@ -47,29 +47,6 @@ $ rails generate bunko:install # coming soon
 - Want to manage multiple content types without duplicate code
 - Want to manage a number of sites with consistent CMS structure
 
-# Initial Gem Readme
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/bunko`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-## Installation
-
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
-
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-```
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-```
-
-## Usage
-
-TODO: Write usage instructions here
 
 ## Development
 
