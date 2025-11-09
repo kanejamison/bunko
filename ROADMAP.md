@@ -1,6 +1,21 @@
-# Bunko 0.1 Roadmap
+# Bunko 1.0 Roadmap
 
-**Goal:** Ship a minimal viable CMS gem where a Rails developer can add `gem 'bunko'`, run one generator, and have a working blog in under 5 minutes. Officially we are only targeting support for Rails but we should keep dependencies as light as possible - it should be theoretically easy in the future to use Bunko with Hanami, Sinatra, Padrino, whatever.
+**Goal:** Ship a production-ready CMS gem where a Rails developer can add `gem "bunko"`, run one generator, and have a working blog in under 5 minutes. Officially we are only targeting support for Rails but we are trying to keep dependencies as light as possible.
+
+**Note:** Version 0.1.0 was released as a placeholder to register the gem name. We're now building toward 1.0.0, using 0.x versions during active development.
+
+---
+
+## Development Status
+
+- [x] **Milestone 1: Post Model Behavior** - ✅ COMPLETED
+- [x] **Milestone 2: Collection Controllers** - ✅ COMPLETED
+- [ ] **Milestone 3: Installation Generator** - 🚧 PENDING
+- [ ] **Milestone 4: Routing Helpers** - 🚧 PENDING
+- [ ] **Milestone 5: View Helpers** - 🚧 PENDING
+- [ ] **Milestone 6: Configuration** - 🚧 PENDING (core system exists, needs expansion)
+- [ ] **Milestone 7: Documentation** - 🚧 PENDING
+- [ ] **Milestone 8: Release** - 🚧 PENDING
 
 ---
 
@@ -14,7 +29,7 @@ By 1.0, a Rails developer should be able to:
 4. ✅ Schedule posts for future publication
 5. ✅ Organize content into different post types without migrations
 6. ✅ Customize views with their own HTML/CSS
-7. ✅ Use slug-based URLs instead of IDs
+7. ✅ Automatically use slug-based URLs instead of IDs
 
 ---
 
@@ -45,7 +60,7 @@ By 1.0, a Rails developer should be able to:
 
 **Reading Metrics:**
 - If post has `word_count`, developer can get estimated reading time
-- Reading time calculation is configurable (default ~250 words/minute)
+- Reading time calculation is configurable (default ~200 words/minute)
 
 **Routing Support:**
 - Users should be able to route #index/#show collections of posts with a simple routes entry, eg something like "mount_bunko :case_studies" should automatically show all posts where post_type = 'case_study' (or 'case_studies'?) in the subfolder /case-studies/ with the slug for that post. Similar to if they wrote this:
@@ -304,7 +319,7 @@ end
 - Valid post types (default: ['post'])
 - Valid statuses (default: ['draft', 'published', 'scheduled'])
 - Default status (default: 'draft')
-- Reading speed in words/minute (default: 250)
+- Reading speed in words/minute (default: 200)
 - Excerpt length (default: 160)
 - Slug generation strategy (default: parameterize)
 
