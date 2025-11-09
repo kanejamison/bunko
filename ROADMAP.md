@@ -60,7 +60,7 @@ By 1.0, a Rails developer should be able to:
 
 **Reading Metrics:**
 - If post has `word_count`, developer can get estimated reading time
-- Reading time calculation is configurable (default ~200 words/minute)
+- Reading time calculation is configurable (default ~250 words/minute)
 
 **Routing Support:**
 - Users should be able to route #index/#show collections of posts with a simple routes entry, eg something like "mount_bunko :case_studies" should automatically show all posts where post_type = 'case_study' (or 'case_studies'?) in the subfolder /case-studies/ with the slug for that post. Similar to if they wrote this:
@@ -319,7 +319,7 @@ end
 - Valid post types (default: ['post'])
 - Valid statuses (default: ['draft', 'published', 'scheduled'])
 - Default status (default: 'draft')
-- Reading speed in words/minute (default: 200)
+- Reading speed in words/minute (default: 250)
 - Excerpt length (default: 160)
 - Slug generation strategy (default: parameterize)
 

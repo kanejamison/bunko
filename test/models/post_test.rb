@@ -315,7 +315,7 @@ class PostTest < ActiveSupport::TestCase
       word_count: 500
     )
 
-    # Default is 250 wpm
+    # Default is 250 wpm: 500 / 250 = 2.0
     assert_equal 2, post.reading_time
   end
 

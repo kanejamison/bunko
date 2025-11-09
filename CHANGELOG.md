@@ -15,7 +15,7 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - 404 handling for missing/draft/scheduled posts
   - Configurable per_page, ordering, and layout
 - Configuration system via `Bunko.configure` block
-  - Configurable reading speed (default: 200 wpm)
+  - Configurable reading speed (default: 250 wpm)
   - Configurable valid statuses (default: draft, published, scheduled)
 - Test suite with 37 tests, 67 assertions (100% passing)
 - CI/CD pipeline testing Ruby 3.2, 3.3, 3.4, 3.5

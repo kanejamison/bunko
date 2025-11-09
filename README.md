@@ -214,7 +214,7 @@ post.published_at  # => automatically set to current time
 
 ```ruby
 post = Post.create(title: "Article", word_count: 500)
-post.reading_time  # => 2 (minutes, based on 200 wpm default)
+post.reading_time  # => 2 (minutes, based on 250 wpm default)
 ```
 
 ### Controller Instance Variables
@@ -231,7 +231,7 @@ When using `bunko_collection`, these instance variables are available in your vi
 ```ruby
 # config/initializers/bunko.rb
 Bunko.configure do |config|
-  config.reading_speed = 200  # words per minute for reading time calculation
+  config.reading_speed = 250  # words per minute for reading time calculation (default: 250)
   config.valid_statuses = %w[draft published scheduled]  # allowed post statuses
 end
 ```
