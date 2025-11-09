@@ -11,7 +11,7 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 - [x] **Milestone 1: Post Model Behavior** - Core `acts_as_bunko_post` concern with scopes, slug generation, publishing workflow, and reading time calculation
 - [x] **Milestone 2: Collection Controllers** - `bunko_collection` concern for automatic index/show actions with built-in pagination
 - [x] **Milestone 3: Installation Generator** - `rails generate bunko:install` command and `rails bunko:setup` task
-- [ ] **Milestone 4: Routing Helpers** - Convenience methods for collection routes
+- [x] **Milestone 4: Routing Helpers** - `bunko_routes` DSL for simple collection routing with automatic hyphenation
 - [ ] **Milestone 5: View Helpers** - Formatting, metadata, and display helpers
 - [ ] **Milestone 6: Configuration** - Expanded configuration system
 - [ ] **Milestone 7: Documentation** - Usage guides and examples
@@ -185,6 +185,47 @@ When using `bunko_collection`, these instance variables are available in your vi
 - `@post` - Single post (show action)
 - `@collection_name` - Name of the collection (e.g., "blog")
 - `@pagination` - Hash with `:page`, `:per_page`, `:total`, `:total_pages`, `:prev_page`, `:next_page`
+
+### Routing Helpers
+
+Bunko provides a `bunko_routes` DSL method to simplify route definitions:
+
+```ruby
+# config/routes.rb
+Rails.application.routes.draw do
+  bunko_routes :blog
+  # Generates: /blog (index), /blog/:slug (show)
+end
+```
+
+**Automatic hyphenation** - Underscored slugs are automatically converted to hyphens in URLs:
+
+```ruby
+bunko_routes :case_study
+# Generates: /case-study/:slug (slug stored as :case_study in database)
+```
+
+**Custom paths:**
+
+```ruby
+bunko_routes :case_study, path: "case-studies"
+# Generates: /case-studies (index), /case-studies/:slug (show)
+# Path helpers: case_studies_path, case_study_path(post)
+```
+
+**Custom controllers:**
+
+```ruby
+bunko_routes :blog, controller: "articles"
+# Routes to: articles#index, articles#show
+```
+
+**Limit actions:**
+
+```ruby
+bunko_routes :blog, only: [:index]
+# Only generates index route (no show route)
+```
 
 ### Configuration
 
