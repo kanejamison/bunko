@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
 class PostType < ApplicationRecord
-  has_many :posts, dependent: :restrict_with_error
-
-  validates :name, presence: true
-  validates :slug, presence: true, uniqueness: true
+  acts_as_bunko_post_type
 end

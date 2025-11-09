@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class PostType < ApplicationRecord
-  has_many :posts, dependent: :destroy
+  acts_as_bunko_post_type
 
-  validates :name, presence: true
-  validates :slug, presence: true, uniqueness: true
+  # All standard Bunko behavior (associations, validations) is included via acts_as_bunko_post_type
+  # Add custom validations, associations, or methods below as needed
 end
