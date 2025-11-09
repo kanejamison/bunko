@@ -3,13 +3,18 @@
 Bunko.configure do |config|
   # Define your post types
   # These will be created when you run: rails bunko:setup
-  # Default: [{ name: "Blog", slug: "blog" }]
+  config.post_type "Blog"
+
+  # Want more? Add additional post types:
+  # config.post_type "Documentation" do |type|
+  #   type.slug = "docs"
+  # end
   #
-  # config.post_types = [
-  #   { name: "Blog", slug: "blog" },
-  #   { name: "Documentation", slug: "docs" },
-  #   { name: "Changelog", slug: "changelog" }
-  # ]
+  # config.post_type "Changelog"
+  #
+  # config.post_type "Case Studies" do |type|
+  #   type.slug = "case-study"
+  # end
 
   # Reading speed for calculating estimated reading time (in words per minute)
   # Default: 250

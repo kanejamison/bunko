@@ -77,11 +77,16 @@ bundle exec rake release
 ```
 lib/
 ├── bunko/
-│   ├── version.rb           # Version constant
-│   ├── configuration.rb     # Configuration system with post_types
-│   ├── post.rb              # acts_as_bunko_post concern
-│   ├── controller.rb        # bunko_collection concern
-│   └── railtie.rb           # Rails integration (loads rake tasks)
+│   ├── version.rb              # Version constant
+│   ├── configuration.rb        # Configuration system with post_type DSL
+│   ├── models/                 # ActiveRecord model concerns
+│   │   ├── acts_as.rb          # acts_as_bunko_post/post_type macros
+│   │   ├── post_methods.rb     # Post behavior (concern)
+│   │   └── post_type_methods.rb # PostType behavior (concern)
+│   ├── controllers/            # ActionController concerns
+│   │   ├── acts_as.rb          # bunko_collection macro
+│   │   └── collection.rb       # Collection behavior (concern)
+│   └── railtie.rb              # Rails integration (loads rake tasks)
 ├── generators/bunko/install/
 │   ├── install_generator.rb    # rails generate bunko:install
 │   └── templates/              # Migration and model templates
@@ -154,3 +159,80 @@ When implementing features for this gem:
 4. **Convention with escape hatches** - Provide sensible defaults but allow customization
 5. **No forced UI** - Helpers over components; let developers control their HTML
 6. **Specs over implementation** - Focus on behavior and outcomes, not prescriptive solutions
+
+## Concern Pattern Architecture
+
+Bunko follows a consistent concern pattern inspired by gems like Devise and RubyLLM. This pattern:
+- Avoids namespace collisions with user models/controllers
+- Provides clean, extensible organization
+- Follows Rails conventions for `acts_as_*` style macros
+
+### Pattern Structure
+
+```
+lib/bunko/<layer>/
+  acts_as.rb          # Public macros (acts_as_bunko_post, bunko_collection)
+  *_methods.rb        # Internal concern modules (PostMethods, Collection)
+```
+
+**Key principles:**
+- **Public API:** Users call macros like `acts_as_bunko_post` or `bunko_collection`
+- **Internal modules:** Implementation lives in `Bunko::Models::PostMethods`, `Bunko::Controllers::Collection`
+- **No `::` prefixes needed:** Namespacing avoids collisions with `Post`, `PostType`, etc.
+
+### Current Implementations
+
+**Models Layer (`lib/bunko/models/`):**
+```ruby
+# acts_as.rb - Defines the acts_as macros
+ActiveRecord::Base.include Bunko::Models::ActsAs
+
+# post_methods.rb - Post behavior concern
+module Bunko::Models::PostMethods
+  # Associations, validations, scopes, callbacks
+end
+
+# post_type_methods.rb - PostType behavior concern
+module Bunko::Models::PostTypeMethods
+  # Associations, validations
+end
+```
+
+**Controllers Layer (`lib/bunko/controllers/`):**
+```ruby
+# acts_as.rb - Defines bunko_collection macro
+ActionController::Base.include Bunko::Controllers::ActsAs
+
+# collection.rb - Collection behavior concern
+module Bunko::Controllers::Collection
+  # Index/show actions, pagination, routing
+end
+```
+
+### When to Deviate from This Pattern
+
+Use the `Bunko::<Layer>::<Methods>` pattern when:
+- ✅ Adding behavior to existing classes (models, controllers)
+- ✅ Using `include` to mix functionality in
+- ✅ Providing an `acts_as_*` style API
+
+Use different patterns for:
+- ❌ Standalone utility classes (use `Bunko::Services::ClassName`)
+- ❌ Rails conventions (validators, helpers, generators - follow Rails patterns)
+- ❌ Service/Query objects (use `Bunko::Services::`, `Bunko::Queries::`)
+- ❌ Presenters/Serializers (use `Bunko::Serializers::`, `Bunko::Presenters::`)
+- ❌ Configuration objects (use `Bunko::Configuration`)
+- ❌ Middleware (use `Bunko::Middleware::`)
+
+**Example of future helpers (when needed):**
+```ruby
+# lib/bunko/helpers/post_helper.rb
+module Bunko::Helpers::PostHelper
+  def bunko_reading_time(post)
+    # Helper logic
+  end
+end
+
+# Included in views via railtie
+ActionView::Base.include Bunko::Helpers::PostHelper
+```

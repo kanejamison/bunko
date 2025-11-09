@@ -8,13 +8,15 @@ Next steps:
 
 1. (Optional) Customize your post types in config/initializers/bunko.rb
 
-   The default is just "Blog", but you can add more:
+   We've configured "Blog" for you, but you can change that or add more:
 
-   config.post_types = [
-     { name: "Blog", slug: "blog" },
-     { name: "Documentation", slug: "docs" },
-     { name: "Changelog", slug: "changelog" }
-   ]
+   config.post_type "Blog"
+
+   config.post_type "Documentation" do |type|
+     type.slug = "docs"
+   end
+
+   config.post_type "Changelog"
 
 2. Run the migrations:
 
