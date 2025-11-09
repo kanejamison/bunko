@@ -9,5 +9,8 @@
 
 # Don't commit Gemfile.lock for gems (only for applications)
 /Gemfile.lock
+
+# Don't commit built gems
+/*.gem
+
 /log
-Gemfile.lock
