@@ -14,14 +14,21 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - Show action with slug-based lookup and proper scoping
   - 404 handling for missing/draft/scheduled posts
   - Configurable per_page, ordering, and layout
+- Two-phase installation system (#PR_NUMBER)
+  - `rails generate bunko:install` - Creates migrations, models, and initializer
+  - `rails bunko:setup` - Generates controllers, views, and routes from configuration
+  - Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`
+  - Idempotent setup task (safe to re-run when adding collections)
+  - Single-collection setup: `rails bunko:setup[slug]`
+  - Template-based code generation from `lib/tasks/templates/`
 - Configuration system via `Bunko.configure` block
+  - Configurable post_types for content collections
   - Configurable reading speed (default: 250 wpm)
   - Configurable valid statuses (default: draft, published, scheduled)
-- Test suite with 37 tests, 67 assertions (100% passing)
+- Test suite with 52 tests, 126 assertions (100% passing)
 - CI/CD pipeline testing Ruby 3.2, 3.3, 3.4, 3.5
 
 ### In Progress
-- Installation generator (`rails generate bunko:install`)
 - Routing helpers
 - View helpers
 - Expanded configuration options

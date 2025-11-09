@@ -43,6 +43,14 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
   end
 
   # Index Action Tests
+  test "index returns 404 when post_type does not exist" do
+    # Test with a collection that doesn't have a PostType
+    get nonexistent_index_path
+    assert_response :not_found
+    assert_match(/PostType 'nonexistent' not found/, response.body)
+    assert_match(/rails bunko:setup\[nonexistent\]/, response.body)
+  end
+
   test "index shows all published posts for the collection" do
     get blog_index_path
 
@@ -85,6 +93,14 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
   end
 
   # Show Action Tests
+  test "show returns 404 when post_type does not exist" do
+    # Test with a collection that doesn't have a PostType
+    get nonexistent_path("any-slug")
+    assert_response :not_found
+    assert_match(/PostType 'nonexistent' not found/, response.body)
+    assert_match(/rails bunko:setup\[nonexistent\]/, response.body)
+  end
+
   test "show finds post by slug" do
     get blog_path(@blog_post1.slug)
     assert_response :success

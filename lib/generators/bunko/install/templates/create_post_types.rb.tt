@@ -1,0 +1,14 @@
+# frozen_string_literal: true
+
+class CreatePostTypes < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+  def change
+    create_table :post_types do |t|
+      t.string :name, null: false
+      t.string :slug, null: false
+
+      t.timestamps
+    end
+
+    add_index :post_types, :slug, unique: true
+  end
+end

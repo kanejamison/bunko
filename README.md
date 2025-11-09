@@ -10,7 +10,7 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 
 - [x] **Milestone 1: Post Model Behavior** - Core `acts_as_bunko_post` concern with scopes, slug generation, publishing workflow, and reading time calculation
 - [x] **Milestone 2: Collection Controllers** - `bunko_collection` concern for automatic index/show actions with built-in pagination
-- [ ] **Milestone 3: Installation Generator** - `rails generate bunko:install` command
+- [x] **Milestone 3: Installation Generator** - `rails generate bunko:install` command and `rails bunko:setup` task
 - [ ] **Milestone 4: Routing Helpers** - Convenience methods for collection routes
 - [ ] **Milestone 5: View Helpers** - Formatting, metadata, and display helpers
 - [ ] **Milestone 6: Configuration** - Expanded configuration system
@@ -35,9 +35,7 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 - Ruby >= 3.2.0
 - Rails >= 8.0
 
-## Current Usage (Manual Setup)
-
-**Note:** The installation generator is not yet available. For now, you'll need to set up Bunko manually:
+## Quick Start
 
 ### 1. Add to Gemfile
 
@@ -45,127 +43,62 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 gem "bunko"
 ```
 
-### 2. Create Database Migrations
+```bash
+bundle install
+```
+
+### 2. Install Bunko
+
+```bash
+rails generate bunko:install
+```
+
+This creates:
+- Database migrations for `post_types` and `posts`
+- `Post` and `PostType` models with `acts_as_bunko_post`
+- `config/initializers/bunko.rb` with configuration
+
+### 3. (Optional) Customize Collections
+
+Edit `config/initializers/bunko.rb` to define your content collections:
 
 ```ruby
-# db/migrate/YYYYMMDDHHMMSS_create_post_types.rb
-class CreatePostTypes < ActiveRecord::Migration[8.0]
-  def change
-    create_table :post_types do |t|
-      t.string :name, null: false
-      t.string :slug, null: false
-      t.timestamps
-    end
-    add_index :post_types, :slug, unique: true
-  end
-end
-
-# db/migrate/YYYYMMDDHHMMSS_create_posts.rb
-class CreatePosts < ActiveRecord::Migration[8.0]
-  def change
-    create_table :posts do |t|
-      t.string :title, null: false
-      t.string :slug, null: false
-      t.text :content
-      t.references :post_type, null: false, foreign_key: true
-      t.string :status, null: false, default: "draft"
-      t.datetime :published_at
-
-      # SEO fields
-      t.string :meta_title
-      t.text :meta_description
-
-      # Metrics
-      t.integer :word_count
-
-      t.timestamps
-    end
-
-    add_index :posts, [:post_type_id, :slug], unique: true
-  end
+Bunko.configure do |config|
+  config.post_types = [
+    { name: "Blog", slug: "blog" },
+    { name: "Documentation", slug: "docs" },
+    { name: "Changelog", slug: "changelog" }
+  ]
 end
 ```
 
-### 3. Create Your Post Model
+### 4. Run Migrations
 
-```ruby
-# app/models/post.rb
-class Post < ApplicationRecord
-  acts_as_bunko_post
-  belongs_to :post_type
-
-  validates :title, presence: true
-  validates :slug, presence: true, uniqueness: { scope: :post_type_id }
-  validates :status, presence: true
-end
-
-# app/models/post_type.rb
-class PostType < ApplicationRecord
-  has_many :posts, dependent: :destroy
-  validates :name, presence: true
-  validates :slug, presence: true, uniqueness: true
-end
+```bash
+rails db:migrate
 ```
 
-### 4. Create Collection Controllers
+### 5. Generate Controllers, Views, and Routes
 
-```ruby
-# app/controllers/blog_controller.rb
-class BlogController < ApplicationController
-  bunko_collection :blog  # Creates index and show actions
-end
-
-# app/controllers/docs_controller.rb
-class DocsController < ApplicationController
-  bunko_collection :docs, per_page: 20, order: "title ASC"
-end
+```bash
+rails bunko:setup
 ```
 
-### 5. Add Routes
+This generates:
+- Controllers for each post type (e.g., `BlogController`, `DocsController`)
+- View templates (index + show) for each collection
+- Routes for each collection
 
-```ruby
-# config/routes.rb
-Rails.application.routes.draw do
-  resources :blog, only: [:index, :show], param: :slug
-  resources :docs, only: [:index, :show], param: :slug
-end
+**Adding more collections later?** Just update the initializer and run:
+```bash
+rails bunko:setup[new_collection_slug]
 ```
 
-### 6. Create Views
-
-```erb
-<!-- app/views/blog/index.html.erb -->
-<h1>Blog</h1>
-<% @posts.each do |post| %>
-  <article>
-    <h2><%= link_to post.title, blog_path(post.slug) %></h2>
-    <time><%= post.published_at.strftime("%B %d, %Y") %></time>
-    <p><%= post.content.truncate(200) %></p>
-  </article>
-<% end %>
-
-<%= link_to "Previous Page", blog_index_path(page: @pagination[:page] - 1) if @pagination[:prev_page] %>
-<%= link_to "Next Page", blog_index_path(page: @pagination[:page] + 1) if @pagination[:next_page] %>
-
-<!-- app/views/blog/show.html.erb -->
-<article>
-  <h1><%= @post.title %></h1>
-  <time><%= @post.published_at.strftime("%B %d, %Y") %></time>
-  <div><%= @post.content %></div>
-</article>
-```
-
-### 7. Seed Your Database
+### 6. Create Your First Post
 
 ```ruby
-# db/seeds.rb
-blog_type = PostType.find_or_create_by!(slug: "blog") do |pt|
-  pt.name = "Blog"
-end
-
-docs_type = PostType.find_or_create_by!(slug: "docs") do |pt|
-  pt.name = "Documentation"
-end
+# In Rails console or your admin interface
+blog_type = PostType.find_by(slug: "blog")
 
 Post.create!(
   title: "Welcome to Bunko",
@@ -174,6 +107,31 @@ Post.create!(
   status: "published",
   published_at: Time.current
 )
+```
+
+### 7. Visit Your Blog
+
+Start your Rails server and visit:
+- `http://localhost:3000/blog` - Blog index
+- `http://localhost:3000/docs` - Documentation index
+- `http://localhost:3000/changelog` - Changelog index
+
+## Generator Options
+
+Customize the installation to fit your needs:
+
+```bash
+# Exclude SEO fields (meta_title, meta_description)
+rails generate bunko:install --skip-seo
+
+# Exclude metrics fields (word_count, reading_time)
+rails generate bunko:install --skip-metrics
+
+# Add metadata jsonb field for custom data
+rails generate bunko:install --metadata
+
+# Minimal install
+rails generate bunko:install --skip-seo --skip-metrics
 ```
 
 ## Available Features
@@ -231,6 +189,12 @@ When using `bunko_collection`, these instance variables are available in your vi
 ```ruby
 # config/initializers/bunko.rb
 Bunko.configure do |config|
+  # Define content collections (used by rails bunko:setup)
+  config.post_types = [
+    { name: "Blog", slug: "blog" },
+    { name: "Documentation", slug: "docs" }
+  ]
+
   config.reading_speed = 250  # words per minute for reading time calculation (default: 250)
   config.valid_statuses = %w[draft published scheduled]  # allowed post statuses
 end

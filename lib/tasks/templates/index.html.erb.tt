@@ -1,0 +1,53 @@
+<div class="<%= slug %>-index">
+  <h1><%= collection_title %></h1>
+
+  <%%= if @posts.any? %>
+    <div class="posts">
+      <%%= @posts.each do |post| %>
+        <article class="post-preview">
+          <h2>
+            <%%= link_to post.title, <%= path_helper %>(post.slug) %>
+          </h2>
+
+          <div class="post-meta">
+            <%%= if post.published_at %>
+              <time datetime="<%%= post.published_at.iso8601 %>">
+                <%%= post.published_at.strftime("%B %d, %Y") %>
+              </time>
+            <%% end %>
+
+            <%%= if post.reading_time %>
+              <span class="reading-time">
+                <%%= post.reading_time %> min read
+              </span>
+            <%% end %>
+          </div>
+
+          <%%= if post.content.present? %>
+            <div class="post-excerpt">
+              <%%= truncate(post.content, length: 200) %>
+            </div>
+          <%% end %>
+        </article>
+      <%% end %>
+    </div>
+
+    <%%= if @pagination[:total_pages] > 1 %>
+      <nav class="pagination">
+        <%%= if @pagination[:prev_page] %>
+          <%%= link_to "← Previous", <%= index_path_helper %>(page: @pagination[:page] - 1), class: "pagination-prev" %>
+        <%% end %>
+
+        <span class="pagination-info">
+          Page <%%= @pagination[:page] %> of <%%= @pagination[:total_pages] %>
+        </span>
+
+        <%%= if @pagination[:next_page] %>
+          <%%= link_to "Next →", <%= index_path_helper %>(page: @pagination[:page] + 1), class: "pagination-next" %>
+        <%% end %>
+      </nav>
+    <%% end %>
+  <%% else %>
+    <p class="no-posts">No <%= collection_title.downcase %> posts yet.</p>
+  <%% end %>
+</div>

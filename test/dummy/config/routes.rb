@@ -8,4 +8,8 @@ Rails.application.routes.draw do
   # Docs routes
   get "/docs", to: "docs#index", as: :docs_index
   get "/docs/:slug", to: "docs#show", as: :docs
+
+  # Test routes for nonexistent PostType
+  get "/nonexistent", to: "nonexistent#index", as: :nonexistent_index
+  get "/nonexistent/:slug", to: "nonexistent#show", as: :nonexistent
 end

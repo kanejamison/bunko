@@ -2,11 +2,14 @@
 
 module Bunko
   class Configuration
-    attr_accessor :reading_speed, :valid_statuses
+    attr_accessor :reading_speed, :valid_statuses, :post_types
 
     def initialize
       @reading_speed = 250 # words per minute
       @valid_statuses = %w[draft published scheduled]
+      @post_types = [
+        {name: "Blog", slug: "blog"}
+      ]
     end
   end
 
