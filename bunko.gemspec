@@ -9,12 +9,10 @@ Gem::Specification.new do |spec|
   spec.email = ["918780+kanejamison@users.noreply.github.com"]
 
   spec.summary = "A simple and lightweight content management system for Rails."
-  spec.description = "TODO: Write a longer description or delete this line."
+  spec.description = "A simple and lightweight content management system for Rails."
   spec.homepage = "https://github.com/kanejamison/bunko"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
-
-  spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/kanejamison/bunko"
