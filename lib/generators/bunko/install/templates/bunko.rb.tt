@@ -3,8 +3,11 @@
 Bunko.configure do |config|
   # Define your post types
   # These will be created when you run: rails bunko:setup
-  # Default: [{ name: "Blog", slug: "blog" }]
-  #
+  config.post_types = [
+    { name: "Blog", slug: "blog" }
+  ]
+
+  # Want more? Uncomment and customize:
   # config.post_types = [
   #   { name: "Blog", slug: "blog" },
   #   { name: "Documentation", slug: "docs" },

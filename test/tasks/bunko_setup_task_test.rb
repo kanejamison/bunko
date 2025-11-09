@@ -56,8 +56,8 @@ class BunkoSetupTaskTest < Minitest::Test
     PostType.delete_all
     Post.delete_all
 
-    # Reset configuration
-    Bunko.configuration.post_types = [{name: "Blog", slug: "blog"}]
+    # Reset configuration to default (empty - must be configured)
+    Bunko.configuration.post_types = []
   end
 
   def test_setup_creates_post_types_in_database

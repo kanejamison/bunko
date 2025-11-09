@@ -7,9 +7,7 @@ module Bunko
     def initialize
       @reading_speed = 250 # words per minute
       @valid_statuses = %w[draft published scheduled]
-      @post_types = [
-        {name: "Blog", slug: "blog"}
-      ]
+      @post_types = [] # Must be configured in initializer
     end
   end
 
