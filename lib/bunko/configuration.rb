@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 module Bunko
-  class PostTypeCustomizer
-    def initialize(post_type_hash)
-      @post_type_hash = post_type_hash
-    end
-
-    def slug=(value)
-      @post_type_hash[:slug] = value
-    end
-
-    # Future: Add more customization methods
-    # def per_page=(value)
-    #   @post_type_hash[:per_page] = value
-    # end
-  end
-
   class Configuration
+    class PostTypeCustomizer
+      def initialize(post_type_hash)
+        @post_type_hash = post_type_hash
+      end
+
+      def slug=(value)
+        @post_type_hash[:slug] = value
+      end
+
+      # Future: Add more customization methods
+      # def per_page=(value)
+      #   @post_type_hash[:per_page] = value
+      # end
+    end
+
     attr_accessor :reading_speed, :valid_statuses, :post_types
 
     def initialize
