@@ -63,10 +63,8 @@ class BunkoSetupTaskTest < Minitest::Test
   def test_setup_creates_post_types_in_database
     # Configure with test post types
     Bunko.configure do |config|
-      config.post_types = [
-        {name: "Blog", slug: "blog"},
-        {name: "Docs", slug: "docs"}
-      ]
+      config.post_type "Blog"
+      config.post_type "Docs"
     end
 
     # Run the task
@@ -80,10 +78,8 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_generates_controllers_for_each_post_type
     Bunko.configure do |config|
-      config.post_types = [
-        {name: "Blog", slug: "blog"},
-        {name: "Docs", slug: "docs"}
-      ]
+      config.post_type "Blog"
+      config.post_type "Docs"
     end
 
     run_rake_task("bunko:setup")
@@ -100,7 +96,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_generates_views_for_each_post_type
     Bunko.configure do |config|
-      config.post_types = [{name: "Blog", slug: "blog"}]
+      config.post_type "Blog"
     end
 
     run_rake_task("bunko:setup")
@@ -120,10 +116,8 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_adds_routes_for_each_post_type
     Bunko.configure do |config|
-      config.post_types = [
-        {name: "Blog", slug: "blog"},
-        {name: "Docs", slug: "docs"}
-      ]
+      config.post_type "Blog"
+      config.post_type "Docs"
     end
 
     run_rake_task("bunko:setup")
@@ -136,11 +130,9 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_with_specific_slug_only_sets_up_that_slug
     Bunko.configure do |config|
-      config.post_types = [
-        {name: "Blog", slug: "blog"},
-        {name: "Docs", slug: "docs"},
-        {name: "Changelog", slug: "changelog"}
-      ]
+      config.post_type "Blog"
+      config.post_type "Docs"
+      config.post_type "Changelog"
     end
 
     # Run setup for just "docs"
@@ -160,7 +152,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_is_idempotent_for_post_types
     Bunko.configure do |config|
-      config.post_types = [{name: "Blog", slug: "blog"}]
+      config.post_type "Blog"
     end
 
     # Run setup twice
@@ -173,7 +165,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_is_idempotent_for_controllers
     Bunko.configure do |config|
-      config.post_types = [{name: "Blog", slug: "blog"}]
+      config.post_type "Blog"
     end
 
     # Run setup twice
@@ -189,7 +181,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_is_idempotent_for_routes
     Bunko.configure do |config|
-      config.post_types = [{name: "Blog", slug: "blog"}]
+      config.post_type "Blog"
     end
 
     # Run setup twice
@@ -204,7 +196,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_with_invalid_slug_exits_gracefully
     Bunko.configure do |config|
-      config.post_types = [{name: "Blog", slug: "blog"}]
+      config.post_type "Blog"
     end
 
     # This should exit with an error message

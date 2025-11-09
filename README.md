@@ -64,11 +64,13 @@ Edit `config/initializers/bunko.rb` to define your content collections:
 
 ```ruby
 Bunko.configure do |config|
-  config.post_types = [
-    { name: "Blog", slug: "blog" },
-    { name: "Documentation", slug: "docs" },
-    { name: "Changelog", slug: "changelog" }
-  ]
+  config.post_type "Blog"
+
+  config.post_type "Documentation" do |type|
+    type.slug = "docs"
+  end
+
+  config.post_type "Changelog"
 end
 ```
 
@@ -190,10 +192,11 @@ When using `bunko_collection`, these instance variables are available in your vi
 # config/initializers/bunko.rb
 Bunko.configure do |config|
   # Define content collections (used by rails bunko:setup)
-  config.post_types = [
-    { name: "Blog", slug: "blog" },
-    { name: "Documentation", slug: "docs" }
-  ]
+  config.post_type "Blog"
+
+  config.post_type "Documentation" do |type|
+    type.slug = "docs"
+  end
 
   config.reading_speed = 250  # words per minute for reading time calculation (default: 250)
   config.valid_statuses = %w[draft published scheduled]  # allowed post statuses

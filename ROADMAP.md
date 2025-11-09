@@ -339,7 +339,11 @@ end
 ```ruby
 # Developer can configure in config/initializers/bunko.rb:
 Bunko.configure do |config|
-  config.post_types = %w[post page doc tutorial]
+  config.post_type "Post"
+  config.post_type "Page"
+  config.post_type "Doc"
+  config.post_type "Tutorial"
+
   config.reading_speed = 200
   config.excerpt_length = 200
   config.slug_generator = ->(title) { title.parameterize.truncate(50) }
