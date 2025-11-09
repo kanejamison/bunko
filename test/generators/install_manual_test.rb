@@ -44,32 +44,6 @@ class InstallManualTest < Minitest::Test
     assert_match(/acts_as_bunko_post/, post_content)
   end
 
-  def test_generator_creates_controller
-    generator = Bunko::Generators::InstallGenerator.new([], {}, destination_root: @destination)
-    generator.create_controller
-
-    assert File.exist?(File.join(@destination, "app/controllers/blog_controller.rb"))
-
-    content = File.read(File.join(@destination, "app/controllers/blog_controller.rb"))
-    assert_match(/bunko_collection :blog/, content)
-  end
-
-  def test_generator_creates_views
-    generator = Bunko::Generators::InstallGenerator.new([], {}, destination_root: @destination)
-    generator.create_views
-
-    assert File.exist?(File.join(@destination, "app/views/blog/index.html.erb"))
-    assert File.exist?(File.join(@destination, "app/views/blog/show.html.erb"))
-  end
-
-  def test_generator_skips_views_with_option
-    generator = Bunko::Generators::InstallGenerator.new([], {skip_views: true}, destination_root: @destination)
-    generator.create_views
-
-    refute File.exist?(File.join(@destination, "app/views/blog/index.html.erb"))
-    refute File.exist?(File.join(@destination, "app/views/blog/show.html.erb"))
-  end
-
   def test_generator_creates_initializer
     generator = Bunko::Generators::InstallGenerator.new([], {}, destination_root: @destination)
     generator.create_initializer

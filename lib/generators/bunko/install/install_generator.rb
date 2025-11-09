@@ -10,10 +10,6 @@ module Bunko
 
       source_root File.expand_path("templates", __dir__)
 
-      class_option :skip_views, type: :boolean, default: false,
-        desc: "Skip generating view templates"
-      class_option :skip_routes, type: :boolean, default: false,
-        desc: "Skip modifying routes.rb"
       class_option :skip_seo, type: :boolean, default: false,
         desc: "Skip adding SEO fields (meta_title, meta_description)"
       class_option :skip_metrics, type: :boolean, default: false,
@@ -39,23 +35,6 @@ module Bunko
       def create_models
         template "post_type.rb.tt", "app/models/post_type.rb"
         template "post.rb.tt", "app/models/post.rb"
-      end
-
-      def create_controller
-        template "blog_controller.rb.tt", "app/controllers/blog_controller.rb"
-      end
-
-      def create_views
-        return if options[:skip_views]
-
-        template "index.html.erb.tt", "app/views/blog/index.html.erb"
-        template "show.html.erb.tt", "app/views/blog/show.html.erb"
-      end
-
-      def add_routes
-        return if options[:skip_routes]
-
-        route "resources :blog, only: [:index, :show], param: :slug"
       end
 
       def create_initializer
