@@ -4,6 +4,7 @@ require_relative "bunko/version"
 require_relative "bunko/configuration"
 require_relative "bunko/post"
 require_relative "bunko/controller"
+require_relative "bunko/railtie" if defined?(Rails::Railtie)
 
 module Bunko
   class Error < StandardError; end

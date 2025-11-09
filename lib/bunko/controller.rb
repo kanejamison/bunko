@@ -40,7 +40,11 @@ module Bunko
       @collection_name = bunko_collection_name
 
       # Verify post type exists
-      PostType.find_by!(slug: @collection_name)
+      @post_type = PostType.find_by(slug: @collection_name)
+      unless @post_type
+        render plain: "PostType '#{@collection_name}' not found. Create it with: PostType.create!(name: '#{@collection_name.titleize}', slug: '#{@collection_name}')", status: :not_found
+        return
+      end
 
       # Base query: published posts for this type
       base_query = post_model.published.by_post_type(@collection_name)
@@ -56,10 +60,21 @@ module Bunko
     def load_post
       @collection_name = bunko_collection_name
 
+      # Verify post type exists
+      @post_type = PostType.find_by(slug: @collection_name)
+      unless @post_type
+        render plain: "PostType '#{@collection_name}' not found. Create it with: PostType.create!(name: '#{@collection_name.titleize}', slug: '#{@collection_name}')", status: :not_found
+        return
+      end
+
       # Find post by slug, scoped to this collection's post type
       @post = post_model.published
         .by_post_type(@collection_name)
-        .find_by!(slug: params[:slug])
+        .find_by(slug: params[:slug])
+
+      unless @post
+        render plain: "Post not found", status: :not_found
+      end
     end
 
     def post_model

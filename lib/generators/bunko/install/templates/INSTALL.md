@@ -8,11 +8,24 @@ Next steps:
 
    $ rails db:migrate
 
-2. Create your first post type in the Rails console or seeds.rb:
+2. (Optional) Customize your post types in config/initializers/bunko.rb
 
-   PostType.create!(name: "Blog", slug: "blog")
+   The default is just "Blog", but you can add more:
 
-3. Create your first post:
+   config.post_types = [
+     { name: "Blog", slug: "blog" },
+     { name: "Documentation", slug: "docs" },
+     { name: "Changelog", slug: "changelog" }
+   ]
+
+3. Run the setup task to create your post types:
+
+   $ rails bunko:setup
+
+   This reads your config/initializers/bunko.rb and creates the PostTypes.
+   Safe to re-run if you add more types later!
+
+4. Create your first post (Rails console or admin panel):
 
    blog_type = PostType.find_by(slug: "blog")
    Post.create!(
@@ -23,11 +36,11 @@ Next steps:
      published_at: Time.current
    )
 
-4. Start your server and visit:
+5. Start your server and visit:
 
    http://localhost:3000/blog
 
-5. Optional: Add more collections by creating controllers and routes:
+Want to add more collections? Just create a controller and routes:
 
    # app/controllers/docs_controller.rb
    class DocsController < ApplicationController
