@@ -40,15 +40,31 @@ module Bunko
       def load_collection
         @collection_name = bunko_collection_name
 
-        # Verify post type exists
-        @post_type = PostType.find_by(slug: @collection_name)
-        unless @post_type
-          render plain: "PostType '#{@collection_name}' not found. Add it to config/initializers/bunko.rb and run: rails bunko:setup[#{@collection_name}]", status: :not_found
+        # Smart lookup: Check PostType first, then Collection
+        post_type_config = Bunko.configuration.find_post_type(@collection_name)
+        collection_config = Bunko.configuration.find_collection(@collection_name)
+
+        if post_type_config
+          # Single PostType collection
+          @post_type = PostType.find_by(slug: @collection_name)
+          unless @post_type
+            render plain: "PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]", status: :not_found
+            return
+          end
+
+          base_query = post_model.published.by_post_type(@collection_name)
+        elsif collection_config
+          # Multi-type collection
+          base_query = post_model.published.where(post_type: PostType.where(slug: collection_config[:post_types]))
+
+          # Apply collection scope if defined
+          if collection_config[:scope]
+            base_query = base_query.instance_exec(&collection_config[:scope])
+          end
+        else
+          render plain: "Collection '#{@collection_name}' not found. Add it to config/initializers/bunko.rb", status: :not_found
           return
         end
-
-        # Base query: published posts for this type
-        base_query = post_model.published.by_post_type(@collection_name)
 
         # Apply ordering
         ordered_query = apply_ordering(base_query)
@@ -61,17 +77,34 @@ module Bunko
       def load_post
         @collection_name = bunko_collection_name
 
-        # Verify post type exists
-        @post_type = PostType.find_by(slug: @collection_name)
-        unless @post_type
-          render plain: "PostType '#{@collection_name}' not found. Add it to config/initializers/bunko.rb and run: rails bunko:setup[#{@collection_name}]", status: :not_found
+        # Smart lookup: Check PostType first, then Collection
+        post_type_config = Bunko.configuration.find_post_type(@collection_name)
+        collection_config = Bunko.configuration.find_collection(@collection_name)
+
+        if post_type_config
+          # Single PostType collection
+          @post_type = PostType.find_by(slug: @collection_name)
+          unless @post_type
+            render plain: "PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]", status: :not_found
+            return
+          end
+
+          base_query = post_model.published.by_post_type(@collection_name)
+        elsif collection_config
+          # Multi-type collection
+          base_query = post_model.published.where(post_type: PostType.where(slug: collection_config[:post_types]))
+
+          # Apply collection scope if defined
+          if collection_config[:scope]
+            base_query = base_query.instance_exec(&collection_config[:scope])
+          end
+        else
+          render plain: "Collection '#{@collection_name}' not found. Add it to config/initializers/bunko.rb", status: :not_found
           return
         end
 
-        # Find post by slug, scoped to this collection's post type
-        @post = post_model.published
-          .by_post_type(@collection_name)
-          .find_by(slug: params[:slug])
+        # Find post by slug within this collection
+        @post = base_query.find_by(slug: params[:slug])
 
         unless @post
           render plain: "Post not found", status: :not_found

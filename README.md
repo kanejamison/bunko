@@ -11,7 +11,7 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 - [x] **Milestone 1: Post Model Behavior** - Core `acts_as_bunko_post` concern with scopes, slug generation, publishing workflow, and reading time calculation
 - [x] **Milestone 2: Collection Controllers** - `bunko_collection` concern for automatic index/show actions with built-in pagination
 - [x] **Milestone 3: Installation Generator** - `rails generate bunko:install` command and `rails bunko:setup` task
-- [ ] **Milestone 4: Routing Helpers** - Convenience methods for collection routes
+- [x] **Milestone 4: Routing Helpers** - `bunko_collection` DSL for simple collection routing with automatic hyphenation
 - [ ] **Milestone 5: View Helpers** - Formatting, metadata, and display helpers
 - [ ] **Milestone 6: Configuration** - Expanded configuration system
 - [ ] **Milestone 7: Documentation** - Usage guides and examples
@@ -186,6 +186,47 @@ When using `bunko_collection`, these instance variables are available in your vi
 - `@collection_name` - Name of the collection (e.g., "blog")
 - `@pagination` - Hash with `:page`, `:per_page`, `:total`, `:total_pages`, `:prev_page`, `:next_page`
 
+### Routing Helpers
+
+Bunko provides a `bunko_collection` DSL method to simplify route definitions:
+
+```ruby
+# config/routes.rb
+Rails.application.routes.draw do
+  bunko_collection :blog
+  # Generates: /blog (index), /blog/:slug (show)
+end
+```
+
+**Automatic hyphenation** - Underscored slugs are automatically converted to hyphens in URLs:
+
+```ruby
+bunko_collection :case_study
+# Generates: /case-study/:slug (slug stored as :case_study in database)
+```
+
+**Custom paths:**
+
+```ruby
+bunko_collection :case_study, path: "case-studies"
+# Generates: /case-studies (index), /case-studies/:slug (show)
+# Path helpers: case_studies_path, case_study_path(post)
+```
+
+**Custom controllers:**
+
+```ruby
+bunko_collection :blog, controller: "articles"
+# Routes to: articles#index, articles#show
+```
+
+**Limit actions:**
+
+```ruby
+bunko_collection :blog, only: [:index]
+# Only generates index route (no show route)
+```
+
 ### Configuration
 
 ```ruby
@@ -202,6 +243,47 @@ Bunko.configure do |config|
   config.valid_statuses = %w[draft published scheduled]  # allowed post statuses
 end
 ```
+
+### Smart Collections (v1)
+
+Bunko supports **smart collections** - virtual collections that aggregate multiple post types or apply custom scopes:
+
+```ruby
+# config/initializers/bunko.rb
+Bunko.configure do |config|
+  # Define individual post types
+  config.post_type "Articles"
+  config.post_type "Videos"
+  config.post_type "Tutorials"
+
+  # Define a multi-type collection
+  config.collection "Resources", post_types: ["articles", "videos", "tutorials"]
+
+  # Define a scoped collection (e.g., long-form content)
+  config.collection "Long Reads", post_types: ["articles", "tutorials"] do |c|
+    c.scope -> { where("word_count > ?", 1500) }
+  end
+end
+```
+
+Then use them in your controller and routes like any other collection:
+
+```ruby
+# app/controllers/resources_controller.rb
+class ResourcesController < ApplicationController
+  bunko_collection :resources  # Automatically loads articles, videos, and tutorials
+end
+
+# config/routes.rb
+bunko_collection :resources
+```
+
+**Smart Lookup:** When you call `bunko_collection :name`, Bunko:
+1. First checks for a PostType with that slug
+2. Then checks for a Collection with that name
+3. Returns 404 if neither exists
+
+**Name conflicts are prevented:** You cannot have a PostType and Collection with the same slug.
 
 ## What Bunko Doesn't Do
 

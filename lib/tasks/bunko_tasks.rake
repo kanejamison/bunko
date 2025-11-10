@@ -50,6 +50,8 @@ namespace :bunko do
     views_created = []
     routes_added = []
 
+    collections = Bunko.configuration.collections
+
     # Validate post_types configuration
     post_types.each do |pt_config|
       unless pt_config.is_a?(Hash) && pt_config[:name] && pt_config[:slug]
@@ -106,23 +108,70 @@ namespace :bunko do
     end
 
     puts ""
+
+    # Step 5: Generate controllers for each collection
+    if collections.any?
+      puts "Generating collection controllers..."
+      collections.each do |collection_config|
+        controller_created = generate_controller(collection_config[:slug])
+        controllers_created << collection_config[:slug] if controller_created
+      end
+
+      puts ""
+
+      # Step 6: Generate views for each collection
+      puts "Generating collection views..."
+      collections.each do |collection_config|
+        views_generated = generate_views(collection_config[:slug])
+        views_created << collection_config[:slug] if views_generated
+      end
+
+      puts ""
+
+      # Step 7: Add routes for each collection
+      puts "Adding collection routes..."
+      collections.each do |collection_config|
+        route_added = add_route(collection_config[:slug])
+        routes_added << collection_config[:slug] if route_added
+      end
+
+      puts ""
+    end
+
     puts "=" * 79
     puts "Setup complete!"
     puts ""
-    puts "PostTypes:"
-    puts "  Created: #{post_types_created}" if post_types_created > 0
-    puts "  Already existed: #{post_types_existing}" if post_types_existing > 0
-    puts ""
+
+    if post_types_created > 0 || post_types_existing > 0
+      puts "PostTypes:"
+      puts "  Created: #{post_types_created}" if post_types_created > 0
+      puts "  Already existed: #{post_types_existing}" if post_types_existing > 0
+      puts ""
+    end
+
+    if collections.any?
+      puts "Collections: #{collections.size} configured (#{collections.map { |c| c[:slug] }.join(", ")})"
+      puts ""
+    end
+
     puts "Controllers: #{controllers_created.size} generated (#{controllers_created.join(", ")})" if controllers_created.any?
-    puts "Views: #{views_created.size} collections (#{views_created.join(", ")})" if views_created.any?
+    puts "Views: #{views_created.size} generated (#{views_created.join(", ")})" if views_created.any?
     puts "Routes: #{routes_added.size} added (#{routes_added.join(", ")})" if routes_added.any?
     puts ""
     puts "Next steps:"
     puts "  1. Create your first post in the Rails console or admin panel"
     puts "  2. Visit your collections:"
+
+    # Show PostType routes
     post_types.each do |pt|
       puts "     http://localhost:3000/#{pt[:slug]}"
     end
+
+    # Show Collection routes
+    collections.each do |c|
+      puts "     http://localhost:3000/#{c[:slug]} (collection: #{c[:post_types].join(", ")})"
+    end
+
     puts "=" * 79
   end
 
@@ -188,7 +237,7 @@ namespace :bunko do
     routes_file = Rails.root.join("config/routes.rb")
     routes_content = File.read(routes_file)
 
-    route_line = "  resources :#{slug}, only: [:index, :show], param: :slug"
+    route_line = "  bunko_collection :#{slug}"
 
     if routes_content.include?(route_line.strip)
       puts "  - Route for :#{slug} already exists (skipped)"

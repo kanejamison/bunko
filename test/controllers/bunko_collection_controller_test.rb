@@ -4,6 +4,13 @@ require_relative "../test_helper"
 
 class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
   setup do
+    # Reset configuration before each test
+    Bunko.reset_configuration!
+    Bunko.configure do |config|
+      config.post_type "Blog"
+      config.post_type "Docs"
+    end
+
     @blog_type = PostType.create!(name: "Blog", slug: "blog")
     @docs_type = PostType.create!(name: "Docs", slug: "docs")
 
@@ -44,11 +51,10 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
 
   # Index Action Tests
   test "index returns 404 when post_type does not exist" do
-    # Test with a collection that doesn't have a PostType
+    # Test with a collection that doesn't have a PostType or Collection configured
     get nonexistent_index_path
     assert_response :not_found
-    assert_match(/PostType 'nonexistent' not found/, response.body)
-    assert_match(/rails bunko:setup\[nonexistent\]/, response.body)
+    assert_match(/Collection 'nonexistent' not found/, response.body)
   end
 
   test "index shows all published posts for the collection" do
@@ -94,11 +100,10 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
 
   # Show Action Tests
   test "show returns 404 when post_type does not exist" do
-    # Test with a collection that doesn't have a PostType
+    # Test with a collection that doesn't have a PostType or Collection configured
     get nonexistent_path("any-slug")
     assert_response :not_found
-    assert_match(/PostType 'nonexistent' not found/, response.body)
-    assert_match(/rails bunko:setup\[nonexistent\]/, response.body)
+    assert_match(/Collection 'nonexistent' not found/, response.body)
   end
 
   test "show finds post by slug" do

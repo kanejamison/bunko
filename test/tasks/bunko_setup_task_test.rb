@@ -58,6 +58,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
     # Reset configuration to default (empty - must be configured)
     Bunko.configuration.post_types = []
+    Bunko.configuration.collections = []
   end
 
   def test_setup_creates_post_types_in_database
@@ -122,10 +123,10 @@ class BunkoSetupTaskTest < Minitest::Test
 
     run_rake_task("bunko:setup")
 
-    # Verify routes were added
+    # Verify routes were added using bunko_collection
     routes_content = File.read(File.join(@destination, "config/routes.rb"))
-    assert_match(/resources :blog, only: \[:index, :show\], param: :slug/, routes_content)
-    assert_match(/resources :docs, only: \[:index, :show\], param: :slug/, routes_content)
+    assert_match(/bunko_collection :blog/, routes_content)
+    assert_match(/bunko_collection :docs/, routes_content)
   end
 
   def test_setup_with_specific_slug_only_sets_up_that_slug
@@ -191,7 +192,7 @@ class BunkoSetupTaskTest < Minitest::Test
     routes_content = File.read(File.join(@destination, "config/routes.rb"))
 
     # Should only have one route entry (not duplicated)
-    assert_equal 1, routes_content.scan("resources :blog").count
+    assert_equal 1, routes_content.scan("bunko_collection :blog").count
   end
 
   def test_setup_with_invalid_slug_exits_gracefully
@@ -223,6 +224,52 @@ class BunkoSetupTaskTest < Minitest::Test
     end
 
     assert_match(/No post types configured/, output.join)
+  end
+
+  def test_setup_generates_controllers_for_collections
+    Bunko.configure do |config|
+      config.post_type "Articles"
+      config.post_type "Videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify collection controller was created
+    assert File.exist?(File.join(@destination, "app/controllers/resources_controller.rb"))
+
+    # Verify controller content
+    resources_controller = File.read(File.join(@destination, "app/controllers/resources_controller.rb"))
+    assert_match(/class ResourcesController < ApplicationController/, resources_controller)
+    assert_match(/bunko_collection :resources/, resources_controller)
+  end
+
+  def test_setup_generates_views_for_collections
+    Bunko.configure do |config|
+      config.post_type "Articles"
+      config.post_type "Videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify views were created
+    assert File.exist?(File.join(@destination, "app/views/resources/index.html.erb"))
+    assert File.exist?(File.join(@destination, "app/views/resources/show.html.erb"))
+  end
+
+  def test_setup_adds_routes_for_collections
+    Bunko.configure do |config|
+      config.post_type "Articles"
+      config.post_type "Videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify routes were added
+    routes_content = File.read(File.join(@destination, "config/routes.rb"))
+    assert_match(/bunko_collection :resources/, routes_content)
   end
 
   private

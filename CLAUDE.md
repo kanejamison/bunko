@@ -86,7 +86,9 @@ lib/
 │   ├── controllers/            # ActionController concerns
 │   │   ├── acts_as.rb          # bunko_collection macro
 │   │   └── collection.rb       # Collection behavior (concern)
-│   └── railtie.rb              # Rails integration (loads rake tasks)
+│   ├── routing/                # ActionDispatch routing extensions
+│   │   └── mapper_methods.rb   # bunko_collection DSL method
+│   └── railtie.rb              # Rails integration (loads rake tasks, routing)
 ├── generators/bunko/install/
 │   ├── install_generator.rb    # rails generate bunko:install
 │   └── templates/              # Migration and model templates
@@ -97,6 +99,7 @@ test/
 ├── dummy/                  # Rails dummy app for integration testing
 ├── controllers/            # Controller integration tests
 ├── models/                 # Model tests
+├── routing/                # Routing DSL tests
 ├── generators/             # Generator tests
 └── tasks/                  # Rake task tests
 .github/workflows/         # CI/CD pipeline (runs rake: test + standard)
@@ -120,7 +123,7 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - This gem uses **Standard** for Ruby linting (configured in `.standard.yml`)
 - Tests use **Minitest** framework
 - CI runs on GitHub Actions (`.github/workflows/main.yml`) and executes `bundle exec rake`
-- Current test coverage: 52 tests, 126 assertions
+- Current test coverage: 70 tests, 173 assertions
 
 ## Current Features (Implemented)
 
@@ -144,6 +147,22 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Configuration-driven: Define post_types in `config/initializers/bunko.rb`
 - Idempotent setup task (safe to re-run when adding new collections)
 - Single-collection setup: `rails bunko:setup[slug]` for adding individual collections
+
+**Milestone 4 - Routing Helpers:**
+- `bunko_collection` DSL method extends `ActionDispatch::Routing::Mapper`
+- Automatic hyphenation: underscored slugs (`:case_study`) convert to hyphenated URLs (`/case-study/`)
+- Custom path support: `bunko_collection :case_study, path: "case-studies"`
+- Custom controller support: `bunko_collection :blog, controller: "articles"`
+- Action limiting: `bunko_collection :blog, only: [:index]`
+- Follows Rails idiomatic conventions (like `resources :blog_posts` → `/blog-posts/`)
+
+**Smart Collections (v1):**
+- `config.collection` for defining virtual collections
+- Multi-type collections: aggregate posts from multiple PostTypes
+- Optional scopes: filter collections with custom ActiveRecord scopes
+- Smart lookup: controllers check PostType first, then Collection
+- Name conflict validation: prevents PostType/Collection slug collisions
+- Future-ready: designed to support features like authorship, featured flags, taxonomies
 
 ## Development Roadmap
 
@@ -208,6 +227,27 @@ module Bunko::Controllers::Collection
   # Index/show actions, pagination, routing
 end
 ```
+
+**Routing Layer (`lib/bunko/routing/`):**
+```ruby
+# Extends ActionDispatch::Routing::Mapper with bunko_collection DSL
+# Loaded via railtie initializer on :action_controller load
+
+# mapper_methods.rb - Routing DSL methods
+module Bunko::Routing::MapperMethods
+  def bunko_collection(collection_slug, **options)
+    # Creates resourceful routes with slug param
+    # Automatically converts underscored slugs to hyphenated URLs
+  end
+end
+```
+
+**Note on slug storage and URL formatting:**
+- Slugs are stored with underscores in the database (`:case_study`)
+- URLs automatically use hyphens (`/case-study/`)
+- This follows Rails conventions (e.g., `resources :blog_posts` → `/blog-posts/`)
+- Users call routes with underscores: `bunko_collection :case_study`
+- Generated helpers use underscores: `case_study_path(post)`
 
 ### When to Deviate from This Pattern
 
