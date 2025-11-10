@@ -7,17 +7,8 @@ module Bunko
         @post_type_hash = post_type_hash
       end
 
-      def slug=(value)
-        # Validate slug format (must use underscores, not hyphens, for Ruby class naming)
-        if value.to_s.include?("-")
-          raise ArgumentError, "Slug '#{value}' cannot contain hyphens. Use underscores instead (e.g., 'case_study'). URLs will automatically use hyphens (/case-study/)."
-        end
-
-        unless value.to_s.match?(/\A[a-z0-9_]+\z/)
-          raise ArgumentError, "Slug '#{value}' must contain only lowercase letters, numbers, and underscores"
-        end
-
-        @post_type_hash[:slug] = value
+      def title=(value)
+        @post_type_hash[:title] = value
       end
 
       # Future: Add more customization methods
@@ -53,15 +44,26 @@ module Bunko
     end
 
     def post_type(name, &block)
-      # Auto-generate slug from name (using underscores, not hyphens)
-      generated_slug = name.parameterize.tr("-", "_")
+      # Validate name format (must use underscores, not hyphens, for Ruby class naming)
+      name_str = name.to_s
 
-      # Check for conflicts with existing collections
-      if collection_exists?(generated_slug)
-        raise ArgumentError, "PostType slug '#{generated_slug}' conflicts with existing collection name"
+      if name_str.include?("-")
+        raise ArgumentError, "PostType name '#{name_str}' cannot contain hyphens. Use underscores instead (e.g., 'case_study'). URLs will automatically use hyphens (/case-study/)."
       end
 
-      post_type = {name: name, slug: generated_slug}
+      unless name_str.match?(/\A[a-z0-9_]+\z/)
+        raise ArgumentError, "PostType name '#{name_str}' must contain only lowercase letters, numbers, and underscores"
+      end
+
+      # Check for conflicts with existing collections
+      if collection_exists?(name_str)
+        raise ArgumentError, "PostType name '#{name_str}' conflicts with existing collection name"
+      end
+
+      # Auto-generate title from name (e.g., "case_study" → "Case Study")
+      generated_title = name_str.titleize
+
+      post_type = {name: name_str, title: generated_title}
 
       # Allow customization via block
       if block_given?
@@ -105,22 +107,22 @@ module Bunko
       @collections << collection
     end
 
-    def find_post_type(slug)
-      @post_types.find { |pt| pt[:slug] == slug.to_s }
+    def find_post_type(name)
+      @post_types.find { |pt| pt[:name] == name.to_s }
     end
 
-    def find_collection(slug)
-      @collections.find { |c| c[:slug] == slug.to_s }
+    def find_collection(name)
+      @collections.find { |c| c[:slug] == name.to_s }
     end
 
     private
 
-    def post_type_exists?(slug)
-      @post_types.any? { |pt| pt[:slug] == slug.to_s }
+    def post_type_exists?(name)
+      @post_types.any? { |pt| pt[:name] == name.to_s }
     end
 
-    def collection_exists?(slug)
-      @collections.any? { |c| c[:slug] == slug.to_s }
+    def collection_exists?(name)
+      @collections.any? { |c| c[:slug] == name.to_s }
     end
   end
 
