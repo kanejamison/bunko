@@ -174,72 +174,72 @@ namespace :bunko do
     puts "=" * 79
   end
 
-  def generate_controller(slug)
-    controller_name = "#{slug.camelize}Controller"
-    controller_file = Rails.root.join("app/controllers/#{slug}_controller.rb")
+  def generate_controller(collection_name)
+    controller_name = "#{collection_name.camelize}Controller"
+    controller_file = Rails.root.join("app/controllers/#{collection_name}_controller.rb")
 
     if File.exist?(controller_file)
-      puts "  - #{slug}_controller.rb already exists (skipped)"
+      puts "  - #{collection_name}_controller.rb already exists (skipped)"
       return false
     end
 
     controller_content = render_template("controller.rb.tt", {
       controller_name: controller_name,
-      slug: slug
+      collection_name: collection_name
     })
 
     File.write(controller_file, controller_content)
-    puts "  ✓ Created #{slug}_controller.rb"
+    puts "  ✓ Created #{collection_name}_controller.rb"
     true
   end
 
-  def generate_views(slug)
-    views_dir = Rails.root.join("app/views/#{slug}")
+  def generate_views(collection_name)
+    views_dir = Rails.root.join("app/views/#{collection_name}")
 
     if Dir.exist?(views_dir) && Dir.glob("#{views_dir}/*").any?
-      puts "  - #{slug} views already exist (skipped)"
+      puts "  - #{collection_name} views already exist (skipped)"
       return false
     end
 
     FileUtils.mkdir_p(views_dir)
 
     # Generate index.html.erb
-    index_content = generate_index_view(slug)
+    index_content = generate_index_view(collection_name)
     File.write(File.join(views_dir, "index.html.erb"), index_content)
 
     # Generate show.html.erb
-    show_content = generate_show_view(slug)
+    show_content = generate_show_view(collection_name)
     File.write(File.join(views_dir, "show.html.erb"), show_content)
 
-    puts "  ✓ Created views for #{slug} (index, show)"
+    puts "  ✓ Created views for #{collection_name} (index, show)"
     true
   end
 
-  def generate_index_view(slug)
+  def generate_index_view(collection_name)
     render_template("index.html.erb.tt", {
-      slug: slug,
-      collection_title: slug.titleize,
-      path_helper: "#{slug}_path",
-      index_path_helper: "#{slug}_index_path"
+      collection_name: collection_name,
+      collection_title: collection_name.titleize,
+      path_helper: "#{collection_name}_path",
+      index_path_helper: "#{collection_name}_index_path"
     })
   end
 
-  def generate_show_view(slug)
+  def generate_show_view(collection_name)
     render_template("show.html.erb.tt", {
-      slug: slug,
-      collection_title: slug.titleize,
-      index_path_helper: "#{slug}_index_path"
+      collection_name: collection_name,
+      collection_title: collection_name.titleize,
+      index_path_helper: "#{collection_name}_index_path"
     })
   end
 
-  def add_route(slug)
+  def add_route(collection_name)
     routes_file = Rails.root.join("config/routes.rb")
     routes_content = File.read(routes_file)
 
-    route_line = "  bunko_collection :#{slug}"
+    route_line = "  bunko_collection :#{collection_name}"
 
     if routes_content.include?(route_line.strip)
-      puts "  - Route for :#{slug} already exists (skipped)"
+      puts "  - Route for :#{collection_name} already exists (skipped)"
       return false
     end
 
@@ -257,7 +257,7 @@ namespace :bunko do
     end
 
     File.write(routes_file, updated_content)
-    puts "  ✓ Added route for :#{slug}"
+    puts "  ✓ Added route for :#{collection_name}"
     true
   end
 

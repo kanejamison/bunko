@@ -5,10 +5,10 @@ module Bunko
     module MapperMethods
       # Defines routes for a Bunko collection
       #
-      # @param collection_slug [Symbol] The slug identifier for the collection (e.g., :blog, :case_study)
+      # @param collection_name [Symbol] The name identifier for the collection (e.g., :blog, :case_study)
       # @param options [Hash] Routing options
-      # @option options [String] :path Custom URL path (default: slug with hyphens)
-      # @option options [String] :controller Custom controller name (default: slug)
+      # @option options [String] :path Custom URL path (default: name with hyphens)
+      # @option options [String] :controller Custom controller name (default: name)
       # @option options [Array<Symbol>] :only Actions to route (default: [:index, :show])
       #
       # @example Basic usage
@@ -23,10 +23,10 @@ module Bunko
       #   bunko_collection :blog, controller: "articles"
       #   # Generates: /blog -> articles#index, /blog/:slug -> articles#show
       #
-      def bunko_collection(collection_slug, **options)
+      def bunko_collection(collection_name, **options)
         # Extract options with defaults
         custom_path = options.delete(:path)
-        controller = options.delete(:controller) || collection_slug.to_s
+        controller = options.delete(:controller) || collection_name.to_s
         actions = options.delete(:only) || [:index, :show]
 
         # Resource name must use underscores (for path helpers)
@@ -36,9 +36,9 @@ module Bunko
           resource_name = custom_path.to_s.tr("-", "_").to_sym
           path_value = custom_path
         else
-          # No custom path - use collection_slug for resource name, hyphenate for path
-          resource_name = collection_slug
-          path_value = collection_slug.to_s.tr("_", "-")
+          # No custom path - use collection_name for resource name, hyphenate for path
+          resource_name = collection_name
+          path_value = collection_name.to_s.tr("_", "-")
         end
 
         # Define the routes

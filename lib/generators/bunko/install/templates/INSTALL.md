@@ -8,15 +8,15 @@ Next steps:
 
 1. (Optional) Customize your post types in config/initializers/bunko.rb
 
-   We've configured "Blog" for you, but you can change that or add more:
+   We've configured "blog" for you, but you can change that or add more:
 
-   config.post_type "Blog"
+   config.post_type "blog"  # Title auto-generated as "Blog"
 
-   config.post_type "Documentation" do |type|
-     type.slug = "docs"
+   config.post_type "docs" do |type|
+     type.title = "Documentation"
    end
 
-   config.post_type "Changelog"
+   config.post_type "changelog"
 
 2. Run the migrations:
 
@@ -36,7 +36,7 @@ Next steps:
 
 4. Create your first post (Rails console or admin panel):
 
-   blog_type = PostType.find_by(slug: "blog")
+   blog_type = PostType.find_by(name: "blog")
    Post.create!(
      title: "Welcome to Bunko",
      content: "Your first blog post!",

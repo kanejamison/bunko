@@ -126,7 +126,7 @@ class ConfigurationTest < ActiveSupport::TestCase
     assert_equal "featured_articles", collection[:slug]
   end
 
-  test "normalizes post_types array to slugs with underscores" do
+  test "normalizes post_types array to names with underscores" do
     Bunko.configure do |config|
       config.post_type "articles"
       config.post_type "videos"

@@ -80,7 +80,7 @@ module Bunko
 
       # Check for conflicts with existing post_types
       if post_type_exists?(slug)
-        raise ArgumentError, "Collection name '#{slug}' conflicts with existing PostType slug"
+        raise ArgumentError, "Collection slug '#{slug}' conflicts with existing PostType name"
       end
 
       # Check for conflicts with existing collections
@@ -88,7 +88,7 @@ module Bunko
         raise ArgumentError, "Collection '#{slug}' already exists"
       end
 
-      # Normalize post_types to array of slugs (using underscores, not hyphens)
+      # Normalize post_types to array of names (using underscores, not hyphens)
       normalized_post_types = Array(post_types).map { |pt| pt.to_s.parameterize.tr("-", "_") }
 
       collection = {

@@ -1,4 +1,4 @@
-<div class="<%= slug %>-index">
+<div class="<%= collection_name %>-index">
   <h1><%= collection_title %></h1>
 
   <%%= if @posts.any? %>

@@ -92,7 +92,7 @@ class PostScopesTest < ActiveSupport::TestCase
     refute_includes scheduled, draft_post
   end
 
-  test ".by_post_type filters posts by post type slug" do
+  test ".by_post_type filters posts by post type name" do
     blog_post = Post.create!(
       title: "Blog Post",
       content: "Content",
