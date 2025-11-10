@@ -24,7 +24,7 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
 - Two-phase installation system (#2)
   - `rails generate bunko:install` - Creates migrations, models, and initializer
   - `rails bunko:setup` - Generates controllers, views, and routes from configuration
-  - Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`
+  - Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`, `--json-content`
   - Idempotent setup task (safe to re-run when adding collections)
   - Single-collection setup: `rails bunko:setup[slug]`
   - Template-based code generation from `lib/tasks/templates/`

@@ -16,6 +16,8 @@ module Bunko
         desc: "Skip adding metrics fields (word_count)"
       class_option :metadata, type: :boolean, default: false,
         desc: "Add metadata field (jsonb/json) to posts table"
+      class_option :json_content, type: :boolean, default: false,
+        desc: "Use json/jsonb for content field instead of text (for JSON-based editors)"
 
       def self.next_migration_number(dirname)
         next_migration_number = current_migration_number(dirname) + 1
@@ -61,6 +63,10 @@ module Bunko
 
       def include_metadata?
         options[:metadata]
+      end
+
+      def use_json_content?
+        options[:json_content]
       end
     end
   end
