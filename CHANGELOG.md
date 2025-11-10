@@ -53,6 +53,18 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
 - Works identically in index loops and show views
 - Clean API: `post.excerpt` instead of `bunko_excerpt(post)`
 
+**Test Suite Improvements**
+- Reorganized Post model tests into 7 focused files by functionality:
+  - `post_scopes_test.rb` - Query scopes (6 tests)
+  - `post_slug_test.rb` - Slug generation and uniqueness (10 tests)
+  - `post_publishing_test.rb` - Status and publishing workflow (11 tests)
+  - `post_reading_time_test.rb` - Reading time calculations (7 tests)
+  - `post_content_formatting_test.rb` - excerpt method (7 tests)
+  - `post_date_formatting_test.rb` - published_date method (5 tests)
+  - `post_meta_tags_test.rb` - meta_description_tag method (5 tests)
+- Added comprehensive PostType model tests (16 tests covering validations, associations, edge cases)
+- Improved SimpleCov configuration to track all lib files with `track_files "lib/**/*.rb"`
+
 **Configuration & Infrastructure**
 - Configuration system via `Bunko.configure` block (#3)
   - `config.post_type` DSL for defining content collections
@@ -60,7 +72,7 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - Configurable reading speed (default: 250 wpm)
   - Configurable valid statuses (default: draft, published, scheduled)
   - Name conflict validation between PostTypes and Collections
-- Test suite: 125 tests, 267 assertions, 61.77% line coverage (#5)
+- Test suite: 141 tests, 316 assertions, 44.59% line coverage (now tracking all lib files)
 - CI/CD pipeline testing Ruby 3.2, 3.3, 3.4, 3.5
 
 ### Next Up
