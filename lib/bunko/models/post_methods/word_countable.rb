@@ -10,6 +10,19 @@ module Bunko
           before_save :update_word_count, if: :should_update_word_count?
         end
 
+        # Instance methods
+        def reading_time
+          return nil unless word_count.present? && word_count > 0
+
+          (word_count.to_f / Bunko.configuration.reading_speed).ceil
+        end
+
+        def reading_time_text
+          return nil unless reading_time.present?
+
+          "#{reading_time} min read"
+        end
+
         private
 
         def should_update_word_count?

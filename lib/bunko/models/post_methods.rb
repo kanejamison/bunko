@@ -36,18 +36,6 @@ module Bunko
         slug
       end
 
-      def reading_time
-        return nil unless word_count.present? && word_count > 0
-
-        (word_count.to_f / Bunko.configuration.reading_speed).ceil
-      end
-
-      def reading_time_text
-        return nil unless reading_time.present?
-
-        "#{reading_time} min read"
-      end
-
       def excerpt(length: nil, omission: "...")
         return nil unless content.present?
 
