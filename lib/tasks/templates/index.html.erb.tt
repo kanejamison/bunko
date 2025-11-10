@@ -1,3 +1,5 @@
+<%%= render "shared/bunko_nav" %>
+
 <div class="<%= collection_name %>-index">
   <h1><%= collection_title %></h1>
 

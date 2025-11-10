@@ -273,6 +273,132 @@ class BunkoSetupTaskTest < Minitest::Test
     assert_match(/bunko_collection :resources/, routes_content)
   end
 
+  def test_setup_generates_shared_nav_partial
+    Bunko.configure do |config|
+      config.post_type "blog"
+      config.post_type "docs"
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify nav partial was created
+    nav_file = File.join(@destination, "app/views/shared/_bunko_nav.html.erb")
+    assert File.exist?(nav_file)
+
+    # Verify nav content
+    nav_content = File.read(nav_file)
+    assert_match(/link_to "Home", root_path/, nav_content)
+  end
+
+  def test_nav_partial_contains_post_type_links_in_order
+    Bunko.configure do |config|
+      config.post_type "blog" do |type|
+        type.title = "Blog"
+      end
+      config.post_type "docs" do |type|
+        type.title = "Documentation"
+      end
+      config.post_type "changelog" do |type|
+        type.title = "Changelog"
+      end
+    end
+
+    run_rake_task("bunko:setup")
+
+    nav_content = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+
+    # Verify all post type links are present
+    assert_match(/link_to "Blog", blog_index_path/, nav_content)
+    assert_match(/link_to "Documentation", docs_path/, nav_content)
+    assert_match(/link_to "Changelog", changelog_index_path/, nav_content)
+
+    # Verify order (Blog should come before Docs, Docs before Changelog)
+    blog_position = nav_content.index('"Blog"')
+    docs_position = nav_content.index('"Documentation"')
+    changelog_position = nav_content.index('"Changelog"')
+
+    refute_nil blog_position, "Blog link should be present in nav"
+    refute_nil docs_position, "Documentation link should be present in nav"
+    refute_nil changelog_position, "Changelog link should be present in nav"
+
+    assert blog_position < docs_position, "Blog link should come before Docs link"
+    assert docs_position < changelog_position, "Docs link should come before Changelog link"
+  end
+
+  def test_nav_partial_contains_collection_links
+    Bunko.configure do |config|
+      config.post_type "articles"
+      config.post_type "videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    nav_content = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+
+    # Verify collection link is present
+    assert_match(/link_to "Resources", resources_path/, nav_content)
+  end
+
+  def test_nav_partial_lists_post_types_before_collections
+    Bunko.configure do |config|
+      config.post_type "articles" do |type|
+        type.title = "Articles"
+      end
+      config.post_type "videos" do |type|
+        type.title = "Videos"
+      end
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    nav_content = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+
+    # Debug: print nav content to see what's actually generated
+    # puts "\n=== Nav Content ===\n#{nav_content}\n==================\n"
+
+    # Verify PostTypes come before Collections
+    articles_position = nav_content.index('"Articles"')
+    resources_position = nav_content.index('"Resources"')
+
+    refute_nil articles_position, "Articles link should be present in nav. Nav content: #{nav_content}"
+    refute_nil resources_position, "Resources link should be present in nav. Nav content: #{nav_content}"
+    assert articles_position < resources_position, "PostType links should come before Collection links"
+  end
+
+  def test_setup_is_idempotent_for_nav_partial
+    Bunko.configure do |config|
+      config.post_type "blog"
+    end
+
+    # Run setup twice
+    run_rake_task("bunko:setup")
+    first_nav_content = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+
+    run_rake_task("bunko:setup")
+    second_nav_content = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+
+    # Nav partial should be identical (not duplicated)
+    assert_equal first_nav_content, second_nav_content
+  end
+
+  def test_generated_views_include_nav_partial
+    Bunko.configure do |config|
+      config.post_type "blog"
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify index view includes nav partial
+    index_view = File.read(File.join(@destination, "app/views/blog/index.html.erb"))
+    assert_match(/render "shared\/bunko_nav"/, index_view)
+
+    # Verify show view includes nav partial
+    show_view = File.read(File.join(@destination, "app/views/blog/show.html.erb"))
+    assert_match(/render "shared\/bunko_nav"/, show_view)
+  end
+
   private
 
   def run_rake_task(task_name, *args)

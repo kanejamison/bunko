@@ -92,7 +92,12 @@ namespace :bunko do
 
     puts ""
 
-    # Step 2: Generate controllers for each post type
+    # Step 2: Generate shared navigation
+    puts "Generating shared navigation..."
+    generate_shared_nav
+    puts ""
+
+    # Step 3: Generate controllers for each post type
     puts "Generating controllers..."
     post_types.each do |pt_config|
       controller_created = generate_controller(pt_config[:name])
@@ -101,7 +106,7 @@ namespace :bunko do
 
     puts ""
 
-    # Step 3: Generate views for each post type
+    # Step 4: Generate views for each post type
     puts "Generating views..."
     post_types.each do |pt_config|
       views_generated = generate_views(pt_config[:name], format: format)
@@ -110,7 +115,7 @@ namespace :bunko do
 
     puts ""
 
-    # Step 4: Add routes for each post type
+    # Step 5: Add routes for each post type
     puts "Adding routes..."
     post_types.each do |pt_config|
       route_added = add_route(pt_config[:name])
@@ -119,7 +124,7 @@ namespace :bunko do
 
     puts ""
 
-    # Step 5: Generate controllers for each collection
+    # Step 6: Generate controllers for each collection
     if collections.any?
       puts "Generating collection controllers..."
       collections.each do |collection_config|
@@ -129,7 +134,7 @@ namespace :bunko do
 
       puts ""
 
-      # Step 6: Generate views for each collection
+      # Step 7: Generate views for each collection
       puts "Generating collection views..."
       collections.each do |collection_config|
         views_generated = generate_views(collection_config[:slug], format: format)
@@ -138,7 +143,7 @@ namespace :bunko do
 
       puts ""
 
-      # Step 7: Add routes for each collection
+      # Step 8: Add routes for each collection
       puts "Adding collection routes..."
       collections.each do |collection_config|
         route_added = add_route(collection_config[:slug])
@@ -286,6 +291,27 @@ namespace :bunko do
 
     File.write(routes_file, updated_content)
     puts "  ✓ Added route for :#{collection_name}"
+    true
+  end
+
+  def generate_shared_nav
+    shared_dir = Rails.root.join("app/views/shared")
+    nav_file = shared_dir.join("_bunko_nav.html.erb")
+
+    if File.exist?(nav_file)
+      puts "  - _bunko_nav.html.erb already exists (skipped)"
+      return false
+    end
+
+    FileUtils.mkdir_p(shared_dir)
+
+    nav_content = render_template("bunko_nav.html.erb.tt", {
+      post_types: Bunko.configuration.post_types,
+      collections: Bunko.configuration.collections
+    })
+    File.write(nav_file, nav_content)
+
+    puts "  ✓ Created shared/_bunko_nav.html.erb"
     true
   end
 
