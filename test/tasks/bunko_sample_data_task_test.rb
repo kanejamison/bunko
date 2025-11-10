@@ -55,10 +55,10 @@ class BunkoSampleDataTaskTest < Minitest::Test
   end
 
   def test_sample_data_uses_default_count
-    # Don't set COUNT, should default to 20
+    # Don't set COUNT, should default to 100
     run_rake_task("bunko:sample_data")
 
-    assert_equal 60, Post.count # 20 posts × 3 post types
+    assert_equal 300, Post.count # 100 posts × 3 post types
   end
 
   def test_sample_data_clears_existing_when_requested

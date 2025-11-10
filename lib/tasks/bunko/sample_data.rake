@@ -15,7 +15,7 @@ namespace :bunko do
     end
 
     # Parse configuration from ENV
-    posts_per_type = ENV.fetch("COUNT", ENV.fetch("POSTS_PER_TYPE", "20")).to_i
+    posts_per_type = ENV.fetch("COUNT", ENV.fetch("POSTS_PER_TYPE", "100")).to_i
     min_words = ENV.fetch("MIN_WORDS", "200").to_i
     max_words = ENV.fetch("MAX_WORDS", "2000").to_i
     clear_existing = ENV.fetch("CLEAR", "false").downcase == "true"
@@ -118,7 +118,7 @@ namespace :bunko do
     puts "=" * 79
     puts ""
     puts "Usage examples:"
-    puts "  rake bunko:sample_data                           # 20 posts per type (plain text)"
+    puts "  rake bunko:sample_data                           # 100 posts per type (plain text)"
     puts "  rake bunko:sample_data COUNT=50                  # 50 posts per type"
     puts "  rake bunko:sample_data FORMAT=markdown           # Markdown formatted content"
     puts "  rake bunko:sample_data FORMAT=html               # HTML formatted content"
