@@ -13,14 +13,18 @@ Bunko.configure do |config|
   # config.post_type "Changelog"
   #
   # config.post_type "Case Studies" do |type|
-  #   type.slug = "case-study"
+  #   type.slug = "case_studies" # Use underscores - URLs will automatically use hyphens (/case-studies/)
   # end
 
   # Reading speed for calculating estimated reading time (in words per minute)
   # Default: 250
   # config.reading_speed = 250
 
-  # Valid post statuses
-  # Default: %w[draft published scheduled]
-  # config.valid_statuses = %w[draft published scheduled]
+  # Excerpt length for post.excerpt method (in characters)
+  # Default: 160
+  # config.excerpt_length = 160
+
+  # Automatically update word_count when content changes
+  # Default: true
+  # config.auto_update_word_count = true
 end

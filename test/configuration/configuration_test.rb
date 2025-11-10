@@ -113,17 +113,17 @@ class ConfigurationTest < ActiveSupport::TestCase
     assert_nil nonexistent
   end
 
-  test "normalizes collection name to slug" do
+  test "normalizes collection name to slug with underscores" do
     Bunko.configure do |config|
       config.post_type "Articles"
       config.collection "Featured Articles", post_types: ["articles"]
     end
 
     collection = Bunko.configuration.collections.first
-    assert_equal "featured-articles", collection[:slug]
+    assert_equal "featured_articles", collection[:slug]
   end
 
-  test "normalizes post_types array to slugs" do
+  test "normalizes post_types array to slugs with underscores" do
     Bunko.configure do |config|
       config.post_type "Articles"
       config.post_type "Videos"
@@ -131,6 +131,51 @@ class ConfigurationTest < ActiveSupport::TestCase
     end
 
     collection = Bunko.configuration.collections.first
-    assert_equal ["articles", "video-tutorials"], collection[:post_types]
+    assert_equal ["articles", "video_tutorials"], collection[:post_types]
+  end
+
+  test "auto-generates slug with underscores not hyphens" do
+    Bunko.configure do |config|
+      config.post_type "Case Studies"
+    end
+
+    post_type = Bunko.configuration.post_types.first
+    assert_equal "case_studies", post_type[:slug]
+  end
+
+  test "rejects custom slug with hyphens" do
+    error = assert_raises(ArgumentError) do
+      Bunko.configure do |config|
+        config.post_type "Case Studies" do |type|
+          type.slug = "case-studies"
+        end
+      end
+    end
+
+    assert_match(/cannot contain hyphens/, error.message)
+    assert_match(/Use underscores instead/, error.message)
+  end
+
+  test "rejects custom slug with invalid characters" do
+    error = assert_raises(ArgumentError) do
+      Bunko.configure do |config|
+        config.post_type "Blog" do |type|
+          type.slug = "Blog!"
+        end
+      end
+    end
+
+    assert_match(/must contain only lowercase letters/, error.message)
+  end
+
+  test "accepts custom slug with underscores" do
+    Bunko.configure do |config|
+      config.post_type "Case Studies" do |type|
+        type.slug = "case_study"
+      end
+    end
+
+    post_type = Bunko.configuration.post_types.first
+    assert_equal "case_study", post_type[:slug]
   end
 end
