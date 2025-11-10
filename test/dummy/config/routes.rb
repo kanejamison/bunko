@@ -12,13 +12,4 @@ Rails.application.routes.draw do
   # Test routes for nonexistent PostType
   get "/nonexistent", to: "nonexistent#index", as: :nonexistent_index
   get "/nonexistent/:slug", to: "nonexistent#show", as: :nonexistent
-
-  # Multi-type collection routes
-  bunko_collection :resources
-
-  # Scoped collection routes
-  bunko_collection :long_reads, path: "long-reads"
-
-  # Missing type routes
-  bunko_collection :missing_type
 end
