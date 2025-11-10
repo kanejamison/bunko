@@ -22,7 +22,16 @@ module Bunko
         @collection_hash = collection_hash
       end
 
-      def scope(callable)
+      def title=(value)
+        @collection_hash[:title] = value
+      end
+
+      def post_types=(value)
+        # Normalize post_types to array of names (using underscores, not hyphens)
+        @collection_hash[:post_types] = Array(value).map { |pt| pt.to_s.parameterize.tr("-", "_") }
+      end
+
+      def scope=(callable)
         @collection_hash[:scope] = callable
       end
 
@@ -43,7 +52,7 @@ module Bunko
       @collections = [] # Multi-type collections
     end
 
-    def post_type(name, &block)
+    def post_type(name, title: nil, &block)
       # Validate name format (must use underscores, not hyphens, for Ruby class naming)
       name_str = name.to_s
 
@@ -61,11 +70,11 @@ module Bunko
       end
 
       # Auto-generate title from name (e.g., "case_study" → "Case Study")
-      generated_title = name_str.titleize
+      generated_title = title || name_str.titleize
 
       post_type = {name: name_str, title: generated_title}
 
-      # Allow customization via block
+      # Allow customization via block (block overrides params)
       if block_given?
         customizer = PostTypeCustomizer.new(post_type)
         block.call(customizer)
@@ -74,34 +83,55 @@ module Bunko
       @post_types << post_type
     end
 
-    def collection(name, post_types:, &block)
-      # Normalize name to slug format (using underscores, not hyphens)
-      slug = name.to_s.parameterize.tr("-", "_")
+    def collection(name, title: nil, post_types: nil, scope: nil, &block)
+      # Validate name format (must use underscores, not hyphens)
+      name_str = name.to_s
+
+      if name_str.include?("-")
+        raise ArgumentError, "Collection name '#{name_str}' cannot contain hyphens. Use underscores instead (e.g., 'long_reads'). URLs will automatically use hyphens (/long-reads/)."
+      end
+
+      unless name_str.match?(/\A[a-z0-9_]+\z/)
+        raise ArgumentError, "Collection name '#{name_str}' must contain only lowercase letters, numbers, and underscores"
+      end
 
       # Check for conflicts with existing post_types
-      if post_type_exists?(slug)
-        raise ArgumentError, "Collection slug '#{slug}' conflicts with existing PostType name"
+      if post_type_exists?(name_str)
+        raise ArgumentError, "Collection name '#{name_str}' conflicts with existing PostType name"
       end
 
       # Check for conflicts with existing collections
-      if collection_exists?(slug)
-        raise ArgumentError, "Collection '#{slug}' already exists"
+      if collection_exists?(name_str)
+        raise ArgumentError, "Collection '#{name_str}' already exists"
       end
 
+      # Require at least post_types param or block
+      unless post_types || block_given?
+        raise ArgumentError, "Collection '#{name_str}' requires either post_types parameter or a configuration block"
+      end
+
+      # Auto-generate title from name (e.g., "long_reads" → "Long Reads")
+      generated_title = title || name_str.titleize
+
       # Normalize post_types to array of names (using underscores, not hyphens)
-      normalized_post_types = Array(post_types).map { |pt| pt.to_s.parameterize.tr("-", "_") }
+      normalized_post_types = post_types ? Array(post_types).map { |pt| pt.to_s.parameterize.tr("-", "_") } : []
 
       collection = {
-        name: name.to_s,
-        slug: slug,
+        name: name_str,
+        title: generated_title,
         post_types: normalized_post_types,
-        scope: nil
+        scope: scope
       }
 
-      # Allow customization via block
+      # Allow customization via block (block overrides params)
       if block_given?
         customizer = CollectionCustomizer.new(collection)
         block.call(customizer)
+      end
+
+      # Validate that post_types was set
+      if collection[:post_types].empty?
+        raise ArgumentError, "Collection '#{name_str}' must specify at least one post_type"
       end
 
       @collections << collection
@@ -112,7 +142,7 @@ module Bunko
     end
 
     def find_collection(name)
-      @collections.find { |c| c[:slug] == name.to_s }
+      @collections.find { |c| c[:name] == name.to_s }
     end
 
     private
@@ -122,7 +152,7 @@ module Bunko
     end
 
     def collection_exists?(name)
-      @collections.any? { |c| c[:slug] == name.to_s }
+      @collections.any? { |c| c[:name] == name.to_s }
     end
   end
 

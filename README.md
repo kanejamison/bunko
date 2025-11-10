@@ -66,11 +66,11 @@ Edit `config/initializers/bunko.rb` to define your content collections:
 Bunko.configure do |config|
   config.post_type "blog"  # Title auto-generated as "Blog"
 
-  config.post_type "docs" do |type|
-    type.title = "Documentation"  # Custom title
-  end
+  config.post_type "docs", title: "Documentation"  # Param style
 
-  config.post_type "changelog"  # Title: "Changelog"
+  config.post_type "changelog" do |type|  # Block style
+    type.title = "Changelog"
+  end
 end
 ```
 
@@ -86,15 +86,14 @@ rails db:migrate
 rails bunko:setup
 ```
 
-For each Post Type and Collection you have defined this generates:
-- Controllers (e.g., `BlogController`, `DocsController`)
-- View templates (e.g., `/app/views/blog/index`, `/app/views/blog/show`, etc)
-- Routes (e.g., `bunko_collection :blog`, `bunko_collection :docs`)
+This generates everything you need for each configured post type and collection:
+- ✅ PostTypes in the database
+- ✅ Controllers (e.g., `BlogController`, `DocsController`)
+- ✅ View templates (`app/views/blog/index.html.erb`, `app/views/blog/show.html.erb`)
+- ✅ Routes (`bunko_collection :blog`, `bunko_collection :docs`)
+- ✅ Navigation partial with all collections
 
-**Adding more collections later?** Just update the initializer and run:
-```bash
-rails bunko:setup[new_collection_name]
-```
+**That's it for initial setup!** See "Adding New Post Types or Collections" below for how to add more later.
 
 ### 6. Create Your First Post
 
@@ -135,6 +134,24 @@ rails bunko:sample_data MIN_WORDS=500 MAX_WORDS=1500
 # Clear existing posts first
 rails bunko:sample_data CLEAR=true
 ```
+
+## Adding More Content Types
+
+Need to add a new blog, documentation section, or any content type? Update your initializer and run one command:
+
+```ruby
+# config/initializers/bunko.rb
+Bunko.configure do |config|
+  config.post_type "blog"
+  config.post_type "changelog"  # Add this
+end
+```
+
+```bash
+rails bunko:add[changelog]
+```
+
+Bunko creates the database entry and generates the controller, views, routes, and updates your navigation automatically.
 
 **Content Formats:**
 
@@ -354,46 +371,115 @@ Bunko.configure do |config|
 end
 ```
 
-### Smart Collections (v1)
+### Collections
 
-Bunko supports **smart collections** - virtual collections that aggregate multiple post types or apply custom scopes:
+Every post type automatically gets its own collection (e.g., `blog` gets `/blog/`). But Bunko also lets you create **dynamic collections** that aggregate or filter content in powerful ways.
+
+**Example: Multi-Type Collection**
+
+Combine multiple post types into a single collection:
 
 ```ruby
-# config/initializers/bunko.rb
-Bunko.configure do |config|
-  # Define individual post types
-  config.post_type "articles"
-  config.post_type "videos"
-  config.post_type "tutorials"
+config.post_type "articles"
+config.post_type "videos"
+config.post_type "tutorials"
 
-  # Define a multi-type collection
-  config.collection "Resources", post_types: ["articles", "videos", "tutorials"]
-
-  # Define a scoped collection (e.g., long-form content)
-  config.collection "Long Reads", post_types: ["articles", "tutorials"] do |c|
-    c.scope -> { where("word_count > ?", 1500) }
-  end
-end
+config.collection "resources", post_types: ["articles", "videos", "tutorials"]
+# Auto-generates title "Resources", creates /resources/
 ```
 
-Then use them in your controller and routes like any other collection:
+This displays all three types together at `/resources/`.
+
+**Example: Scoped Collection**
+
+Filter content by word count to create a long-form reading collection:
 
 ```ruby
-# app/controllers/resources_controller.rb
-class ResourcesController < ApplicationController
-  bunko_collection :resources  # Automatically loads articles, videos, and tutorials
+config.collection "long_reads" do |c|
+  c.post_types = ["articles", "tutorials"]
+  c.scope = -> { where("word_count > ?", 1500) }
+end
+# Auto-generates title "Long Reads", creates /long-reads/
+```
+
+This shows only articles and tutorials over 1,500 words at `/long-reads/`.
+
+**Example: Custom Title**
+
+Override the auto-generated title:
+
+```ruby
+# Param style
+config.collection "greatest_hits", title: "Greatest Hits", post_types: ["articles"]
+
+# Block style
+config.collection "greatest_hits" do |c|
+  c.title = "Greatest Hits"
+  c.post_types = ["articles", "videos", "tutorials"]
+  c.scope = -> { where(featured: true) }
 end
 
+# Mixed style (block overrides params if both set the same option)
+config.collection "greatest_hits", title: "Param Title", post_types: ["articles"] do |c|
+  c.title = "Block Title"  # Block overrides param → final title is "Block Title"
+  c.post_types = ["articles", "videos"]  # Block overrides param → final post_types is ["articles", "videos"]
+  c.scope = -> { where(featured: true) }
+end
+# Final: title = "Block Title", post_types = ["articles", "videos"], URL: /greatest-hits/
+```
+
+**Planned Collections (Not Yet Working)**
+
+Future versions will support additional collection types:
+
+```ruby
+# Author collections - index of all authors, show page per author
+config.collection "authors", scope_by: :author
+# Title: "Authors"
+# /authors/ - index of all authors
+# /authors/:author_slug - all posts by that author
+
+# Tag collections - index of all tags, show page per tag
+config.collection "tags", scope_by: :tag
+# Title: "Tags"
+# /tags/ - index of all tags
+# /tags/:tag_slug - all posts with that tag
+
+# Date-based collections - index of years/months, show page per period
+config.collection "archives", scope_by: :year
+# Title: "Archives"
+# /archives/ - index of all years
+# /archives/2024 - all posts from 2024
+
+# Featured collections - simple filtered collection
+config.collection "featured", scope_by: :featured
+# Title: "Featured"
+# /featured/ - all featured posts
+
+# Combined filters
+config.collection "popular_long_reads" do |c|
+  c.post_types = ["articles"]
+  c.scope = -> { where("word_count > ?", 1500).where("views > ?", 1000) }
+end
+# Title: "Popular Long Reads", URL: /popular-long-reads/
+```
+
+**Usage**
+
+Use collections exactly like post types - same command, same routes:
+
+```bash
+rails bunko:add[resources]
+rails bunko:add[long_reads]
+```
+
+```ruby
 # config/routes.rb
 bunko_collection :resources
+bunko_collection :long_reads
 ```
 
-**Smart Lookup:** When you call `bunko_collection :name`, Bunko:
-1. First checks for a PostType with that name
-2. Then checks for a Collection with that name
-3. Returns 404 if neither exists
-
-**Name conflicts are prevented:** You cannot have a PostType and Collection with the same name.
+Bunko automatically detects whether you're adding a post type or a collection and handles it accordingly.
 
 ## What Bunko Doesn't Do
 
