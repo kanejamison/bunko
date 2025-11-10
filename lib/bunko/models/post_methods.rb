@@ -54,8 +54,11 @@ module Bunko
         "#{reading_time} min read"
       end
 
-      def excerpt(length: 160, omission: "...")
+      def excerpt(length: nil, omission: "...")
         return nil unless content.present?
+
+        # Use configured default if length not specified
+        length ||= Bunko.configuration.excerpt_length
 
         # Strip HTML tags if present
         text = content.to_s.gsub(/<[^>]*>/, "")
@@ -93,7 +96,8 @@ module Bunko
       def generate_slug
         return if title.blank?
 
-        base_slug = title.parameterize
+        # Generate slug and clean up any trailing/leading hyphens or underscores
+        base_slug = title.parameterize.gsub(/^[-_]+|[-_]+$/, "")
         self.slug = base_slug
 
         # Ensure uniqueness within post_type

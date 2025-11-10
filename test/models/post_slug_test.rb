@@ -127,4 +127,15 @@ class PostSlugTest < ActiveSupport::TestCase
     assert_match(/^test-post-[a-f0-9]{8}$/, post.slug)
     refute_equal "test-post", post.slug
   end
+
+  test "slug handles extreme special characters and punctuation" do
+    post = Post.create!(
+      title: "Great Post     Title (I'd Say No Way) ~!@\#$%^&*()_[]{\\}|;':\",./<>?`",
+      content: "Content",
+      post_type: @blog_type
+    )
+
+    # Rails parameterize splits contractions on apostrophes: "I'd" becomes "i-d"
+    assert_equal "great-post-title-i-d-say-no-way", post.slug
+  end
 end

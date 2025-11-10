@@ -66,4 +66,20 @@ class PostContentFormattingTest < ActiveSupport::TestCase
     # Should break at word boundary, not mid-word
     assert_equal "The quick brown fox...", result
   end
+
+  test "excerpt uses configured default length when not specified" do
+    # Change config temporarily
+    original_length = Bunko.configuration.excerpt_length
+    Bunko.configuration.excerpt_length = 50
+
+    long_content = "This is a long piece of content that should be truncated at the configured default length"
+    post = Post.new(content: long_content, post_type: @blog_type)
+
+    result = post.excerpt
+    assert result.length <= 53 # 50 + "..." (3 chars)
+    assert_equal "This is a long piece of content that should be...", result
+
+    # Restore original
+    Bunko.configuration.excerpt_length = original_length
+  end
 end
