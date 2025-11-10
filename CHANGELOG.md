@@ -70,9 +70,10 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - `config.post_type` DSL for defining content collections
   - `config.collection` DSL for smart/virtual collections
   - Configurable reading speed (default: 250 wpm)
+  - Configurable excerpt length (default: 160 characters)
   - Configurable valid statuses (default: draft, published, scheduled)
   - Name conflict validation between PostTypes and Collections
-- Test suite: 141 tests, 316 assertions, 44.59% line coverage (now tracking all lib files)
+- Test suite: 143 tests, 319 assertions
 - CI/CD pipeline testing Ruby 3.2, 3.3, 3.4, 3.5
 
 ### Next Up
