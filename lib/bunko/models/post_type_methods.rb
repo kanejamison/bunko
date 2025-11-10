@@ -7,7 +7,7 @@ module Bunko
 
       included do
         # Associations
-        has_many :posts, dependent: :destroy
+        has_many :posts, dependent: :restrict_with_error
 
         # Validations
         validates :name, presence: true

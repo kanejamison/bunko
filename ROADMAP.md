@@ -169,8 +169,7 @@ This approach allows users to customize their post types in the initializer befo
 - Creates `posts` table with essential fields:
   - `title` (string, required)
   - `slug` (string, required, indexed)
-  - `content` (text)
-    - we might want to pass an option flag for content to be a json/b column in case the user wants to use an editor that stores content as json.
+  - `content` (text by default, json/jsonb with `--json-content` flag for JSON-based editors)
   - `post_type` (references, required)
   - `status` (string, indexed, default: 'draft') # should this be references to a post_status table?
   - `published_at` (datetime, indexed)
@@ -214,11 +213,8 @@ This approach allows users to customize their post types in the initializer befo
 
 ### Generator Options
 
-- `--skip-views` - Don't generate view templates
-- `--skip-routes` - Don't modify routes.rb
-- `--seo` - Add meta_title, meta_description to migration # this should be there by default
-- `--metrics` - Add word_count to migration # this should be there by default
-- `--metadata` - Add metadata (jsonb/json) to migration
+- `--skip-seo` - Skip adding SEO fields (meta_title, meta_description)
+- `--json-content` - Use json/jsonb for content field instead of text (for JSON-based editors)
 
 ### Acceptance Test
 
@@ -286,11 +282,6 @@ end
 - `post.published_date(format = :long)` - returns formatted published_at using I18n.l
 - Supports Rails date formats: `:long`, `:short`, `:db`, custom strftime
 
-**Meta Tags:**
-- `post.meta_description_tag` - returns HTML-safe `<meta>` tag if meta_description field exists
-- Returns nil if field doesn't exist or is blank
-- Minimal SEO helper - users handle title tags via Rails' `content_for`
-
 **Navigation:**
 - Not needed - routing DSL automatically generates helpers like `blog_path`, `blog_post_path(post)`
 
@@ -309,10 +300,6 @@ end
 <% end %>
 
 <!-- Show view: single post -->
-<head>
-  <%= @post.meta_description_tag %>
-</head>
-
 <article>
   <h1><%= @post.title %></h1>
   <p class="meta">

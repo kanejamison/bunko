@@ -126,14 +126,11 @@ Customize the installation to fit your needs:
 # Exclude SEO fields (meta_title, meta_description)
 rails generate bunko:install --skip-seo
 
-# Exclude metrics fields (word_count, reading_time)
-rails generate bunko:install --skip-metrics
+# Use JSON/JSONB for content field (for JSON-based editors)
+rails generate bunko:install --json-content
 
-# Add metadata jsonb field for custom data
-rails generate bunko:install --metadata
-
-# Minimal install
-rails generate bunko:install --skip-seo --skip-metrics
+# Minimal install (no SEO fields)
+rails generate bunko:install --skip-seo
 ```
 
 ## Available Features
@@ -193,9 +190,6 @@ post.published_date(:short)      # => "Nov 09" (or locale-specific short format)
 
 # Reading time
 post.reading_time_text           # => "5 min read"
-
-# Meta tags (if meta_description field exists)
-post.meta_description_tag        # => '<meta name="description" content="...">'
 ```
 
 **In your views:**
@@ -209,10 +203,6 @@ post.meta_description_tag        # => '<meta name="description" content="...">'
 <% end %>
 
 <!-- Show: single post -->
-<head>
-  <%= @post.meta_description_tag %>
-</head>
-
 <h1><%= @post.title %></h1>
 <p><%= @post.published_date(:long) %> · <%= @post.reading_time_text %></p>
 <div><%= @post.content %></div>

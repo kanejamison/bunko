@@ -24,7 +24,7 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
 - Two-phase installation system (#2)
   - `rails generate bunko:install` - Creates migrations, models, and initializer
   - `rails bunko:setup` - Generates controllers, views, and routes from configuration
-  - Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`
+  - Generator options: `--skip-seo`, `--json-content`
   - Idempotent setup task (safe to re-run when adding collections)
   - Single-collection setup: `rails bunko:setup[slug]`
   - Template-based code generation from `lib/tasks/templates/`
@@ -49,30 +49,27 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - `post.excerpt(length: 160, omission: "...")` - Smart content truncation with HTML stripping
   - `post.published_date(format = :long)` - Locale-aware date formatting via I18n.l
   - `post.reading_time_text` - Returns "X min read" string
-  - `post.meta_description_tag` - HTML-safe meta tag generation (if field exists)
 - Works identically in index loops and show views
 - Clean API: `post.excerpt` instead of `bunko_excerpt(post)`
 
 **Test Suite Improvements**
-- Reorganized Post model tests into 7 focused files by functionality:
-  - `post_scopes_test.rb` - Query scopes (6 tests)
-  - `post_slug_test.rb` - Slug generation and uniqueness (10 tests)
-  - `post_publishing_test.rb` - Status and publishing workflow (11 tests)
-  - `post_reading_time_test.rb` - Reading time calculations (7 tests)
-  - `post_content_formatting_test.rb` - excerpt method (7 tests)
-  - `post_date_formatting_test.rb` - published_date method (5 tests)
-  - `post_meta_tags_test.rb` - meta_description_tag method (5 tests)
-- Added comprehensive PostType model tests (16 tests covering validations, associations, edge cases)
-- Improved SimpleCov configuration to track all lib files with `track_files "lib/**/*.rb"`
+- Reorganized Post model tests into focused files by functionality:
+  - `post_scopes_test.rb` - Query scopes
+  - `post_slug_test.rb` - Slug generation and uniqueness
+  - `post_publishing_test.rb` - Status and publishing workflow
+  - `post_reading_time_test.rb` - Reading time calculations and word count
+  - `post_content_formatting_test.rb` - excerpt method
+  - `post_date_formatting_test.rb` - published_date method
+- Added comprehensive PostType model tests covering validations, associations, edge cases
 
 **Configuration & Infrastructure**
 - Configuration system via `Bunko.configure` block (#3)
   - `config.post_type` DSL for defining content collections
   - `config.collection` DSL for smart/virtual collections
   - Configurable reading speed (default: 250 wpm)
+  - Configurable excerpt length (default: 160 characters)
   - Configurable valid statuses (default: draft, published, scheduled)
   - Name conflict validation between PostTypes and Collections
-- Test suite: 141 tests, 316 assertions, 44.59% line coverage (now tracking all lib files)
 - CI/CD pipeline testing Ruby 3.2, 3.3, 3.4, 3.5
 
 ### Next Up

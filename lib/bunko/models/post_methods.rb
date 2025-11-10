@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
+require_relative "post_methods/sluggable"
+require_relative "post_methods/word_countable"
+require_relative "post_methods/publishable"
+
 module Bunko
   module Models
     module PostMethods
       extend ActiveSupport::Concern
+
+      include Sluggable
+      include WordCountable
+      include Publishable
 
       included do
         # Associations
@@ -12,20 +20,6 @@ module Bunko
         # Validations
         validates :title, presence: true
         validates :slug, presence: true, uniqueness: {scope: :post_type_id}
-        validates :status, presence: true, inclusion: {
-          in: ->(_) { Bunko.configuration.valid_statuses },
-          message: "%{value} is not a valid status"
-        }
-
-        # Callbacks
-        before_validation :generate_slug, if: :should_generate_slug?
-        before_validation :set_published_at, if: :should_set_published_at?
-        validate :validate_status_value
-
-        # Scopes
-        scope :published, -> { where(status: "published").where("published_at <= ?", Time.current).order(published_at: :desc) }
-        scope :draft, -> { where(status: "draft").order(created_at: :desc) }
-        scope :scheduled, -> { where(status: "published").where("published_at > ?", Time.current).order(published_at: :asc) }
 
         # Default scope for ordering
         default_scope { order(created_at: :desc) }
@@ -42,20 +36,11 @@ module Bunko
         slug
       end
 
-      def reading_time
-        return nil unless word_count.present?
-
-        (word_count.to_f / Bunko.configuration.reading_speed).ceil
-      end
-
-      def reading_time_text
-        return nil unless reading_time.present?
-
-        "#{reading_time} min read"
-      end
-
-      def excerpt(length: 160, omission: "...")
+      def excerpt(length: nil, omission: "...")
         return nil unless content.present?
+
+        # Use configured default if length not specified
+        length ||= Bunko.configuration.excerpt_length
 
         # Strip HTML tags if present
         text = content.to_s.gsub(/<[^>]*>/, "")
@@ -74,52 +59,6 @@ module Bunko
         return nil unless published_at.present?
 
         I18n.l(published_at, format: format)
-      end
-
-      def meta_description_tag
-        return nil unless respond_to?(:meta_description) && meta_description.present?
-
-        # Return HTML-safe meta tag string
-        require "erb"
-        %(<meta name="description" content="#{ERB::Util.html_escape(meta_description)}">).html_safe
-      end
-
-      private
-
-      def should_generate_slug?
-        slug.blank? && title.present?
-      end
-
-      def generate_slug
-        return if title.blank?
-
-        base_slug = title.parameterize
-        self.slug = base_slug
-
-        # Ensure uniqueness within post_type
-        return unless self.class.unscoped.where(
-          post_type_id: post_type_id,
-          slug: slug
-        ).where.not(id: id).exists?
-
-        # Add random suffix if slug exists
-        self.slug = "#{base_slug}-#{SecureRandom.hex(4)}"
-      end
-
-      def should_set_published_at?
-        status == "published" && published_at.blank?
-      end
-
-      def set_published_at
-        self.published_at = Time.current
-      end
-
-      def validate_status_value
-        return if status.blank?
-
-        unless Bunko.configuration.valid_statuses.include?(status)
-          raise ArgumentError, "#{status} is not a valid status"
-        end
       end
     end
   end

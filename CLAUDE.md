@@ -132,9 +132,6 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - This gem uses **Standard** for Ruby linting (configured in `.standard.yml`)
 - Tests use **Minitest** framework
 - CI runs on GitHub Actions (`.github/workflows/main.yml`) and executes `bundle exec rake`
-- Current test coverage: 141 tests, 316 assertions, 44.59% line coverage
-  - Coverage tracks all lib files with SimpleCov `track_files "lib/**/*.rb"`
-  - Lower percentage reflects tracking untested files, not reduced actual coverage
 
 ## Current Features (Implemented)
 
@@ -154,7 +151,7 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Two-phase installation pattern:
   1. `rails generate bunko:install` - Creates migrations, models, initializer
   2. `rails bunko:setup` - Generates controllers, views, routes from configuration
-- Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`
+- Generator options: `--skip-seo`, `--json-content`
 - Configuration-driven: Define post_types in `config/initializers/bunko.rb`
 - Idempotent setup task (safe to re-run when adding new collections)
 - Single-collection setup: `rails bunko:setup[slug]` for adding individual collections
@@ -185,7 +182,6 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
   - `post.excerpt(length:, omission:)` - Smart content truncation with HTML stripping
   - `post.published_date(format)` - Locale-aware date formatting via I18n.l
   - `post.reading_time_text` - Returns "X min read" string
-  - `post.meta_description_tag` - HTML-safe meta tag generation (if field exists)
 
 ## Development Roadmap
 

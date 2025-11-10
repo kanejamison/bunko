@@ -5,7 +5,11 @@ class CreatePosts < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_
     create_table :posts do |t|
       t.string :title, null: false
       t.string :slug, null: false
+<% if use_json_content? -%>
+      t.jsonb :content
+<% else -%>
       t.text :content
+<% end -%>
       t.references :post_type, null: false, foreign_key: true
       t.string :status, null: false, default: "draft"
       t.datetime :published_at
@@ -15,16 +19,9 @@ class CreatePosts < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_
       t.string :meta_title
       t.text :meta_description
 <% end -%>
-<% if include_metrics? -%>
 
       # Metrics
       t.integer :word_count
-<% end -%>
-<% if include_metadata? -%>
-
-      # Custom metadata
-      t.jsonb :metadata
-<% end -%>
 
       t.timestamps
     end
