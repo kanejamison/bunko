@@ -1,5 +1,16 @@
 # frozen_string_literal: true
 
+require "simplecov"
+SimpleCov.start do
+  add_filter "/test/"
+  add_filter "/vendor/"
+  add_group "Controllers", "lib/bunko/controllers"
+  add_group "Models", "lib/bunko/models"
+  add_group "Configuration", "lib/bunko/configuration.rb"
+  add_group "Routing", "lib/bunko/routing"
+  add_group "Generators", "lib/generators"
+end
+
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
 # Load the dummy Rails app

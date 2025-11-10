@@ -11,3 +11,7 @@ gem "rake", "~> 13.0"
 gem "minitest", "~> 5.16"
 
 gem "standard", "~> 1.3"
+
+group :test do
+  gem "simplecov", require: false
+end
