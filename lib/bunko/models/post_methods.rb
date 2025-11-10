@@ -20,6 +20,7 @@ module Bunko
         # Callbacks
         before_validation :generate_slug, if: :should_generate_slug?
         before_validation :set_published_at, if: :should_set_published_at?
+        before_save :update_word_count, if: :should_update_word_count?
         validate :validate_status_value
 
         # Scopes
@@ -43,7 +44,7 @@ module Bunko
       end
 
       def reading_time
-        return nil unless word_count.present?
+        return nil unless word_count.present? && word_count > 0
 
         (word_count.to_f / Bunko.configuration.reading_speed).ceil
       end
@@ -123,6 +124,52 @@ module Bunko
 
         unless Bunko.configuration.valid_statuses.include?(status)
           raise ArgumentError, "#{status} is not a valid status"
+        end
+      end
+
+      def should_update_word_count?
+        # Only update word_count if:
+        # 1. Auto-update is enabled in config
+        # 2. Content changed
+        # 3. Model has word_count attribute
+        Bunko.configuration.auto_update_word_count &&
+          content_changed? &&
+          respond_to?(:word_count=)
+      end
+
+      def update_word_count
+        if content.blank?
+          self.word_count = 0
+          return
+        end
+
+        # Check if content is a text field or JSON field
+        column = self.class.columns_hash["content"]
+
+        if column && [:json, :jsonb].include?(column.type)
+          # For JSON content, try to extract text recursively
+          self.word_count = count_words_in_json(content)
+        else
+          # For text content, strip HTML tags and count words
+          text = content.to_s.gsub(/<[^>]*>/, "")
+          self.word_count = text.split(/\s+/).reject(&:blank?).size
+        end
+      end
+
+      def count_words_in_json(data)
+        case data
+        when String
+          # Strip HTML and count words in string
+          text = data.gsub(/<[^>]*>/, "")
+          text.split(/\s+/).reject(&:blank?).size
+        when Hash
+          # Recursively count words in hash values
+          data.values.sum { |value| count_words_in_json(value) }
+        when Array
+          # Recursively count words in array elements
+          data.sum { |element| count_words_in_json(element) }
+        else
+          0
         end
       end
     end

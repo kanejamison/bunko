@@ -32,11 +32,12 @@ module Bunko
       # end
     end
 
-    attr_accessor :reading_speed, :excerpt_length, :valid_statuses, :post_types, :collections
+    attr_accessor :reading_speed, :excerpt_length, :auto_update_word_count, :valid_statuses, :post_types, :collections
 
     def initialize
       @reading_speed = 250 # words per minute
       @excerpt_length = 160 # characters
+      @auto_update_word_count = true # automatically update word_count when content changes
       @valid_statuses = %w[draft published scheduled]
       @post_types = [] # Must be configured in initializer
       @collections = [] # Multi-type collections
