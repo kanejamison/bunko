@@ -118,6 +118,78 @@ Start your Rails server and visit:
 - `http://localhost:3000/docs` - Documentation index
 - `http://localhost:3000/changelog` - Changelog index
 
+### 8. (Optional) Generate Sample Data
+
+Want to see your collections in action? Bunko includes a sample data generator that creates realistic posts for all your configured post types:
+
+```bash
+# Generate 100 posts per post type (default)
+rails bunko:sample_data
+
+# Generate 50 posts per post type
+rails bunko:sample_data COUNT=50
+
+# Generate posts with specific word counts
+rails bunko:sample_data MIN_WORDS=500 MAX_WORDS=1500
+
+# Clear existing posts first
+rails bunko:sample_data CLEAR=true
+```
+
+**Content Formats:**
+
+The generator supports three content formats:
+
+```bash
+# Plain text (default) - Simple text with ## headings
+rails bunko:sample_data FORMAT=plain
+
+# Markdown - Full markdown formatting with bold, italic, lists, links, blockquotes
+rails bunko:sample_data FORMAT=markdown
+
+# HTML - Semantic HTML with optional CSS classes
+rails bunko:sample_data FORMAT=html
+```
+
+**What gets generated:**
+
+The sample data generator creates structured content tailored to each post type:
+
+- **Blog posts**: Introduction, body content, and conclusion
+- **Documentation**: Overview, getting started, examples (with code blocks), and configuration
+- **Changelogs**: Version numbers with Added/Fixed/Changed/Improved sections
+- **Case studies**: Challenge, solution, results (with metrics), and conclusion
+- **Tutorials**: Prerequisites, numbered steps, and troubleshooting
+
+All posts include:
+- Realistic titles based on post type
+- Unique slugs
+- Meta descriptions
+- Title tags
+- Published dates (90% past, 10% scheduled for future)
+- Automatic word count calculation
+
+**HTML Format Features:**
+
+When using `FORMAT=html`, content includes:
+- Semantic HTML5 tags (`<h2>`, `<p>`, `<blockquote>`, `<ul>`, `<li>`)
+- Random inline formatting (`<strong>`, `<em>`, `<u>`)
+- Optional CSS classes for styling:
+  - `class="content-paragraph"` on some paragraphs
+  - `class="section-heading"` on some headings
+  - `class="content-list"` on some lists
+  - `class="content-quote"` on some blockquotes
+- Safe external links (Ruby on Rails, RubyGems, Bunko GitHub)
+
+**Markdown Format Features:**
+
+When using `FORMAT=markdown`, content includes:
+- Markdown headings (`## Heading`)
+- Bold (`**text**`) and italic (`_text_`) formatting
+- Unordered lists (`- item`)
+- Blockquotes (`> quote`)
+- Links to safe external resources
+
 ## Generator Options
 
 Customize the installation to fit your needs:
