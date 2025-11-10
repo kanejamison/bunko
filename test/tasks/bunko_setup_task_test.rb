@@ -109,10 +109,10 @@ class BunkoSetupTaskTest < Minitest::Test
     # Verify view content
     index_view = File.read(File.join(@destination, "app/views/blog/index.html.erb"))
     assert_match(/class="blog-index"/, index_view)
-    assert_match(/blog_path/, index_view)
+    assert_match(/blog_path/, index_view) # Both index pagination and show links use blog_path
 
     show_view = File.read(File.join(@destination, "app/views/blog/show.html.erb"))
-    assert_match(/blog_index_path/, show_view)
+    assert_match(/blog_path/, show_view) # Back link uses blog_path (Rails convention)
   end
 
   def test_setup_adds_routes_for_each_post_type
