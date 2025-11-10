@@ -151,10 +151,10 @@ post = Post.new(title: "Hello World!")
 post.save
 post.slug  # => "hello-world"
 
-# Handles uniqueness within post_type
+# Handles uniqueness within post_type (adds random suffix)
 post2 = Post.new(title: "Hello World!", post_type: blog_type)
 post2.save
-post2.slug  # => "hello-world-2"
+post2.slug  # => "hello-world-a1b2c3d4" (8-character random hex)
 ```
 
 ### Publishing Workflow
@@ -163,9 +163,11 @@ post2.slug  # => "hello-world-2"
 post = Post.create(title: "My Post", status: "draft")
 post.published_at  # => nil
 
-post.update(status: "published", published_at: Time.now + 1.hour)
-post.scheduled?    # => true
+# Schedule a post for future publication
+post.update(status: "published", published_at: 1.hour.from_now)
+Post.scheduled.include?(post)  # => true
 
+# Publish immediately (auto-sets published_at)
 post.update(status: "published")
 post.published_at  # => automatically set to current time
 ```
