@@ -213,7 +213,7 @@ This approach allows users to customize their post types in the initializer befo
 
 ### Generator Options
 
-- `--skip-seo` - Skip adding SEO fields (meta_title, meta_description)
+- `--skip-seo` - Skip adding SEO fields (title_tag, meta_description)
 - `--json-content` - Use json/jsonb for content field instead of text (for JSON-based editors)
 
 ### Acceptance Test

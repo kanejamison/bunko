@@ -123,7 +123,7 @@ Start your Rails server and visit:
 Customize the installation to fit your needs:
 
 ```bash
-# Exclude SEO fields (meta_title, meta_description)
+# Exclude SEO fields (title_tag, meta_description)
 rails generate bunko:install --skip-seo
 
 # Use JSON/JSONB for content field (for JSON-based editors)
