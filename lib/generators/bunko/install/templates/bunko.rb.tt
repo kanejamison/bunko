@@ -6,8 +6,8 @@ Bunko.configure do |config|
   config.post_type "blog" # Title will be auto-generated as "Blog"
 
   # Want more? Add additional post types:
-  # config.post_type "documentation" do |type|
-  #   type.title = "Docs" # Custom title (optional)
+  # config.post_type "docs" do |type|
+  #   type.title = "Documentation" # Custom title (optional)
   # end
   #
   # config.post_type "changelog" # Title: "Changelog"
