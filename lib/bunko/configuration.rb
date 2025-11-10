@@ -8,6 +8,15 @@ module Bunko
       end
 
       def slug=(value)
+        # Validate slug format (must use underscores, not hyphens, for Ruby class naming)
+        if value.to_s.include?("-")
+          raise ArgumentError, "Slug '#{value}' cannot contain hyphens. Use underscores instead (e.g., 'case_study'). URLs will automatically use hyphens (/case-study/)."
+        end
+
+        unless value.to_s.match?(/\A[a-z0-9_]+\z/)
+          raise ArgumentError, "Slug '#{value}' must contain only lowercase letters, numbers, and underscores"
+        end
+
         @post_type_hash[:slug] = value
       end
 
@@ -44,8 +53,8 @@ module Bunko
     end
 
     def post_type(name, &block)
-      # Auto-generate slug from name
-      generated_slug = name.parameterize
+      # Auto-generate slug from name (using underscores, not hyphens)
+      generated_slug = name.parameterize.tr("-", "_")
 
       # Check for conflicts with existing collections
       if collection_exists?(generated_slug)
@@ -64,8 +73,8 @@ module Bunko
     end
 
     def collection(name, post_types:, &block)
-      # Normalize name to slug format
-      slug = name.to_s.parameterize
+      # Normalize name to slug format (using underscores, not hyphens)
+      slug = name.to_s.parameterize.tr("-", "_")
 
       # Check for conflicts with existing post_types
       if post_type_exists?(slug)
@@ -77,8 +86,8 @@ module Bunko
         raise ArgumentError, "Collection '#{slug}' already exists"
       end
 
-      # Normalize post_types to array of slugs
-      normalized_post_types = Array(post_types).map { |pt| pt.to_s.parameterize }
+      # Normalize post_types to array of slugs (using underscores, not hyphens)
+      normalized_post_types = Array(post_types).map { |pt| pt.to_s.parameterize.tr("-", "_") }
 
       collection = {
         name: name.to_s,

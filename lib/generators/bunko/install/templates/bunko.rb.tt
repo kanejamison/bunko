@@ -13,7 +13,7 @@ Bunko.configure do |config|
   # config.post_type "Changelog"
   #
   # config.post_type "Case Studies" do |type|
-  #   type.slug = "case-study"
+  #   type.slug = "case_studies" # Use underscores - URLs will automatically use hyphens (/case-studies/)
   # end
 
   # Reading speed for calculating estimated reading time (in words per minute)
