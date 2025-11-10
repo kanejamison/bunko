@@ -216,19 +216,26 @@ namespace :bunko do
   end
 
   def generate_index_view(collection_name)
+    # Rails resources behavior:
+    # - Singular names: blog_index_path, blog_path(slug)
+    # - Plural names: docs_path, doc_path(slug)
+    is_plural = collection_name.pluralize == collection_name
+
     render_template("index.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
       path_helper: "#{collection_name.singularize}_path",
-      index_path_helper: "#{collection_name}_path"
+      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path"
     })
   end
 
   def generate_show_view(collection_name)
+    is_plural = collection_name.pluralize == collection_name
+
     render_template("show.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
-      index_path_helper: "#{collection_name}_path"
+      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path"
     })
   end
 
