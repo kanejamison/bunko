@@ -270,8 +270,10 @@ Bunko.configure do |config|
     type.slug = "docs"
   end
 
-  config.reading_speed = 250  # words per minute for reading time calculation (default: 250)
-  config.valid_statuses = %w[draft published scheduled]  # allowed post statuses
+  # Optional configuration
+  config.reading_speed = 250           # words per minute for reading time calculation (default: 250)
+  config.excerpt_length = 160          # characters for post.excerpt method (default: 160)
+  config.auto_update_word_count = true # automatically update word_count when content changes (default: true)
 end
 ```
 

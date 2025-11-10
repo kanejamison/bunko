@@ -20,7 +20,11 @@ Bunko.configure do |config|
   # Default: 250
   # config.reading_speed = 250
 
-  # Valid post statuses
-  # Default: %w[draft published scheduled]
-  # config.valid_statuses = %w[draft published scheduled]
+  # Excerpt length for post.excerpt method (in characters)
+  # Default: 160
+  # config.excerpt_length = 160
+
+  # Automatically update word_count when content changes
+  # Default: true
+  # config.auto_update_word_count = true
 end

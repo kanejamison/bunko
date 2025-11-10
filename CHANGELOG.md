@@ -68,7 +68,7 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - `config.collection` DSL for smart/virtual collections
   - Configurable reading speed (default: 250 wpm)
   - Configurable excerpt length (default: 160 characters)
-  - Configurable valid statuses (default: draft, published, scheduled)
+  - Configurable auto_update_word_count (default: true)
   - Name conflict validation between PostTypes and Collections
 - CI/CD pipeline testing Ruby 3.2, 3.3, 3.4, 3.5
 
