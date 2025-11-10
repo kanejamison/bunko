@@ -219,8 +219,8 @@ namespace :bunko do
     render_template("index.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
-      path_helper: "#{collection_name}_path",
-      index_path_helper: "#{collection_name}_index_path"
+      path_helper: "#{collection_name.singularize}_path",
+      index_path_helper: "#{collection_name}_path"
     })
   end
 
@@ -228,7 +228,7 @@ namespace :bunko do
     render_template("show.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
-      index_path_helper: "#{collection_name}_index_path"
+      index_path_helper: "#{collection_name}_path"
     })
   end
 
