@@ -6,9 +6,9 @@ require "fileutils"
 
 class BunkoSetupTaskTest < Minitest::Test
   def setup
-    # Clean database before each test
-    PostType.delete_all
+    # Clean database before each test (Post first due to foreign key constraints)
     Post.delete_all
+    PostType.delete_all
 
     # Set up a temporary directory for test files
     @destination = File.expand_path("../../tmp/rake_test", __dir__)
@@ -52,9 +52,9 @@ class BunkoSetupTaskTest < Minitest::Test
     # Clean up temp directory
     FileUtils.rm_rf(@destination) if File.exist?(@destination)
 
-    # Clean up database
-    PostType.delete_all
+    # Clean up database (Post first due to foreign key constraints)
     Post.delete_all
+    PostType.delete_all
 
     # Reset configuration to default (empty - must be configured)
     Bunko.configuration.post_types = []

@@ -52,20 +52,20 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
   # Index Action Tests
   test "index returns 404 when post_type does not exist" do
     # Test with a collection that doesn't have a PostType or Collection configured
-    get nonexistent_index_path
+    get "/nonexistent"
     assert_response :not_found
     assert_match(/Collection 'nonexistent' not found/, response.body)
   end
 
   test "index shows all published posts for the collection" do
-    get blog_index_path
+    get "/blog"
 
     assert_response :success
     assert_select "body" # Basic check that view renders
   end
 
   test "index only shows posts from the correct post_type" do
-    get blog_index_path
+    get "/blog"
     assert_response :success
 
     # Would need to check @posts in controller, but we can verify via assigns
@@ -73,7 +73,7 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index does not show draft posts" do
-    get blog_index_path
+    get "/blog"
     assert_response :success
     # Draft posts should not be included in @posts
   end
@@ -87,13 +87,13 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
       published_at: 1.day.from_now
     )
 
-    get blog_index_path
+    get "/blog"
     assert_response :success
     # Scheduled post should not appear
   end
 
   test "index orders posts by most recent first" do
-    get blog_index_path
+    get "/blog"
     assert_response :success
     # Most recent should be first in @posts
   end
@@ -101,13 +101,13 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
   # Show Action Tests
   test "show returns 404 when post_type does not exist" do
     # Test with a collection that doesn't have a PostType or Collection configured
-    get nonexistent_path("any-slug")
+    get "/nonexistent/any-slug"
     assert_response :not_found
     assert_match(/Collection 'nonexistent' not found/, response.body)
   end
 
   test "show finds post by slug" do
-    get blog_path(@blog_post1.slug)
+    get "/blog/#{@blog_post1.slug}"
     assert_response :success
   end
 
@@ -123,21 +123,21 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
     )
 
     # Requesting from blog should get blog post, not docs
-    get blog_path(@blog_post1.slug)
+    get "/blog/#{@blog_post1.slug}"
     assert_response :success
 
     # Requesting from docs should get docs post
-    get docs_path(docs_post_same_slug.slug)
+    get "/docs/#{docs_post_same_slug.slug}"
     assert_response :success
   end
 
   test "show returns 404 when post not found" do
-    get blog_path("non-existent-slug")
+    get "/blog/non-existent-slug"
     assert_response :not_found
   end
 
   test "show returns 404 for draft posts" do
-    get blog_path(@blog_draft.slug)
+    get "/blog/#{@blog_draft.slug}"
     assert_response :not_found
   end
 
@@ -150,7 +150,7 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
       published_at: 1.day.from_now
     )
 
-    get blog_path(scheduled_post.slug)
+    get "/blog/#{scheduled_post.slug}"
     assert_response :not_found
   end
 
@@ -167,7 +167,7 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
       )
     end
 
-    get blog_index_path
+    get "/blog"
     assert_response :success
     # Should only show first 10 (default per_page)
   end
@@ -184,7 +184,7 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
       )
     end
 
-    get blog_index_path(page: 2)
+    get "/blog", params: {page: 2}
     assert_response :success
     # Should show second page
   end
@@ -201,7 +201,7 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
       )
     end
 
-    get docs_index_path
+    get "/docs"
     assert_response :success
     # Should only show 5 posts
   end

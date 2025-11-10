@@ -8,6 +8,7 @@ module Bunko
       class_methods do
         def bunko_collection(collection_name, **options)
           include Bunko::Controllers::Collection
+
           bunko_collection(collection_name, **options)
         end
       end
