@@ -126,14 +126,11 @@ Customize the installation to fit your needs:
 # Exclude SEO fields (meta_title, meta_description)
 rails generate bunko:install --skip-seo
 
-# Exclude metrics fields (word_count, reading_time)
-rails generate bunko:install --skip-metrics
-
 # Use JSON/JSONB for content field (for JSON-based editors)
 rails generate bunko:install --json-content
 
-# Minimal install
-rails generate bunko:install --skip-seo --skip-metrics
+# Minimal install (no SEO fields)
+rails generate bunko:install --skip-seo
 ```
 
 ## Available Features

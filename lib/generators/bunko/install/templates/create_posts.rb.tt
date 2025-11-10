@@ -19,11 +19,9 @@ class CreatePosts < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_
       t.string :meta_title
       t.text :meta_description
 <% end -%>
-<% if include_metrics? -%>
 
       # Metrics
       t.integer :word_count
-<% end -%>
 
       t.timestamps
     end

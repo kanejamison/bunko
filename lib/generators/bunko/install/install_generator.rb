@@ -12,8 +12,6 @@ module Bunko
 
       class_option :skip_seo, type: :boolean, default: false,
         desc: "Skip adding SEO fields (meta_title, meta_description)"
-      class_option :skip_metrics, type: :boolean, default: false,
-        desc: "Skip adding metrics fields (word_count)"
       class_option :json_content, type: :boolean, default: false,
         desc: "Use json/jsonb for content field instead of text (for JSON-based editors)"
 
@@ -53,10 +51,6 @@ module Bunko
 
       def include_seo_fields?
         !options[:skip_seo]
-      end
-
-      def include_metrics?
-        !options[:skip_metrics]
       end
 
       def use_json_content?
