@@ -3,13 +3,13 @@
     <h1><%%= @post.title %></h1>
 
     <div class="post-meta">
-      <%%= if @post.published_at %>
+      <%% if @post.published_at %>
         <time datetime="<%%= @post.published_at.iso8601 %>">
           <%%= @post.published_at.strftime("%B %d, %Y") %>
         </time>
       <%% end %>
 
-      <%%= if @post.reading_time %>
+      <%% if @post.reading_time %>
         <span class="reading-time">
           <%%= @post.reading_time %> min read
         </span>
