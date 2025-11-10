@@ -68,7 +68,7 @@ class PostTypeTest < ActiveSupport::TestCase
     assert_includes post_type.posts, post2
   end
 
-  test "destroys associated posts when post_type is destroyed" do
+  test "prevents deletion when posts exist" do
     post_type = PostType.create!(name: "Blog", slug: "blog")
 
     Post.create!(
@@ -86,9 +86,23 @@ class PostTypeTest < ActiveSupport::TestCase
 
     assert_equal 2, Post.count
 
-    post_type.destroy
+    # Attempt to destroy should fail
+    result = post_type.destroy
 
-    assert_equal 0, Post.count, "Posts should be destroyed when PostType is destroyed (dependent: :destroy)"
+    assert_equal false, result
+    assert_not_empty post_type.errors[:base]
+    assert_equal 2, Post.count, "Posts should not be destroyed"
+    assert PostType.exists?(post_type.id), "PostType should not be destroyed"
+  end
+
+  test "allows deletion when no posts exist" do
+    post_type = PostType.create!(name: "Blog", slug: "blog")
+
+    # Should be able to destroy when no posts
+    result = post_type.destroy
+
+    assert result
+    assert_not PostType.exists?(post_type.id)
   end
 
   # Edge Cases
