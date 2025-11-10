@@ -132,7 +132,6 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - This gem uses **Standard** for Ruby linting (configured in `.standard.yml`)
 - Tests use **Minitest** framework
 - CI runs on GitHub Actions (`.github/workflows/main.yml`) and executes `bundle exec rake`
-- Current test suite: 143 tests, 319 assertions
 
 ## Current Features (Implemented)
 
