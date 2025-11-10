@@ -35,7 +35,7 @@ class PostMethodsUnitTest < ActiveSupport::TestCase
   end
 
   test "generate_slug adds random suffix when slug exists" do
-    existing = Post.create!(
+    Post.create!(
       title: "Test Post",
       slug: "test-post",
       post_type: @blog_type,
@@ -45,7 +45,7 @@ class PostMethodsUnitTest < ActiveSupport::TestCase
     post = Post.new(title: "Test Post", post_type: @blog_type)
     post.send(:generate_slug)
 
-    assert_match /^test-post-[a-f0-9]{8}$/, post.slug
+    assert_match(/^test-post-[a-f0-9]{8}$/, post.slug)
     refute_equal "test-post", post.slug
   end
 
@@ -85,7 +85,7 @@ class PostMethodsUnitTest < ActiveSupport::TestCase
       post.send(:validate_status_value)
     end
 
-    assert_match /invalid is not a valid status/, error.message
+    assert_match(/invalid is not a valid status/, error.message)
   end
 
   test "validate_status_value does not raise error for valid status" do

@@ -5,6 +5,7 @@ require_relative "../test_helper"
 class CollectionConcernTest < ActiveSupport::TestCase
   class TestController < ApplicationController
     include Bunko::Controllers::Collection
+
     bunko_collection :blog, per_page: 5, order: :created_at_desc
 
     # Make private methods accessible for testing
