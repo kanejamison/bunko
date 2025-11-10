@@ -86,10 +86,10 @@ rails db:migrate
 rails bunko:setup
 ```
 
-This generates:
-- Controllers for each post type (e.g., `BlogController`, `DocsController`)
-- View templates (index + show) for each collection
-- Routes for each collection
+For each Post Type and Collection you have defined this generates:
+- Controllers (e.g., `BlogController`, `DocsController`)
+- View templates (e.g., `/app/views/blog/index`, `/app/views/blog/show`, etc)
+- Routes (e.g., `bunko_collection :blog`, `bunko_collection :docs`)
 
 **Adding more collections later?** Just update the initializer and run:
 ```bash
@@ -162,6 +162,9 @@ post2.slug  # => "hello-world-2"
 ```ruby
 post = Post.create(title: "My Post", status: "draft")
 post.published_at  # => nil
+
+post.update(status: "published", published_at: Time.now + 1.hour)
+post.scheduled?    # => true
 
 post.update(status: "published")
 post.published_at  # => automatically set to current time
