@@ -52,7 +52,7 @@ module Bunko
       @collections = [] # Multi-type collections
     end
 
-    def post_type(name, &block)
+    def post_type(name, title: nil, &block)
       # Validate name format (must use underscores, not hyphens, for Ruby class naming)
       name_str = name.to_s
 
@@ -70,11 +70,11 @@ module Bunko
       end
 
       # Auto-generate title from name (e.g., "case_study" → "Case Study")
-      generated_title = name_str.titleize
+      generated_title = title || name_str.titleize
 
       post_type = {name: name_str, title: generated_title}
 
-      # Allow customization via block
+      # Allow customization via block (block overrides params)
       if block_given?
         customizer = PostTypeCustomizer.new(post_type)
         block.call(customizer)
@@ -83,7 +83,7 @@ module Bunko
       @post_types << post_type
     end
 
-    def collection(name, &block)
+    def collection(name, title: nil, post_types: nil, scope: nil, &block)
       # Validate name format (must use underscores, not hyphens)
       name_str = name.to_s
 
@@ -105,28 +105,33 @@ module Bunko
         raise ArgumentError, "Collection '#{name_str}' already exists"
       end
 
-      # Auto-generate title from name (e.g., "long_reads" → "Long Reads")
-      generated_title = name_str.titleize
-
-      # Require block for collection configuration
-      unless block_given?
-        raise ArgumentError, "Collection '#{name_str}' requires a configuration block. Use: config.collection \"#{name_str}\" do |c| ... end"
+      # Require at least post_types param or block
+      unless post_types || block_given?
+        raise ArgumentError, "Collection '#{name_str}' requires either post_types parameter or a configuration block"
       end
+
+      # Auto-generate title from name (e.g., "long_reads" → "Long Reads")
+      generated_title = title || name_str.titleize
+
+      # Normalize post_types to array of names (using underscores, not hyphens)
+      normalized_post_types = post_types ? Array(post_types).map { |pt| pt.to_s.parameterize.tr("-", "_") } : []
 
       collection = {
         name: name_str,
         title: generated_title,
-        post_types: [],
-        scope: nil
+        post_types: normalized_post_types,
+        scope: scope
       }
 
-      # Allow customization via block
-      customizer = CollectionCustomizer.new(collection)
-      block.call(customizer)
+      # Allow customization via block (block overrides params)
+      if block_given?
+        customizer = CollectionCustomizer.new(collection)
+        block.call(customizer)
+      end
 
       # Validate that post_types was set
       if collection[:post_types].empty?
-        raise ArgumentError, "Collection '#{name_str}' must specify at least one post_type. Use: c.post_types = [...]"
+        raise ArgumentError, "Collection '#{name_str}' must specify at least one post_type"
       end
 
       @collections << collection

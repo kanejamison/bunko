@@ -66,11 +66,11 @@ Edit `config/initializers/bunko.rb` to define your content collections:
 Bunko.configure do |config|
   config.post_type "blog"  # Title auto-generated as "Blog"
 
-  config.post_type "docs" do |type|
-    type.title = "Documentation"  # Custom title
-  end
+  config.post_type "docs", title: "Documentation"  # Param style
 
-  config.post_type "changelog"  # Title: "Changelog"
+  config.post_type "changelog" do |type|  # Block style
+    type.title = "Changelog"
+  end
 end
 ```
 
@@ -384,9 +384,7 @@ config.post_type "articles"
 config.post_type "videos"
 config.post_type "tutorials"
 
-config.collection "resources" do |c|
-  c.post_types = ["articles", "videos", "tutorials"]
-end
+config.collection "resources", post_types: ["articles", "videos", "tutorials"]
 # Auto-generates title "Resources", creates /resources/
 ```
 
@@ -411,12 +409,23 @@ This shows only articles and tutorials over 1,500 words at `/long-reads/`.
 Override the auto-generated title:
 
 ```ruby
+# Param style
+config.collection "greatest_hits", title: "Greatest Hits", post_types: ["articles"]
+
+# Block style
 config.collection "greatest_hits" do |c|
   c.title = "Greatest Hits"
   c.post_types = ["articles", "videos", "tutorials"]
   c.scope = -> { where(featured: true) }
 end
-# Title: "Greatest Hits", URL: /greatest-hits/
+
+# Mixed style (block overrides params if both set the same option)
+config.collection "greatest_hits", title: "Param Title", post_types: ["articles"] do |c|
+  c.title = "Block Title"  # Block overrides param → final title is "Block Title"
+  c.post_types = ["articles", "videos"]  # Block overrides param → final post_types is ["articles", "videos"]
+  c.scope = -> { where(featured: true) }
+end
+# Final: title = "Block Title", post_types = ["articles", "videos"], URL: /greatest-hits/
 ```
 
 **Planned Collections (Not Yet Working)**
