@@ -14,9 +14,9 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     end
   end
 
-  test "bunko_routes creates index and show routes with slug param" do
+  test "bunko_collection creates index and show routes with slug param" do
     @routes.draw do
-      bunko_routes :blog
+      bunko_collection :blog
     end
 
     # Get all route paths
@@ -26,9 +26,9 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_includes paths, "/blog/:slug(.:format)"
   end
 
-  test "bunko_routes converts underscores to hyphens in path" do
+  test "bunko_collection converts underscores to hyphens in path" do
     @routes.draw do
-      bunko_routes :case_study
+      bunko_collection :case_study
     end
 
     paths = @routes.routes.map { |r| r.path.spec.to_s }
@@ -38,9 +38,9 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_includes paths, "/case-study/:slug(.:format)"
   end
 
-  test "bunko_routes accepts custom path option" do
+  test "bunko_collection accepts custom path option" do
     @routes.draw do
-      bunko_routes :case_study, path: "case-studies"
+      bunko_collection :case_study, path: "case-studies"
     end
 
     paths = @routes.routes.map { |r| r.path.spec.to_s }
@@ -50,9 +50,9 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_includes paths, "/case-studies/:slug(.:format)"
   end
 
-  test "bunko_routes accepts custom controller option" do
+  test "bunko_collection accepts custom controller option" do
     @routes.draw do
-      bunko_routes :blog, controller: "articles"
+      bunko_collection :blog, controller: "articles"
     end
 
     # Check controller assignment
@@ -60,9 +60,9 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_equal "articles", route.defaults[:controller]
   end
 
-  test "bunko_routes accepts custom only option" do
+  test "bunko_collection accepts custom only option" do
     @routes.draw do
-      bunko_routes :blog, only: [:index]
+      bunko_collection :blog, only: [:index]
     end
 
     paths = @routes.routes.map { |r| r.path.spec.to_s }
@@ -74,11 +74,11 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     refute_includes paths, "/blog/:slug(.:format)"
   end
 
-  test "bunko_routes works with multiple collections" do
+  test "bunko_collection works with multiple collections" do
     @routes.draw do
-      bunko_routes :blog
-      bunko_routes :docs
-      bunko_routes :changelog
+      bunko_collection :blog
+      bunko_collection :docs
+      bunko_collection :changelog
     end
 
     paths = @routes.routes.map { |r| r.path.spec.to_s }
@@ -88,18 +88,18 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_includes paths, "/changelog(.:format)"
   end
 
-  test "bunko_routes generates path helper names from resource name" do
+  test "bunko_collection generates path helper names from resource name" do
     @routes.draw do
-      bunko_routes :blog
+      bunko_collection :blog
     end
 
     # Helper methods (Rails doesn't generate *_index_path, just the resource name)
     assert_respond_to @routes.url_helpers, :blog_path  # Can be used with or without slug
   end
 
-  test "bunko_routes with custom path generates helpers from path name with underscores" do
+  test "bunko_collection with custom path generates helpers from path name with underscores" do
     @routes.draw do
-      bunko_routes :case_study, path: "case-studies"
+      bunko_collection :case_study, path: "case-studies"
     end
 
     # Helpers use underscored version of path (case-studies → case_studies)

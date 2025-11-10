@@ -122,10 +122,10 @@ class BunkoSetupTaskTest < Minitest::Test
 
     run_rake_task("bunko:setup")
 
-    # Verify routes were added using bunko_routes
+    # Verify routes were added using bunko_collection
     routes_content = File.read(File.join(@destination, "config/routes.rb"))
-    assert_match(/bunko_routes :blog/, routes_content)
-    assert_match(/bunko_routes :docs/, routes_content)
+    assert_match(/bunko_collection :blog/, routes_content)
+    assert_match(/bunko_collection :docs/, routes_content)
   end
 
   def test_setup_with_specific_slug_only_sets_up_that_slug
@@ -191,7 +191,7 @@ class BunkoSetupTaskTest < Minitest::Test
     routes_content = File.read(File.join(@destination, "config/routes.rb"))
 
     # Should only have one route entry (not duplicated)
-    assert_equal 1, routes_content.scan("bunko_routes :blog").count
+    assert_equal 1, routes_content.scan("bunko_collection :blog").count
   end
 
   def test_setup_with_invalid_slug_exits_gracefully

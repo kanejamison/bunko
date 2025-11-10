@@ -240,8 +240,8 @@ $ rails db:migrate
 ### Required Behavior
 
 **Route DSL:**
-- Developer can call `bunko_routes :blog` instead of writing full resources line
-- Supports custom paths (e.g., `bunko_routes :case_study, path: 'case-studies'`)
+- Developer can call `bunko_collection :blog` instead of writing full resources line
+- Supports custom paths (e.g., `bunko_collection :case_study, path: 'case-studies'`)
 - Supports limiting actions (e.g., `only: [:index]` for index-only collection) # not critical
 - Supports custom controller names
 
@@ -250,9 +250,9 @@ $ rails db:migrate
 ```ruby
 # Developer can do this in config/routes.rb:
 Rails.application.routes.draw do
-  bunko_routes :blog
-  bunko_routes :docs
-  bunko_routes :case_study, path: 'case-studies' #perhaps path should be automatically hyphenated and/or inflected/pluralized?
+  bunko_collection :blog
+  bunko_collection :docs
+  bunko_collection :case_study, path: 'case-studies' #perhaps path should be automatically hyphenated and/or inflected/pluralized?
 end
 
 # And get these routes:

@@ -188,7 +188,7 @@ namespace :bunko do
     routes_file = Rails.root.join("config/routes.rb")
     routes_content = File.read(routes_file)
 
-    route_line = "  bunko_routes :#{slug}"
+    route_line = "  bunko_collection :#{slug}"
 
     if routes_content.include?(route_line.strip)
       puts "  - Route for :#{slug} already exists (skipped)"

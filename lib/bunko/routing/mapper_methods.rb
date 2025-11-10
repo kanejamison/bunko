@@ -12,18 +12,18 @@ module Bunko
       # @option options [Array<Symbol>] :only Actions to route (default: [:index, :show])
       #
       # @example Basic usage
-      #   bunko_routes :blog
+      #   bunko_collection :blog
       #   # Generates: /blog -> blog#index, /blog/:slug -> blog#show
       #
       # @example Custom path
-      #   bunko_routes :case_study, path: "case-studies"
+      #   bunko_collection :case_study, path: "case-studies"
       #   # Generates: /case-studies -> case_study#index, /case-studies/:slug -> case_study#show
       #
       # @example Custom controller
-      #   bunko_routes :blog, controller: "articles"
+      #   bunko_collection :blog, controller: "articles"
       #   # Generates: /blog -> articles#index, /blog/:slug -> articles#show
       #
-      def bunko_routes(collection_slug, **options)
+      def bunko_collection(collection_slug, **options)
         # Extract options with defaults
         custom_path = options.delete(:path)
         controller = options.delete(:controller) || collection_slug.to_s

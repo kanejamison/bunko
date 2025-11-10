@@ -4,7 +4,7 @@ require "rails/railtie"
 
 module Bunko
   class Railtie < Rails::Railtie
-    # Extend Rails routing DSL with bunko_routes
+    # Extend Rails routing DSL with bunko_collection
     initializer "bunko.routing" do
       ActiveSupport.on_load(:action_controller) do
         require "bunko/routing"
