@@ -231,7 +231,9 @@ class BunkoSetupTaskTest < Minitest::Test
     Bunko.configure do |config|
       config.post_type "articles"
       config.post_type "videos"
-      config.collection "Resources", post_types: ["articles", "videos"]
+      config.collection "resources" do |c|
+        c.post_types = ["articles", "videos"]
+      end
     end
 
     run_rake_task("bunko:setup")
@@ -249,7 +251,9 @@ class BunkoSetupTaskTest < Minitest::Test
     Bunko.configure do |config|
       config.post_type "articles"
       config.post_type "videos"
-      config.collection "Resources", post_types: ["articles", "videos"]
+      config.collection "resources" do |c|
+        c.post_types = ["articles", "videos"]
+      end
     end
 
     run_rake_task("bunko:setup")
@@ -263,7 +267,9 @@ class BunkoSetupTaskTest < Minitest::Test
     Bunko.configure do |config|
       config.post_type "articles"
       config.post_type "videos"
-      config.collection "Resources", post_types: ["articles", "videos"]
+      config.collection "resources" do |c|
+        c.post_types = ["articles", "videos"]
+      end
     end
 
     run_rake_task("bunko:setup")
@@ -329,7 +335,9 @@ class BunkoSetupTaskTest < Minitest::Test
     Bunko.configure do |config|
       config.post_type "articles"
       config.post_type "videos"
-      config.collection "Resources", post_types: ["articles", "videos"]
+      config.collection "resources" do |c|
+        c.post_types = ["articles", "videos"]
+      end
     end
 
     run_rake_task("bunko:setup")
@@ -348,7 +356,9 @@ class BunkoSetupTaskTest < Minitest::Test
       config.post_type "videos" do |type|
         type.title = "Videos"
       end
-      config.collection "Resources", post_types: ["articles", "videos"]
+      config.collection "resources" do |c|
+        c.post_types = ["articles", "videos"]
+      end
     end
 
     run_rake_task("bunko:setup")
@@ -403,7 +413,9 @@ class BunkoSetupTaskTest < Minitest::Test
     Bunko.configure do |config|
       config.post_type "articles"
       config.post_type "videos"
-      config.collection "resources", post_types: ["articles", "videos"]
+      config.collection "resources" do |c|
+        c.post_types = ["articles", "videos"]
+      end
     end
 
     # Add just the collection
@@ -459,7 +471,9 @@ class BunkoSetupTaskTest < Minitest::Test
     refute_match(/"Resources"/, nav_content_before)
 
     # Add a new collection
-    Bunko.configuration.collection "resources", post_types: ["articles", "videos"]
+    Bunko.configuration.collection "resources" do |c|
+      c.post_types = ["articles", "videos"]
+    end
 
     run_rake_task("bunko:add", "resources")
 
@@ -489,7 +503,9 @@ class BunkoSetupTaskTest < Minitest::Test
     Bunko.configure do |config|
       config.post_type "articles"
       config.post_type "videos"
-      config.collection "Resources", post_types: ["articles", "videos"]
+      config.collection "resources" do |c|
+        c.post_types = ["articles", "videos"]
+      end
     end
 
     # Use unified add command for a collection
@@ -505,7 +521,9 @@ class BunkoSetupTaskTest < Minitest::Test
   def test_unified_add_command_with_invalid_name_exits_gracefully
     Bunko.configure do |config|
       config.post_type "blog"
-      config.collection "Resources", post_types: ["blog"]
+      config.collection "resources" do |c|
+        c.post_types = ["blog"]
+      end
     end
 
     output = capture_io do

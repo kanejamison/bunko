@@ -384,7 +384,9 @@ config.post_type "articles"
 config.post_type "videos"
 config.post_type "tutorials"
 
-config.collection "resources", post_types: ["articles", "videos", "tutorials"]
+config.collection "resources" do |c|
+  c.post_types = ["articles", "videos", "tutorials"]
+end
 # Auto-generates title "Resources", creates /resources/
 ```
 
@@ -395,13 +397,27 @@ This displays all three types together at `/resources/`.
 Filter content by word count to create a long-form reading collection:
 
 ```ruby
-config.collection "long_reads", post_types: ["articles", "tutorials"] do |c|
-  c.scope -> { where("word_count > ?", 1500) }
+config.collection "long_reads" do |c|
+  c.post_types = ["articles", "tutorials"]
+  c.scope = -> { where("word_count > ?", 1500) }
 end
 # Auto-generates title "Long Reads", creates /long-reads/
 ```
 
 This shows only articles and tutorials over 1,500 words at `/long-reads/`.
+
+**Example: Custom Title**
+
+Override the auto-generated title:
+
+```ruby
+config.collection "greatest_hits" do |c|
+  c.title = "Greatest Hits"
+  c.post_types = ["articles", "videos", "tutorials"]
+  c.scope = -> { where(featured: true) }
+end
+# Title: "Greatest Hits", URL: /greatest-hits/
+```
 
 **Planned Collections (Not Yet Working)**
 
@@ -432,8 +448,9 @@ config.collection "featured", scope_by: :featured
 # /featured/ - all featured posts
 
 # Combined filters
-config.collection "popular_long_reads", post_types: ["articles"] do |c|
-  c.scope -> { where("word_count > ?", 1500).where("views > ?", 1000) }
+config.collection "popular_long_reads" do |c|
+  c.post_types = ["articles"]
+  c.scope = -> { where("word_count > ?", 1500).where("views > ?", 1000) }
 end
 # Title: "Popular Long Reads", URL: /popular-long-reads/
 ```

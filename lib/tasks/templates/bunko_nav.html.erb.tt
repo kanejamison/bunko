@@ -10,9 +10,9 @@
     <%%= link_to "<%= post_type[:title] %>", <%= path_helper %>, style: "text-decoration: none; color: #007bff;" %>
 <% end -%>
 <% collections.each do |collection| -%>
-<% is_plural = collection[:slug].pluralize == collection[:slug] -%>
-<% path_helper = is_plural ? "#{collection[:slug]}_path" : "#{collection[:slug]}_index_path" -%>
-    <%%= link_to "<%= collection[:name].titleize %>", <%= path_helper %>, style: "text-decoration: none; color: #007bff;" %>
+<% is_plural = collection[:name].pluralize == collection[:name] -%>
+<% path_helper = is_plural ? "#{collection[:name]}_path" : "#{collection[:name]}_index_path" -%>
+    <%%= link_to "<%= collection[:title] %>", <%= path_helper %>, style: "text-decoration: none; color: #007bff;" %>
 <% end -%>
     <%# bunko_collection_links - additional collections will be added here unless you delete this line %>
   </div>

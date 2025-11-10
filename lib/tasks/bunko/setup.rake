@@ -38,7 +38,7 @@ namespace :bunko do
     # Add all collections
     collections.each do |collection_config|
       Rake::Task["bunko:add"].reenable
-      Rake::Task["bunko:add"].invoke(collection_config[:slug])
+      Rake::Task["bunko:add"].invoke(collection_config[:name])
     end
 
     puts "=" * 79
@@ -56,7 +56,8 @@ namespace :bunko do
 
     # Show Collection routes
     collections.each do |c|
-      puts "     http://localhost:3000/#{c[:slug]} (collection: #{c[:post_types].join(", ")})"
+      url_path = c[:name].tr("_", "-")
+      puts "     http://localhost:3000/#{url_path} (collection: #{c[:post_types].join(", ")})"
     end
 
     puts "=" * 79

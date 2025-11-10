@@ -27,7 +27,7 @@ namespace :bunko do
     pt_config = Bunko.configuration.post_types.find { |pt| pt[:name] == name }
 
     # Check if it's a Collection
-    collection_config = Bunko.configuration.collections.find { |c| c[:slug] == name }
+    collection_config = Bunko.configuration.collections.find { |c| c[:name] == name }
 
     unless pt_config || collection_config
       # Not found in either
@@ -35,7 +35,7 @@ namespace :bunko do
       puts ""
 
       available_post_types = Bunko.configuration.post_types.map { |pt| pt[:name] }
-      available_collections = Bunko.configuration.collections.map { |c| c[:slug] }
+      available_collections = Bunko.configuration.collections.map { |c| c[:name] }
 
       if available_post_types.any?
         puts "   Available PostTypes: #{available_post_types.join(", ")}"
@@ -49,7 +49,9 @@ namespace :bunko do
       puts "   Add it to config/initializers/bunko.rb first:"
       puts "   config.post_type \"#{name}\""
       puts "   # or"
-      puts "   config.collection \"#{name.titleize}\", post_types: [...]"
+      puts "   config.collection \"#{name}\" do |c|"
+      puts "     c.post_types = [...]"
+      puts "   end"
       exit 1
     end
 
@@ -65,7 +67,7 @@ namespace :bunko do
     if pt_config
       add_to_nav(name, title: pt_config[:title])
     else
-      add_to_nav(name, title: collection_config[:name].titleize)
+      add_to_nav(name, title: collection_config[:title])
     end
 
     # Success message
