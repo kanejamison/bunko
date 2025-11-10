@@ -5,49 +5,49 @@ require_relative "../test_helper"
 class PostTypeTest < ActiveSupport::TestCase
   # Validation Tests
 
+  test "requires title to be present" do
+    post_type = PostType.new(name: "blog")
+    refute post_type.valid?
+    assert_includes post_type.errors[:title], "can't be blank"
+  end
+
   test "requires name to be present" do
-    post_type = PostType.new(slug: "blog")
+    post_type = PostType.new(title: "Blog")
     refute post_type.valid?
     assert_includes post_type.errors[:name], "can't be blank"
   end
 
-  test "requires slug to be present" do
-    post_type = PostType.new(name: "Blog")
-    refute post_type.valid?
-    assert_includes post_type.errors[:slug], "can't be blank"
-  end
+  test "requires name to be unique" do
+    PostType.create!(name: "blog", title: "Blog")
 
-  test "requires slug to be unique" do
-    PostType.create!(name: "Blog", slug: "blog")
-
-    duplicate = PostType.new(name: "Another Blog", slug: "blog")
+    duplicate = PostType.new(name: "blog", title: "Another Blog")
     refute duplicate.valid?
-    assert_includes duplicate.errors[:slug], "has already been taken"
+    assert_includes duplicate.errors[:name], "has already been taken"
   end
 
-  test "allows different slugs for different post types" do
-    PostType.create!(name: "Blog", slug: "blog")
+  test "allows different names for different post types" do
+    PostType.create!(name: "blog", title: "Blog")
 
-    different = PostType.new(name: "Docs", slug: "docs")
+    different = PostType.new(name: "docs", title: "Docs")
     assert different.valid?
   end
 
-  test "is valid with name and slug" do
-    post_type = PostType.new(name: "Blog", slug: "blog")
+  test "is valid with name and title" do
+    post_type = PostType.new(name: "blog", title: "Blog")
     assert post_type.valid?
   end
 
   test "can be created with valid attributes" do
-    post_type = PostType.create!(name: "Blog", slug: "blog")
+    post_type = PostType.create!(name: "blog", title: "Blog")
     assert post_type.persisted?
-    assert_equal "Blog", post_type.name
-    assert_equal "blog", post_type.slug
+    assert_equal "blog", post_type.name
+    assert_equal "Blog", post_type.title
   end
 
   # Association Tests
 
   test "has_many :posts association" do
-    post_type = PostType.create!(name: "Blog", slug: "blog")
+    post_type = PostType.create!(name: "blog", title: "Blog")
 
     # Create posts for this type
     post1 = Post.create!(
@@ -69,7 +69,7 @@ class PostTypeTest < ActiveSupport::TestCase
   end
 
   test "prevents deletion when posts exist" do
-    post_type = PostType.create!(name: "Blog", slug: "blog")
+    post_type = PostType.create!(name: "blog", title: "Blog")
 
     Post.create!(
       title: "Post 1",
@@ -96,7 +96,7 @@ class PostTypeTest < ActiveSupport::TestCase
   end
 
   test "allows deletion when no posts exist" do
-    post_type = PostType.create!(name: "Blog", slug: "blog")
+    post_type = PostType.create!(name: "blog", title: "Blog")
 
     # Should be able to destroy when no posts
     result = post_type.destroy
@@ -107,24 +107,24 @@ class PostTypeTest < ActiveSupport::TestCase
 
   # Edge Cases
 
-  test "handles slug with special characters" do
-    post_type = PostType.create!(name: "Case Study", slug: "case-study")
+  test "name can contain underscores" do
+    post_type = PostType.create!(name: "case_study", title: "Case Study")
     assert post_type.persisted?
-    assert_equal "case-study", post_type.slug
+    assert_equal "case_study", post_type.name
   end
 
-  test "slug is case sensitive for uniqueness" do
-    PostType.create!(name: "Blog", slug: "blog")
+  test "name is case sensitive for uniqueness" do
+    PostType.create!(name: "blog", title: "Blog")
 
     # Different case - should be considered different in most DBs
     # But this depends on DB collation settings
-    uppercase = PostType.new(name: "BLOG", slug: "BLOG")
+    uppercase = PostType.new(name: "BLOG", title: "BLOG")
     assert uppercase.valid?
   end
 
-  test "handles very long names" do
-    long_name = "A" * 255
-    post_type = PostType.new(name: long_name, slug: "test")
+  test "handles very long titles" do
+    long_title = "A" * 255
+    post_type = PostType.new(name: "test", title: long_title)
 
     # Should be valid unless there's a length limit
     # This tests the actual behavior of your schema
@@ -133,9 +133,9 @@ class PostTypeTest < ActiveSupport::TestCase
     assert_not_nil result
   end
 
-  test "handles very long slugs" do
-    long_slug = "a" * 255
-    post_type = PostType.new(name: "Test", slug: long_slug)
+  test "handles very long names" do
+    long_name = "a" * 255
+    post_type = PostType.new(name: long_name, title: "Test")
 
     # Should be valid unless there's a length limit
     result = post_type.valid?
@@ -143,20 +143,14 @@ class PostTypeTest < ActiveSupport::TestCase
     assert_not_nil result
   end
 
-  test "slug can contain underscores" do
-    post_type = PostType.create!(name: "Case Study", slug: "case_study")
+  test "name can contain numbers" do
+    post_type = PostType.create!(name: "news_2024", title: "News 2024")
     assert post_type.persisted?
-    assert_equal "case_study", post_type.slug
-  end
-
-  test "slug can contain numbers" do
-    post_type = PostType.create!(name: "News 2024", slug: "news-2024")
-    assert post_type.persisted?
-    assert_equal "news-2024", post_type.slug
+    assert_equal "news_2024", post_type.name
   end
 
   test "timestamps are set automatically" do
-    post_type = PostType.create!(name: "Blog", slug: "blog")
+    post_type = PostType.create!(name: "blog", title: "Blog")
 
     assert_not_nil post_type.created_at
     assert_not_nil post_type.updated_at
@@ -164,12 +158,12 @@ class PostTypeTest < ActiveSupport::TestCase
   end
 
   test "updated_at changes when record is updated" do
-    post_type = PostType.create!(name: "Blog", slug: "blog")
+    post_type = PostType.create!(name: "blog", title: "Blog")
     original_updated_at = post_type.updated_at
 
     travel 1.second
 
-    post_type.update!(name: "Updated Blog")
+    post_type.update!(title: "Updated Blog")
 
     assert_not_equal original_updated_at, post_type.updated_at
     assert post_type.updated_at > original_updated_at

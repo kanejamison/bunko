@@ -3,12 +3,12 @@
 class CreatePostTypes < ActiveRecord::Migration[8.0]
   def change
     create_table :post_types do |t|
-      t.string :name, null: false
-      t.string :slug, null: false
+      t.string :name, null: false  # Identifier (e.g., "blog", "case_studies")
+      t.string :title, null: false # Display name (e.g., "Blog", "Case Studies")
 
       t.timestamps
     end
 
-    add_index :post_types, :slug, unique: true
+    add_index :post_types, :name, unique: true
   end
 end

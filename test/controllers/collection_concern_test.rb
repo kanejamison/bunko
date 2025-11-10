@@ -12,7 +12,7 @@ class CollectionConcernTest < ActiveSupport::TestCase
 
   def setup
     @controller = TestController.new
-    @blog_type = PostType.create!(name: "Blog", slug: "blog")
+    @blog_type = PostType.create!(name: "blog", title: "Blog")
 
     # Create test posts with different timestamps
     @post1 = Post.create!(

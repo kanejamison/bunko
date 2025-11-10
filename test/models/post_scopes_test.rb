@@ -4,8 +4,8 @@ require_relative "../test_helper"
 
 class PostScopesTest < ActiveSupport::TestCase
   setup do
-    @blog_type = PostType.create!(name: "Blog", slug: "blog")
-    @docs_type = PostType.create!(name: "Docs", slug: "docs")
+    @blog_type = PostType.create!(name: "blog", title: "Blog")
+    @docs_type = PostType.create!(name: "docs", title: "Docs")
   end
 
   test ".published scope returns only posts with published_at <= current time" do

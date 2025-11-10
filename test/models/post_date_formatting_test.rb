@@ -4,7 +4,7 @@ require_relative "../test_helper"
 
 class PostDateFormattingTest < ActiveSupport::TestCase
   setup do
-    @blog_type = PostType.create!(name: "Blog", slug: "blog")
+    @blog_type = PostType.create!(name: "blog", title: "Blog")
   end
 
   test "published_date returns nil when published_at is not present" do

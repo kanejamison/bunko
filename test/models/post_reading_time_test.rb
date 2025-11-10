@@ -4,7 +4,7 @@ require_relative "../test_helper"
 
 class PostReadingTimeTest < ActiveSupport::TestCase
   setup do
-    @blog_type = PostType.create!(name: "Blog", slug: "blog")
+    @blog_type = PostType.create!(name: "blog", title: "Blog")
   end
 
   test "reading_time returns estimated reading time in minutes when word_count is present" do
