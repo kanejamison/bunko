@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
+require_relative "post_methods/sluggable"
+require_relative "post_methods/word_countable"
+require_relative "post_methods/publishable"
+
 module Bunko
   module Models
     module PostMethods
       extend ActiveSupport::Concern
+
+      include Sluggable
+      include WordCountable
+      include Publishable
 
       included do
         # Associations
@@ -12,21 +20,6 @@ module Bunko
         # Validations
         validates :title, presence: true
         validates :slug, presence: true, uniqueness: {scope: :post_type_id}
-        validates :status, presence: true, inclusion: {
-          in: ->(_) { Bunko.configuration.valid_statuses },
-          message: "%{value} is not a valid status"
-        }
-
-        # Callbacks
-        before_validation :generate_slug, if: :should_generate_slug?
-        before_validation :set_published_at, if: :should_set_published_at?
-        before_save :update_word_count, if: :should_update_word_count?
-        validate :validate_status_value
-
-        # Scopes
-        scope :published, -> { where(status: "published").where("published_at <= ?", Time.current).order(published_at: :desc) }
-        scope :draft, -> { where(status: "draft").order(created_at: :desc) }
-        scope :scheduled, -> { where(status: "published").where("published_at > ?", Time.current).order(published_at: :asc) }
 
         # Default scope for ordering
         default_scope { order(created_at: :desc) }
@@ -86,91 +79,6 @@ module Bunko
         # Return HTML-safe meta tag string
         require "erb"
         %(<meta name="description" content="#{ERB::Util.html_escape(meta_description)}">).html_safe
-      end
-
-      private
-
-      def should_generate_slug?
-        slug.blank? && title.present?
-      end
-
-      def generate_slug
-        return if title.blank?
-
-        # Generate slug and clean up any trailing/leading hyphens or underscores
-        base_slug = title.parameterize.gsub(/^[-_]+|[-_]+$/, "")
-        self.slug = base_slug
-
-        # Ensure uniqueness within post_type
-        return unless self.class.unscoped.where(
-          post_type_id: post_type_id,
-          slug: slug
-        ).where.not(id: id).exists?
-
-        # Add random suffix if slug exists
-        self.slug = "#{base_slug}-#{SecureRandom.hex(4)}"
-      end
-
-      def should_set_published_at?
-        status == "published" && published_at.blank?
-      end
-
-      def set_published_at
-        self.published_at = Time.current
-      end
-
-      def validate_status_value
-        return if status.blank?
-
-        unless Bunko.configuration.valid_statuses.include?(status)
-          raise ArgumentError, "#{status} is not a valid status"
-        end
-      end
-
-      def should_update_word_count?
-        # Only update word_count if:
-        # 1. Auto-update is enabled in config
-        # 2. Content changed
-        # 3. Model has word_count attribute
-        Bunko.configuration.auto_update_word_count &&
-          content_changed? &&
-          respond_to?(:word_count=)
-      end
-
-      def update_word_count
-        if content.blank?
-          self.word_count = 0
-          return
-        end
-
-        # Check if content is a text field or JSON field
-        column = self.class.columns_hash["content"]
-
-        if column && [:json, :jsonb].include?(column.type)
-          # For JSON content, try to extract text recursively
-          self.word_count = count_words_in_json(content)
-        else
-          # For text content, strip HTML tags and count words
-          text = content.to_s.gsub(/<[^>]*>/, "")
-          self.word_count = text.split(/\s+/).reject(&:blank?).size
-        end
-      end
-
-      def count_words_in_json(data)
-        case data
-        when String
-          # Strip HTML and count words in string
-          text = data.gsub(/<[^>]*>/, "")
-          text.split(/\s+/).reject(&:blank?).size
-        when Hash
-          # Recursively count words in hash values
-          data.values.sum { |value| count_words_in_json(value) }
-        when Array
-          # Recursively count words in array elements
-          data.sum { |element| count_words_in_json(element) }
-        else
-          0
-        end
       end
     end
   end
