@@ -58,6 +58,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
     # Reset configuration to default (empty - must be configured)
     Bunko.configuration.post_types = []
+    Bunko.configuration.collections = []
   end
 
   def test_setup_creates_post_types_in_database
@@ -223,6 +224,52 @@ class BunkoSetupTaskTest < Minitest::Test
     end
 
     assert_match(/No post types configured/, output.join)
+  end
+
+  def test_setup_generates_controllers_for_collections
+    Bunko.configure do |config|
+      config.post_type "Articles"
+      config.post_type "Videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify collection controller was created
+    assert File.exist?(File.join(@destination, "app/controllers/resources_controller.rb"))
+
+    # Verify controller content
+    resources_controller = File.read(File.join(@destination, "app/controllers/resources_controller.rb"))
+    assert_match(/class ResourcesController < ApplicationController/, resources_controller)
+    assert_match(/bunko_collection :resources/, resources_controller)
+  end
+
+  def test_setup_generates_views_for_collections
+    Bunko.configure do |config|
+      config.post_type "Articles"
+      config.post_type "Videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify views were created
+    assert File.exist?(File.join(@destination, "app/views/resources/index.html.erb"))
+    assert File.exist?(File.join(@destination, "app/views/resources/show.html.erb"))
+  end
+
+  def test_setup_adds_routes_for_collections
+    Bunko.configure do |config|
+      config.post_type "Articles"
+      config.post_type "Videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    run_rake_task("bunko:setup")
+
+    # Verify routes were added
+    routes_content = File.read(File.join(@destination, "config/routes.rb"))
+    assert_match(/bunko_collection :resources/, routes_content)
   end
 
   private

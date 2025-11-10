@@ -28,7 +28,7 @@ class ConfigurationTest < ActiveSupport::TestCase
     Bunko.configure do |config|
       config.post_type "Articles"
       config.post_type "Videos"
-      config.collection "blog", post_types: ["articles", "videos"]
+      config.collection "Blog", post_types: ["articles", "videos"]
     end
 
     assert_equal 1, Bunko.configuration.collections.size
@@ -41,7 +41,7 @@ class ConfigurationTest < ActiveSupport::TestCase
     Bunko.configure do |config|
       config.post_type "Articles"
       config.post_type "Videos"
-      config.collection "featured", post_types: ["articles", "videos"] do |c|
+      config.collection "Featured", post_types: ["articles", "videos"] do |c|
         c.scope -> { where(featured: true) }
       end
     end
@@ -54,7 +54,7 @@ class ConfigurationTest < ActiveSupport::TestCase
   test "raises error when post_type conflicts with existing collection" do
     error = assert_raises(ArgumentError) do
       Bunko.configure do |config|
-        config.collection "blog", post_types: ["articles"]
+        config.collection "Blog", post_types: ["articles"]
         config.post_type "Blog"  # Conflict!
       end
     end
@@ -66,7 +66,7 @@ class ConfigurationTest < ActiveSupport::TestCase
     error = assert_raises(ArgumentError) do
       Bunko.configure do |config|
         config.post_type "Blog"
-        config.collection "blog", post_types: ["articles"]  # Conflict!
+        config.collection "Blog", post_types: ["articles"]  # Conflict!
       end
     end
 
@@ -77,8 +77,8 @@ class ConfigurationTest < ActiveSupport::TestCase
     error = assert_raises(ArgumentError) do
       Bunko.configure do |config|
         config.post_type "Articles"
-        config.collection "featured", post_types: ["articles"]
-        config.collection "featured", post_types: ["articles"]  # Duplicate!
+        config.collection "Featured", post_types: ["articles"]
+        config.collection "Featured", post_types: ["articles"]  # Duplicate!
       end
     end
 
@@ -102,7 +102,7 @@ class ConfigurationTest < ActiveSupport::TestCase
   test "find_collection returns collection config by slug" do
     Bunko.configure do |config|
       config.post_type "Articles"
-      config.collection "featured", post_types: ["articles"]
+      config.collection "Featured", post_types: ["articles"]
     end
 
     featured = Bunko.configuration.find_collection("featured")
@@ -127,7 +127,7 @@ class ConfigurationTest < ActiveSupport::TestCase
     Bunko.configure do |config|
       config.post_type "Articles"
       config.post_type "Videos"
-      config.collection "blog", post_types: ["Articles", "Video Tutorials"]
+      config.collection "Blog", post_types: ["Articles", "Video Tutorials"]
     end
 
     collection = Bunko.configuration.collections.first

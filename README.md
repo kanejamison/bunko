@@ -257,10 +257,10 @@ Bunko.configure do |config|
   config.post_type "Tutorials"
 
   # Define a multi-type collection
-  config.collection "resources", post_types: ["articles", "videos", "tutorials"]
+  config.collection "Resources", post_types: ["articles", "videos", "tutorials"]
 
   # Define a scoped collection (e.g., long-form content)
-  config.collection "long-reads", post_types: ["articles", "tutorials"] do |c|
+  config.collection "Long Reads", post_types: ["articles", "tutorials"] do |c|
     c.scope -> { where("word_count > ?", 1500) }
   end
 end
