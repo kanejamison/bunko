@@ -7,12 +7,12 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
     # Reset configuration before each test
     Bunko.reset_configuration!
     Bunko.configure do |config|
-      config.post_type "Blog"
-      config.post_type "Docs"
+      config.post_type "blog"
+      config.post_type "docs"
     end
 
-    @blog_type = PostType.create!(name: "Blog", slug: "blog")
-    @docs_type = PostType.create!(name: "Docs", slug: "docs")
+    @blog_type = PostType.create!(name: "blog", title: "Blog")
+    @docs_type = PostType.create!(name: "docs", title: "Docs")
 
     # Create published blog posts
     @blog_post1 = Post.create!(

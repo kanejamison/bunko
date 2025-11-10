@@ -64,8 +64,8 @@ class BunkoSetupTaskTest < Minitest::Test
   def test_setup_creates_post_types_in_database
     # Configure with test post types
     Bunko.configure do |config|
-      config.post_type "Blog"
-      config.post_type "Docs"
+      config.post_type "blog"
+      config.post_type "docs"
     end
 
     # Run the task
@@ -73,14 +73,14 @@ class BunkoSetupTaskTest < Minitest::Test
 
     # Verify PostTypes were created
     assert_equal 2, PostType.count
-    assert PostType.find_by(slug: "blog")
-    assert PostType.find_by(slug: "docs")
+    assert PostType.find_by(name: "blog")
+    assert PostType.find_by(name: "docs")
   end
 
   def test_setup_generates_controllers_for_each_post_type
     Bunko.configure do |config|
-      config.post_type "Blog"
-      config.post_type "Docs"
+      config.post_type "blog"
+      config.post_type "docs"
     end
 
     run_rake_task("bunko:setup")
@@ -97,7 +97,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_generates_views_for_each_post_type
     Bunko.configure do |config|
-      config.post_type "Blog"
+      config.post_type "blog"
     end
 
     run_rake_task("bunko:setup")
@@ -117,8 +117,8 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_adds_routes_for_each_post_type
     Bunko.configure do |config|
-      config.post_type "Blog"
-      config.post_type "Docs"
+      config.post_type "blog"
+      config.post_type "docs"
     end
 
     run_rake_task("bunko:setup")
@@ -131,9 +131,9 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_with_specific_slug_only_sets_up_that_slug
     Bunko.configure do |config|
-      config.post_type "Blog"
-      config.post_type "Docs"
-      config.post_type "Changelog"
+      config.post_type "blog"
+      config.post_type "docs"
+      config.post_type "changelog"
     end
 
     # Run setup for just "docs"
@@ -141,9 +141,9 @@ class BunkoSetupTaskTest < Minitest::Test
 
     # Verify only docs PostType was created
     assert_equal 1, PostType.count
-    assert PostType.find_by(slug: "docs")
-    assert_nil PostType.find_by(slug: "blog")
-    assert_nil PostType.find_by(slug: "changelog")
+    assert PostType.find_by(name: "docs")
+    assert_nil PostType.find_by(name: "blog")
+    assert_nil PostType.find_by(name: "changelog")
 
     # Verify only docs controller was created
     assert File.exist?(File.join(@destination, "app/controllers/docs_controller.rb"))
@@ -153,7 +153,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_is_idempotent_for_post_types
     Bunko.configure do |config|
-      config.post_type "Blog"
+      config.post_type "blog"
     end
 
     # Run setup twice
@@ -166,7 +166,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_is_idempotent_for_controllers
     Bunko.configure do |config|
-      config.post_type "Blog"
+      config.post_type "blog"
     end
 
     # Run setup twice
@@ -182,7 +182,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_is_idempotent_for_routes
     Bunko.configure do |config|
-      config.post_type "Blog"
+      config.post_type "blog"
     end
 
     # Run setup twice
@@ -197,7 +197,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_with_invalid_slug_exits_gracefully
     Bunko.configure do |config|
-      config.post_type "Blog"
+      config.post_type "blog"
     end
 
     # This should exit with an error message
@@ -208,8 +208,8 @@ class BunkoSetupTaskTest < Minitest::Test
       end
     end
 
-    assert_match(/PostType with slug 'nonexistent' not found/, output.join)
-    assert_match(/Available slugs: blog/, output.join)
+    assert_match(/PostType with name 'nonexistent' not found/, output.join)
+    assert_match(/Available names: blog/, output.join)
   end
 
   def test_setup_with_empty_config_exits_gracefully
@@ -228,8 +228,8 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_generates_controllers_for_collections
     Bunko.configure do |config|
-      config.post_type "Articles"
-      config.post_type "Videos"
+      config.post_type "articles"
+      config.post_type "videos"
       config.collection "Resources", post_types: ["articles", "videos"]
     end
 
@@ -246,8 +246,8 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_generates_views_for_collections
     Bunko.configure do |config|
-      config.post_type "Articles"
-      config.post_type "Videos"
+      config.post_type "articles"
+      config.post_type "videos"
       config.collection "Resources", post_types: ["articles", "videos"]
     end
 
@@ -260,8 +260,8 @@ class BunkoSetupTaskTest < Minitest::Test
 
   def test_setup_adds_routes_for_collections
     Bunko.configure do |config|
-      config.post_type "Articles"
-      config.post_type "Videos"
+      config.post_type "articles"
+      config.post_type "videos"
       config.collection "Resources", post_types: ["articles", "videos"]
     end
 

@@ -26,8 +26,8 @@ module Bunko
       end
 
       class_methods do
-        def by_post_type(type_slug)
-          joins(:post_type).where(post_types: {slug: type_slug})
+        def by_post_type(type_name)
+          joins(:post_type).where(post_types: {name: type_name})
         end
       end
 

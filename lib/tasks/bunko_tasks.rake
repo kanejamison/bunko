@@ -4,8 +4,8 @@ require "erb"
 require "fileutils"
 
 namespace :bunko do
-  desc "Set up Bunko by creating PostTypes and generating controllers/views/routes. Optional: rails bunko:setup[slug] to set up a specific post type."
-  task :setup, [:slug] => :environment do |t, args|
+  desc "Set up Bunko by creating PostTypes and generating controllers/views/routes. Optional: rails bunko:setup[name] to set up a specific post type."
+  task :setup, [:name] => :environment do |t, args|
     puts "Setting up Bunko..."
     puts ""
 
@@ -16,30 +16,28 @@ namespace :bunko do
       puts "   Add them to config/initializers/bunko.rb and run this task again."
       puts ""
       puts "   Example:"
-      puts "   config.post_types = ["
-      puts "     { name: \"Blog\", slug: \"blog\" },"
-      puts "     { name: \"Documentation\", slug: \"docs\" }"
-      puts "   ]"
+      puts "   config.post_type \"blog\""
+      puts "   config.post_type \"docs\" do |type|"
+      puts "     type.title = \"Documentation\""
+      puts "   end"
       exit
     end
 
-    # If a specific slug was provided, filter to just that one
-    if args[:slug]
-      target_slug = args[:slug]
-      post_types = post_types.select { |pt| pt[:slug] == target_slug }
+    # If a specific name was provided, filter to just that one
+    if args[:name]
+      target_name = args[:name]
+      post_types = post_types.select { |pt| pt[:name] == target_name }
 
       if post_types.empty?
-        puts "⚠️  PostType with slug '#{target_slug}' not found in config."
-        puts "   Available slugs: #{Bunko.configuration.post_types.map { |pt| pt[:slug] }.join(", ")}"
+        puts "⚠️  PostType with name '#{target_name}' not found in config."
+        puts "   Available names: #{Bunko.configuration.post_types.map { |pt| pt[:name] }.join(", ")}"
         puts ""
         puts "   Add it to config/initializers/bunko.rb first:"
-        puts "   config.post_types = ["
-        puts "     { name: \"#{target_slug.titleize}\", slug: \"#{target_slug}\" }"
-        puts "   ]"
+        puts "   config.post_type \"#{target_name}\""
         exit
       end
 
-      puts "Setting up PostType: #{target_slug}"
+      puts "Setting up PostType: #{target_name}"
       puts ""
     end
 
@@ -54,10 +52,10 @@ namespace :bunko do
 
     # Validate post_types configuration
     post_types.each do |pt_config|
-      unless pt_config.is_a?(Hash) && pt_config[:name] && pt_config[:slug]
+      unless pt_config.is_a?(Hash) && pt_config[:name] && pt_config[:title]
         puts "⚠️  Invalid post type configuration: #{pt_config.inspect}"
-        puts "   Each post type must be a hash with :name and :slug keys."
-        puts "   Example: { name: \"Blog\", slug: \"blog\" }"
+        puts "   Each post type must be a hash with :name and :title keys."
+        puts "   Example: { name: \"blog\", title: \"Blog\" }"
         exit
       end
     end
@@ -65,18 +63,18 @@ namespace :bunko do
     # Step 1: Create PostTypes
     puts "Creating PostTypes..."
     post_types.each do |pt_config|
-      post_type = PostType.find_by(slug: pt_config[:slug])
+      post_type = PostType.find_by(name: pt_config[:name])
 
       if post_type
         post_types_existing += 1
-        puts "  ✓ PostType already exists: #{pt_config[:name]} (#{pt_config[:slug]})"
+        puts "  ✓ PostType already exists: #{pt_config[:title]} (#{pt_config[:name]})"
       else
         PostType.create!(
           name: pt_config[:name],
-          slug: pt_config[:slug]
+          title: pt_config[:title]
         )
         post_types_created += 1
-        puts "  ✓ Created PostType: #{pt_config[:name]} (#{pt_config[:slug]})"
+        puts "  ✓ Created PostType: #{pt_config[:title]} (#{pt_config[:name]})"
       end
     end
 
@@ -85,8 +83,8 @@ namespace :bunko do
     # Step 2: Generate controllers for each post type
     puts "Generating controllers..."
     post_types.each do |pt_config|
-      controller_created = generate_controller(pt_config[:slug])
-      controllers_created << pt_config[:slug] if controller_created
+      controller_created = generate_controller(pt_config[:name])
+      controllers_created << pt_config[:name] if controller_created
     end
 
     puts ""
@@ -94,8 +92,8 @@ namespace :bunko do
     # Step 3: Generate views for each post type
     puts "Generating views..."
     post_types.each do |pt_config|
-      views_generated = generate_views(pt_config[:slug])
-      views_created << pt_config[:slug] if views_generated
+      views_generated = generate_views(pt_config[:name])
+      views_created << pt_config[:name] if views_generated
     end
 
     puts ""
@@ -103,8 +101,8 @@ namespace :bunko do
     # Step 4: Add routes for each post type
     puts "Adding routes..."
     post_types.each do |pt_config|
-      route_added = add_route(pt_config[:slug])
-      routes_added << pt_config[:slug] if route_added
+      route_added = add_route(pt_config[:name])
+      routes_added << pt_config[:name] if route_added
     end
 
     puts ""
@@ -162,9 +160,10 @@ namespace :bunko do
     puts "  1. Create your first post in the Rails console or admin panel"
     puts "  2. Visit your collections:"
 
-    # Show PostType routes
+    # Show PostType routes (convert underscores to hyphens for URLs)
     post_types.each do |pt|
-      puts "     http://localhost:3000/#{pt[:slug]}"
+      url_path = pt[:name].tr("_", "-")
+      puts "     http://localhost:3000/#{url_path}"
     end
 
     # Show Collection routes
@@ -175,72 +174,72 @@ namespace :bunko do
     puts "=" * 79
   end
 
-  def generate_controller(slug)
-    controller_name = "#{slug.camelize}Controller"
-    controller_file = Rails.root.join("app/controllers/#{slug}_controller.rb")
+  def generate_controller(collection_name)
+    controller_name = "#{collection_name.camelize}Controller"
+    controller_file = Rails.root.join("app/controllers/#{collection_name}_controller.rb")
 
     if File.exist?(controller_file)
-      puts "  - #{slug}_controller.rb already exists (skipped)"
+      puts "  - #{collection_name}_controller.rb already exists (skipped)"
       return false
     end
 
     controller_content = render_template("controller.rb.tt", {
       controller_name: controller_name,
-      slug: slug
+      collection_name: collection_name
     })
 
     File.write(controller_file, controller_content)
-    puts "  ✓ Created #{slug}_controller.rb"
+    puts "  ✓ Created #{collection_name}_controller.rb"
     true
   end
 
-  def generate_views(slug)
-    views_dir = Rails.root.join("app/views/#{slug}")
+  def generate_views(collection_name)
+    views_dir = Rails.root.join("app/views/#{collection_name}")
 
     if Dir.exist?(views_dir) && Dir.glob("#{views_dir}/*").any?
-      puts "  - #{slug} views already exist (skipped)"
+      puts "  - #{collection_name} views already exist (skipped)"
       return false
     end
 
     FileUtils.mkdir_p(views_dir)
 
     # Generate index.html.erb
-    index_content = generate_index_view(slug)
+    index_content = generate_index_view(collection_name)
     File.write(File.join(views_dir, "index.html.erb"), index_content)
 
     # Generate show.html.erb
-    show_content = generate_show_view(slug)
+    show_content = generate_show_view(collection_name)
     File.write(File.join(views_dir, "show.html.erb"), show_content)
 
-    puts "  ✓ Created views for #{slug} (index, show)"
+    puts "  ✓ Created views for #{collection_name} (index, show)"
     true
   end
 
-  def generate_index_view(slug)
+  def generate_index_view(collection_name)
     render_template("index.html.erb.tt", {
-      slug: slug,
-      collection_title: slug.titleize,
-      path_helper: "#{slug}_path",
-      index_path_helper: "#{slug}_index_path"
+      collection_name: collection_name,
+      collection_title: collection_name.titleize,
+      path_helper: "#{collection_name}_path",
+      index_path_helper: "#{collection_name}_index_path"
     })
   end
 
-  def generate_show_view(slug)
+  def generate_show_view(collection_name)
     render_template("show.html.erb.tt", {
-      slug: slug,
-      collection_title: slug.titleize,
-      index_path_helper: "#{slug}_index_path"
+      collection_name: collection_name,
+      collection_title: collection_name.titleize,
+      index_path_helper: "#{collection_name}_index_path"
     })
   end
 
-  def add_route(slug)
+  def add_route(collection_name)
     routes_file = Rails.root.join("config/routes.rb")
     routes_content = File.read(routes_file)
 
-    route_line = "  bunko_collection :#{slug}"
+    route_line = "  bunko_collection :#{collection_name}"
 
     if routes_content.include?(route_line.strip)
-      puts "  - Route for :#{slug} already exists (skipped)"
+      puts "  - Route for :#{collection_name} already exists (skipped)"
       return false
     end
 
@@ -258,7 +257,7 @@ namespace :bunko do
     end
 
     File.write(routes_file, updated_content)
-    puts "  ✓ Added route for :#{slug}"
+    puts "  ✓ Added route for :#{collection_name}"
     true
   end
 

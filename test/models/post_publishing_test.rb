@@ -4,7 +4,7 @@ require_relative "../test_helper"
 
 class PostPublishingTest < ActiveSupport::TestCase
   setup do
-    @blog_type = PostType.create!(name: "Blog", slug: "blog")
+    @blog_type = PostType.create!(name: "blog", title: "Blog")
   end
 
   test "new post defaults to draft status" do

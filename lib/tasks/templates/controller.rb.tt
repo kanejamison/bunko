@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class <%= controller_name %> < ApplicationController
-  bunko_collection :<%= slug %>
+  bunko_collection :<%= collection_name %>
 
   # The bunko_collection method automatically provides index and show actions.
   #

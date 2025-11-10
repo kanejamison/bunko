@@ -2,11 +2,22 @@
 
 Building toward 1.0.0 release. Using 0.x versions during active development.
 
+### Breaking Changes
+
+**PostType Schema Refactor** - Changed PostType from `name/slug` to `name/title` schema:
+- **OLD**: `config.post_type "Blog" do |type| type.slug = "blog" end`
+- **NEW**: `config.post_type "blog" do |type| type.title = "Blog" end`
+- PostType `name` is now the lowercase identifier (e.g., "blog", "case_studies")
+- PostType `title` is the display name (e.g., "Blog", "Case Studies")
+- Titles are auto-generated from names using `.titleize`
+- Database migration required: rename `slug` column to `title`, rename `name` to `name` (keep identifier)
+- Updated: Configuration DSL, rake tasks, controllers, tests, all documentation
+
 ### Completed Milestones
 
 **✅ Milestone 1: Post Model Behavior**
 - Core `acts_as_bunko_post` concern for ActiveRecord models
-  - Scopes: `.published`, `.draft`, `.scheduled`, `.by_post_type(slug)`
+  - Scopes: `.published`, `.draft`, `.scheduled`, `.by_post_type(name)`
   - Automatic slug generation from title (URL-safe, unique within post_type)
   - Publishing workflow with auto-setting of `published_at`
   - Reading time calculation from word_count
@@ -26,7 +37,7 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - `rails bunko:setup` - Generates controllers, views, and routes from configuration
   - Generator options: `--skip-seo`, `--json-content`
   - Idempotent setup task (safe to re-run when adding collections)
-  - Single-collection setup: `rails bunko:setup[slug]`
+  - Single-collection setup: `rails bunko:setup[name]`
   - Template-based code generation from `lib/tasks/templates/`
 
 **✅ Milestone 4: Routing Helpers**
@@ -42,7 +53,7 @@ Building toward 1.0.0 release. Using 0.x versions during active development.
   - `config.collection` DSL for defining multi-type collections
   - Optional scopes for filtering: `config.collection "Long Reads", post_types: ["articles"] { |c| c.scope -> { where("word_count > ?", 1500) } }`
   - Smart lookup: controllers check PostType first, then Collection
-  - Name conflict validation prevents slug collisions
+  - Name conflict validation prevents name collisions
 
 **✅ Milestone 5: Post Convenience Methods**
 - Instance methods for common view patterns (no namespace conflicts)

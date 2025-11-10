@@ -4,8 +4,8 @@ require_relative "../test_helper"
 
 class PostSlugTest < ActiveSupport::TestCase
   setup do
-    @blog_type = PostType.create!(name: "Blog", slug: "blog")
-    @docs_type = PostType.create!(name: "Docs", slug: "docs")
+    @blog_type = PostType.create!(name: "blog", title: "Blog")
+    @docs_type = PostType.create!(name: "docs", title: "Docs")
   end
 
   test "auto-generates slug from title when slug is not provided" do

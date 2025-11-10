@@ -46,7 +46,7 @@ module Bunko
 
         if post_type_config
           # Single PostType collection
-          @post_type = PostType.find_by(slug: @collection_name)
+          @post_type = PostType.find_by(name: @collection_name)
           unless @post_type
             render plain: "PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]", status: :not_found
             return
@@ -55,7 +55,7 @@ module Bunko
           base_query = post_model.published.by_post_type(@collection_name)
         elsif collection_config
           # Multi-type collection
-          base_query = post_model.published.where(post_type: PostType.where(slug: collection_config[:post_types]))
+          base_query = post_model.published.where(post_type: PostType.where(name: collection_config[:post_types]))
 
           # Apply collection scope if defined
           if collection_config[:scope]
@@ -83,7 +83,7 @@ module Bunko
 
         if post_type_config
           # Single PostType collection
-          @post_type = PostType.find_by(slug: @collection_name)
+          @post_type = PostType.find_by(name: @collection_name)
           unless @post_type
             render plain: "PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]", status: :not_found
             return
@@ -92,7 +92,7 @@ module Bunko
           base_query = post_model.published.by_post_type(@collection_name)
         elsif collection_config
           # Multi-type collection
-          base_query = post_model.published.where(post_type: PostType.where(slug: collection_config[:post_types]))
+          base_query = post_model.published.where(post_type: PostType.where(name: collection_config[:post_types]))
 
           # Apply collection scope if defined
           if collection_config[:scope]

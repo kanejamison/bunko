@@ -64,13 +64,13 @@ Edit `config/initializers/bunko.rb` to define your content collections:
 
 ```ruby
 Bunko.configure do |config|
-  config.post_type "Blog"
+  config.post_type "blog"  # Title auto-generated as "Blog"
 
-  config.post_type "Documentation" do |type|
-    type.slug = "docs"
+  config.post_type "docs" do |type|
+    type.title = "Documentation"  # Custom title
   end
 
-  config.post_type "Changelog"
+  config.post_type "changelog"  # Title: "Changelog"
 end
 ```
 
@@ -93,14 +93,14 @@ This generates:
 
 **Adding more collections later?** Just update the initializer and run:
 ```bash
-rails bunko:setup[new_collection_slug]
+rails bunko:setup[new_collection_name]
 ```
 
 ### 6. Create Your First Post
 
 ```ruby
 # In Rails console or your admin interface
-blog_type = PostType.find_by(slug: "blog")
+blog_type = PostType.find_by(name: "blog")
 
 Post.create!(
   title: "Welcome to Bunko",
@@ -264,10 +264,10 @@ bunko_collection :blog, only: [:index]
 # config/initializers/bunko.rb
 Bunko.configure do |config|
   # Define content collections (used by rails bunko:setup)
-  config.post_type "Blog"
+  config.post_type "blog"  # Title auto-generated as "Blog"
 
-  config.post_type "Documentation" do |type|
-    type.slug = "docs"
+  config.post_type "docs" do |type|
+    type.title = "Documentation"  # Custom title
   end
 
   # Optional configuration
@@ -285,9 +285,9 @@ Bunko supports **smart collections** - virtual collections that aggregate multip
 # config/initializers/bunko.rb
 Bunko.configure do |config|
   # Define individual post types
-  config.post_type "Articles"
-  config.post_type "Videos"
-  config.post_type "Tutorials"
+  config.post_type "articles"
+  config.post_type "videos"
+  config.post_type "tutorials"
 
   # Define a multi-type collection
   config.collection "Resources", post_types: ["articles", "videos", "tutorials"]
@@ -312,11 +312,11 @@ bunko_collection :resources
 ```
 
 **Smart Lookup:** When you call `bunko_collection :name`, Bunko:
-1. First checks for a PostType with that slug
+1. First checks for a PostType with that name
 2. Then checks for a Collection with that name
 3. Returns 404 if neither exists
 
-**Name conflicts are prevented:** You cannot have a PostType and Collection with the same slug.
+**Name conflicts are prevented:** You cannot have a PostType and Collection with the same name.
 
 ## What Bunko Doesn't Do
 

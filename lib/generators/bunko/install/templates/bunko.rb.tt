@@ -1,20 +1,22 @@
 # frozen_string_literal: true
 
 Bunko.configure do |config|
-  # Define your post types
+  # Define your post types (use lowercase with underscores)
   # These will be created when you run: rails bunko:setup
-  config.post_type "Blog"
+  config.post_type "blog" # Title will be auto-generated as "Blog"
 
   # Want more? Add additional post types:
-  # config.post_type "Documentation" do |type|
-  #   type.slug = "docs"
+  # config.post_type "documentation" do |type|
+  #   type.title = "Docs" # Custom title (optional)
   # end
   #
-  # config.post_type "Changelog"
+  # config.post_type "changelog" # Title: "Changelog"
   #
-  # config.post_type "Case Studies" do |type|
-  #   type.slug = "case_studies" # Use underscores - URLs will automatically use hyphens (/case-studies/)
+  # config.post_type "case_studies" do |type|
+  #   type.title = "Case Studies" # Custom title
   # end
+  #
+  # Note: Names use underscores, URLs automatically use hyphens (/case-studies/)
 
   # Reading speed for calculating estimated reading time (in words per minute)
   # Default: 250

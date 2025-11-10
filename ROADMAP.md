@@ -338,10 +338,10 @@ end
 ```ruby
 # Developer can configure in config/initializers/bunko.rb:
 Bunko.configure do |config|
-  config.post_type "Post"
-  config.post_type "Page"
-  config.post_type "Doc"
-  config.post_type "Tutorial"
+  config.post_type "post"
+  config.post_type "page"
+  config.post_type "doc"
+  config.post_type "tutorial"
 
   config.reading_speed = 200
   config.excerpt_length = 200
