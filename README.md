@@ -165,7 +165,7 @@ post.published_at  # => nil
 
 # Schedule a post for future publication
 post.update(status: "published", published_at: 1.hour.from_now)
-Post.scheduled.include?(post)  # => true
+post.scheduled?  # => true
 
 # Publish immediately (auto-sets published_at)
 post.update(status: "published")
