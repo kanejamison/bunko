@@ -60,14 +60,6 @@ module Bunko
 
         I18n.l(published_at, format: format)
       end
-
-      def meta_description_tag
-        return nil unless respond_to?(:meta_description) && meta_description.present?
-
-        # Return HTML-safe meta tag string
-        require "erb"
-        %(<meta name="description" content="#{ERB::Util.html_escape(meta_description)}">).html_safe
-      end
     end
   end
 end

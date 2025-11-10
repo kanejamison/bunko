@@ -183,7 +183,6 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
   - `post.excerpt(length:, omission:)` - Smart content truncation with HTML stripping
   - `post.published_date(format)` - Locale-aware date formatting via I18n.l
   - `post.reading_time_text` - Returns "X min read" string
-  - `post.meta_description_tag` - HTML-safe meta tag generation (if field exists)
 
 ## Development Roadmap
 

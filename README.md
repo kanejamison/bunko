@@ -190,9 +190,6 @@ post.published_date(:short)      # => "Nov 09" (or locale-specific short format)
 
 # Reading time
 post.reading_time_text           # => "5 min read"
-
-# Meta tags (if meta_description field exists)
-post.meta_description_tag        # => '<meta name="description" content="...">'
 ```
 
 **In your views:**
@@ -206,10 +203,6 @@ post.meta_description_tag        # => '<meta name="description" content="...">'
 <% end %>
 
 <!-- Show: single post -->
-<head>
-  <%= @post.meta_description_tag %>
-</head>
-
 <h1><%= @post.title %></h1>
 <p><%= @post.published_date(:long) %> · <%= @post.reading_time_text %></p>
 <div><%= @post.content %></div>
