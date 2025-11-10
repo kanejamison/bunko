@@ -18,7 +18,11 @@
   </header>
 
   <div class="post-content">
+<% if format == "html" -%>
+    <%%= sanitize(@post.content) %>
+<% else -%>
     <%%= simple_format(@post.content) %>
+<% end -%>
   </div>
 
   <footer class="post-footer">

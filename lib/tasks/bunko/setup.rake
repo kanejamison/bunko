@@ -9,6 +9,18 @@ namespace :bunko do
     puts "Setting up Bunko..."
     puts ""
 
+    # Parse format from ENV
+    format = ENV.fetch("FORMAT", "html").downcase
+
+    # Validate format
+    valid_formats = %w[plain html]
+    unless valid_formats.include?(format)
+      puts "⚠️  Invalid format: #{format}"
+      puts "    Valid formats: #{valid_formats.join(", ")}"
+      puts ""
+      exit 1
+    end
+
     post_types = Bunko.configuration.post_types
 
     if post_types.empty?
@@ -92,7 +104,7 @@ namespace :bunko do
     # Step 3: Generate views for each post type
     puts "Generating views..."
     post_types.each do |pt_config|
-      views_generated = generate_views(pt_config[:name])
+      views_generated = generate_views(pt_config[:name], format: format)
       views_created << pt_config[:name] if views_generated
     end
 
@@ -120,7 +132,7 @@ namespace :bunko do
       # Step 6: Generate views for each collection
       puts "Generating collection views..."
       collections.each do |collection_config|
-        views_generated = generate_views(collection_config[:slug])
+        views_generated = generate_views(collection_config[:slug], format: format)
         views_created << collection_config[:slug] if views_generated
       end
 
@@ -172,6 +184,14 @@ namespace :bunko do
     end
 
     puts "=" * 79
+    puts ""
+    puts "Usage examples:"
+    puts "  rails bunko:setup                    # Default (HTML with sanitize)"
+    puts "  rails bunko:setup FORMAT=html        # HTML with sanitize helper"
+    puts "  rails bunko:setup FORMAT=plain       # Plain text with simple_format"
+    puts "  rails bunko:setup[blog]              # Set up specific collection"
+    puts "  rails bunko:setup[blog] FORMAT=plain # Combine options"
+    puts "=" * 79
   end
 
   def generate_controller(collection_name)
@@ -193,7 +213,7 @@ namespace :bunko do
     true
   end
 
-  def generate_views(collection_name)
+  def generate_views(collection_name, format:)
     views_dir = Rails.root.join("app/views/#{collection_name}")
 
     if Dir.exist?(views_dir) && Dir.glob("#{views_dir}/*").any?
@@ -208,7 +228,7 @@ namespace :bunko do
     File.write(File.join(views_dir, "index.html.erb"), index_content)
 
     # Generate show.html.erb
-    show_content = generate_show_view(collection_name)
+    show_content = generate_show_view(collection_name, format: format)
     File.write(File.join(views_dir, "show.html.erb"), show_content)
 
     puts "  ✓ Created views for #{collection_name} (index, show)"
@@ -229,13 +249,14 @@ namespace :bunko do
     })
   end
 
-  def generate_show_view(collection_name)
+  def generate_show_view(collection_name, format:)
     is_plural = collection_name.pluralize == collection_name
 
     render_template("show.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
-      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path"
+      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path",
+      format: format
     })
   end
 
