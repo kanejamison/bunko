@@ -16,7 +16,7 @@ class CreatePosts < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_
 <% if include_seo_fields? -%>
 
       # SEO fields
-      t.string :meta_title
+      t.string :title_tag
       t.text :meta_description
 <% end -%>
 

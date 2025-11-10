@@ -86,10 +86,10 @@ rails db:migrate
 rails bunko:setup
 ```
 
-This generates:
-- Controllers for each post type (e.g., `BlogController`, `DocsController`)
-- View templates (index + show) for each collection
-- Routes for each collection
+For each Post Type and Collection you have defined this generates:
+- Controllers (e.g., `BlogController`, `DocsController`)
+- View templates (e.g., `/app/views/blog/index`, `/app/views/blog/show`, etc)
+- Routes (e.g., `bunko_collection :blog`, `bunko_collection :docs`)
 
 **Adding more collections later?** Just update the initializer and run:
 ```bash
@@ -123,7 +123,7 @@ Start your Rails server and visit:
 Customize the installation to fit your needs:
 
 ```bash
-# Exclude SEO fields (meta_title, meta_description)
+# Exclude SEO fields (title_tag, meta_description)
 rails generate bunko:install --skip-seo
 
 # Use JSON/JSONB for content field (for JSON-based editors)
@@ -151,10 +151,10 @@ post = Post.new(title: "Hello World!")
 post.save
 post.slug  # => "hello-world"
 
-# Handles uniqueness within post_type
+# Handles uniqueness within post_type (adds random suffix)
 post2 = Post.new(title: "Hello World!", post_type: blog_type)
 post2.save
-post2.slug  # => "hello-world-2"
+post2.slug  # => "hello-world-a1b2c3d4" (8-character random hex)
 ```
 
 ### Publishing Workflow
@@ -163,6 +163,11 @@ post2.slug  # => "hello-world-2"
 post = Post.create(title: "My Post", status: "draft")
 post.published_at  # => nil
 
+# Schedule a post for future publication
+post.update(status: "published", published_at: 1.hour.from_now)
+post.scheduled?  # => true
+
+# Publish immediately (auto-sets published_at)
 post.update(status: "published")
 post.published_at  # => automatically set to current time
 ```

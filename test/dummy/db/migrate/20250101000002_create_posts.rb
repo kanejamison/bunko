@@ -11,7 +11,7 @@ class CreatePosts < ActiveRecord::Migration[8.0]
       t.datetime :published_at
 
       # SEO fields (default per roadmap)
-      t.string :meta_title
+      t.string :title_tag
       t.text :meta_description
 
       # Metrics (default per roadmap)

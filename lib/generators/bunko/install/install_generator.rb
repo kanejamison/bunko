@@ -11,7 +11,7 @@ module Bunko
       source_root File.expand_path("templates", __dir__)
 
       class_option :skip_seo, type: :boolean, default: false,
-        desc: "Skip adding SEO fields (meta_title, meta_description)"
+        desc: "Skip adding SEO fields (title_tag, meta_description)"
       class_option :json_content, type: :boolean, default: false,
         desc: "Use json/jsonb for content field instead of text (for JSON-based editors)"
 

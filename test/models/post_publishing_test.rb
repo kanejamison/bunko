@@ -132,4 +132,52 @@ class PostPublishingTest < ActiveSupport::TestCase
       post.send(:validate_status_value)
     end
   end
+
+  test "scheduled? returns true for published posts with future published_at" do
+    post = Post.create!(
+      title: "Future Post",
+      content: "Content",
+      post_type: @blog_type,
+      status: "published",
+      published_at: 1.hour.from_now
+    )
+
+    assert post.scheduled?
+  end
+
+  test "scheduled? returns false for published posts with past published_at" do
+    post = Post.create!(
+      title: "Past Post",
+      content: "Content",
+      post_type: @blog_type,
+      status: "published",
+      published_at: 1.hour.ago
+    )
+
+    refute post.scheduled?
+  end
+
+  test "scheduled? returns false for draft posts" do
+    post = Post.create!(
+      title: "Draft Post",
+      content: "Content",
+      post_type: @blog_type,
+      status: "draft",
+      published_at: 1.hour.from_now
+    )
+
+    refute post.scheduled?
+  end
+
+  test "scheduled? returns false when published_at is nil" do
+    post = Post.create!(
+      title: "Post",
+      content: "Content",
+      post_type: @blog_type,
+      status: "published",
+      published_at: nil
+    )
+
+    refute post.scheduled?
+  end
 end

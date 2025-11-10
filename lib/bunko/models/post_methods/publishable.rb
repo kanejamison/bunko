@@ -23,6 +23,11 @@ module Bunko
           scope :scheduled, -> { where(status: "published").where("published_at > ?", Time.current).order(published_at: :asc) }
         end
 
+        # Instance method to check if post is scheduled for future publication
+        def scheduled?
+          status == "published" && published_at.present? && published_at > Time.current
+        end
+
         private
 
         def should_set_published_at?
