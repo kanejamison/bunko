@@ -34,6 +34,17 @@ module Bunko
       excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt
       mollit anim id est laborum].freeze
 
+    # Safe external links for sample content
+    SAFE_LINKS = [
+      {url: "https://github.com/kanejamison/bunko", text: "Bunko on GitHub"},
+      {url: "https://rubyonrails.org", text: "Ruby on Rails"},
+      {url: "https://www.ruby-lang.org", text: "Ruby Language"},
+      {url: "https://rubygems.org", text: "RubyGems"}
+    ].freeze
+
+    # Supported content formats
+    FORMATS = [:plain, :markdown, :html].freeze
+
     class << self
       # Generate a random word from various pools
       def word(type = :general)
@@ -47,22 +58,37 @@ module Bunko
         end
       end
 
-      # Generate a sentence with specified word count
-      def sentence(word_count: rand(8..15), capitalize: true)
+      # Generate a sentence with specified word count and optional formatting
+      def sentence(word_count: rand(8..15), capitalize: true, format: :plain)
         words = Array.new(word_count) { LOREM_WORDS.sample }
         sentence = words.join(" ")
         sentence = sentence.capitalize if capitalize
-        "#{sentence}."
+        sentence = "#{sentence}."
+
+        # Randomly apply inline formatting (30% chance)
+        if format != :plain && rand < 0.3
+          sentence = apply_inline_formatting(sentence, format)
+        end
+
+        sentence
       end
 
-      # Generate a paragraph with specified sentence count
-      def paragraph(sentence_count: rand(4..8))
-        Array.new(sentence_count) { sentence }.join(" ")
+      # Generate a paragraph with specified sentence count and optional formatting
+      def paragraph(sentence_count: rand(4..8), format: :plain)
+        text = Array.new(sentence_count) { sentence(format: format) }.join(" ")
+
+        # Wrap in paragraph tags for HTML (20% chance for class)
+        if format == :html
+          css_class = (rand < 0.2) ? " class=\"content-paragraph\"" : ""
+          text = "<p#{css_class}>#{text}</p>"
+        end
+
+        text
       end
 
-      # Generate multiple paragraphs
-      def paragraphs(count: 3, target_words: nil)
-        if target_words
+      # Generate multiple paragraphs with optional formatting
+      def paragraphs(count: 3, target_words: nil, format: :plain)
+        paras = if target_words
           # Calculate sentences needed (avg 12 words per sentence)
           sentences_needed = (target_words / 12.0).ceil
           # Group into paragraphs (4-8 sentences each)
@@ -70,11 +96,16 @@ module Bunko
 
           Array.new(paragraph_count) do
             sentences_in_paragraph = [sentences_needed / paragraph_count, 1].max
-            paragraph(sentence_count: sentences_in_paragraph)
-          end.join("\n\n")
+            paragraph(sentence_count: sentences_in_paragraph, format: format)
+          end
         else
-          Array.new(count) { paragraph }.join("\n\n")
+          Array.new(count) { paragraph(format: format) }
         end
+
+        # Randomly add special elements (lists, blockquotes, links)
+        paras = inject_special_elements(paras, format) if format != :plain
+
+        paras.join("\n\n")
       end
 
       # Generate a company name
@@ -122,20 +153,20 @@ module Bunko
       end
 
       # Generate content structure based on post type
-      def content_for(post_type_name, target_words:)
+      def content_for(post_type_name, target_words:, format: :plain)
         case post_type_name
         when /blog/i
-          blog_content(target_words)
+          blog_content(target_words, format)
         when /doc/i
-          doc_content(target_words)
+          doc_content(target_words, format)
         when /changelog|release|version/i
-          changelog_content(target_words)
+          changelog_content(target_words, format)
         when /case.?stud|success|customer/i
-          case_study_content(target_words)
+          case_study_content(target_words, format)
         when /tutorial|guide/i
-          tutorial_content(target_words)
+          tutorial_content(target_words, format)
         else
-          default_content(target_words)
+          default_content(target_words, format)
         end
       end
 
@@ -182,96 +213,97 @@ module Bunko
       end
 
       # Content generators
-      def blog_content(target_words)
+      def blog_content(target_words, format = :plain)
+        heading = format_heading("Conclusion", format)
         [
-          paragraphs(target_words: target_words * 0.15),
-          paragraphs(target_words: target_words * 0.70),
-          "## Conclusion",
-          paragraphs(target_words: target_words * 0.15)
+          paragraphs(target_words: target_words * 0.15, format: format),
+          paragraphs(target_words: target_words * 0.70, format: format),
+          heading,
+          paragraphs(target_words: target_words * 0.15, format: format)
         ].join("\n\n")
       end
 
-      def doc_content(target_words)
+      def doc_content(target_words, format = :plain)
         section_words = target_words / 4
         [
-          "## Overview",
-          paragraphs(target_words: section_words),
-          "## Getting Started",
-          paragraphs(target_words: section_words),
-          "## Examples",
-          code_example,
-          paragraphs(target_words: section_words * 0.5),
-          "## Configuration",
-          paragraphs(target_words: section_words * 0.5)
+          format_heading("Overview", format),
+          paragraphs(target_words: section_words, format: format),
+          format_heading("Getting Started", format),
+          paragraphs(target_words: section_words, format: format),
+          format_heading("Examples", format),
+          code_example(format),
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_heading("Configuration", format),
+          paragraphs(target_words: section_words * 0.5, format: format)
         ].join("\n\n")
       end
 
-      def changelog_content(target_words)
+      def changelog_content(target_words, format = :plain)
         num_items = rand(3..6)
         [
-          "## Added",
+          format_heading("Added", format),
           num_items.times.map { "- #{VERBS.sample.capitalize} #{ADJECTIVES.sample} #{NOUNS.sample} functionality" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2),
-          "\n## Fixed",
-          num_items.times.map { "- #{sentence(word_count: rand(5..10))}" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2),
-          "\n## Changed",
-          num_items.times.map { "- #{sentence(word_count: rand(5..10))}" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2),
-          "\n## Improved",
+          paragraphs(target_words: target_words * 0.2, format: format),
+          "\n#{format_heading("Fixed", format)}",
+          num_items.times.map { "- #{sentence(word_count: rand(5..10), format: format)}" }.join("\n"),
+          paragraphs(target_words: target_words * 0.2, format: format),
+          "\n#{format_heading("Changed", format)}",
+          num_items.times.map { "- #{sentence(word_count: rand(5..10), format: format)}" }.join("\n"),
+          paragraphs(target_words: target_words * 0.2, format: format),
+          "\n#{format_heading("Improved", format)}",
           num_items.times.map { "- #{VERBS.sample.capitalize} #{NOUNS.sample} performance" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2)
+          paragraphs(target_words: target_words * 0.2, format: format)
         ].join("\n")
       end
 
-      def case_study_content(target_words)
+      def case_study_content(target_words, format = :plain)
         section_words = target_words / 4
         [
-          "## The Challenge",
-          paragraphs(target_words: section_words),
-          "## The Solution",
-          paragraphs(target_words: section_words),
-          "## The Results",
+          format_heading("The Challenge", format),
+          paragraphs(target_words: section_words, format: format),
+          format_heading("The Solution", format),
+          paragraphs(target_words: section_words, format: format),
+          format_heading("The Results", format),
           "- #{rand(100..500)}% increase in #{NOUNS.sample}",
           "- #{rand(50..200)}% improvement in #{NOUNS.sample}",
           "- #{rand(20..90)}% reduction in #{NOUNS.sample}",
           "- #{rand(2..10)}x faster #{NOUNS.sample} processing",
-          paragraphs(target_words: section_words * 0.5),
-          "## Conclusion",
-          paragraphs(target_words: section_words)
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_heading("Conclusion", format),
+          paragraphs(target_words: section_words, format: format)
         ].join("\n\n")
       end
 
-      def tutorial_content(target_words)
+      def tutorial_content(target_words, format = :plain)
         step_words = target_words / 5
         [
-          "## Prerequisites",
-          paragraphs(target_words: step_words),
-          "## Step 1: Setup",
-          paragraphs(target_words: step_words),
-          "## Step 2: Implementation",
-          paragraphs(target_words: step_words),
-          "## Step 3: Testing",
-          paragraphs(target_words: step_words),
-          "## Troubleshooting",
-          paragraphs(target_words: step_words)
+          format_heading("Prerequisites", format),
+          paragraphs(target_words: step_words, format: format),
+          format_heading("Step 1: Setup", format),
+          paragraphs(target_words: step_words, format: format),
+          format_heading("Step 2: Implementation", format),
+          paragraphs(target_words: step_words, format: format),
+          format_heading("Step 3: Testing", format),
+          paragraphs(target_words: step_words, format: format),
+          format_heading("Troubleshooting", format),
+          paragraphs(target_words: step_words, format: format)
         ].join("\n\n")
       end
 
-      def default_content(target_words)
+      def default_content(target_words, format = :plain)
         num_sections = rand(2..4)
         section_words = target_words / num_sections
         sections = []
 
         num_sections.times do |i|
-          sections << "## #{generic_title}" if i > 0
-          sections << paragraphs(target_words: section_words)
+          sections << format_heading(generic_title, format) if i > 0
+          sections << paragraphs(target_words: section_words, format: format)
         end
 
         sections.join("\n\n")
       end
 
-      def code_example
+      def code_example(format = :plain)
         method = VERBS.sample
         obj = NOUNS.sample
         param = NOUNS.sample
@@ -283,6 +315,118 @@ module Bunko
           #{obj}.#{method}!
           ```
         CODE
+      end
+
+      # Formatting helpers
+      def format_heading(text, format)
+        case format
+        when :markdown
+          "## #{text}"
+        when :html
+          css_class = (rand < 0.3) ? " class=\"section-heading\"" : ""
+          "<h2#{css_class}>#{text}</h2>"
+        else
+          "## #{text}"
+        end
+      end
+
+      def apply_inline_formatting(text, format)
+        # Pick a random formatting style
+        style = [:bold, :italic, :underline].sample
+
+        # Find a word to format (avoid the last word with period)
+        words = text.chomp(".").split
+        return text if words.length < 3
+
+        word_index = rand(1...(words.length - 1))
+        word = words[word_index]
+
+        formatted_word = case format
+        when :markdown
+          case style
+          when :bold then "**#{word}**"
+          when :italic then "_#{word}_"
+          when :underline then word # Markdown doesn't have underline
+          end
+        when :html
+          case style
+          when :bold then "<strong>#{word}</strong>"
+          when :italic then "<em>#{word}</em>"
+          when :underline then "<u>#{word}</u>"
+          end
+        else
+          word
+        end
+
+        words[word_index] = formatted_word
+        "#{words.join(" ")}."
+      end
+
+      def inject_special_elements(paragraphs, format)
+        return paragraphs if paragraphs.length < 2
+
+        # Randomly inject a blockquote (20% chance)
+        if rand < 0.2
+          quote_index = rand(1...paragraphs.length)
+          quote_text = sentence(word_count: rand(10..15), format: format)
+          paragraphs.insert(quote_index, format_blockquote(quote_text, format))
+        end
+
+        # Randomly inject a list (30% chance)
+        if rand < 0.3
+          list_index = rand(1...paragraphs.length)
+          paragraphs.insert(list_index, format_list(format))
+        end
+
+        # Randomly inject a link into one paragraph (40% chance)
+        if rand < 0.4 && paragraphs.any?
+          link_para_index = rand(0...paragraphs.length)
+          paragraphs[link_para_index] = inject_link(paragraphs[link_para_index], format)
+        end
+
+        paragraphs
+      end
+
+      def format_blockquote(text, format)
+        case format
+        when :markdown
+          "> #{text}"
+        when :html
+          css_class = (rand < 0.3) ? " class=\"content-quote\"" : ""
+          "<blockquote#{css_class}>#{text}</blockquote>"
+        else
+          text
+        end
+      end
+
+      def format_list(format)
+        items = rand(3..5).times.map { "#{VERBS.sample.capitalize} #{NOUNS.sample}" }
+
+        case format
+        when :markdown
+          items.map { |item| "- #{item}" }.join("\n")
+        when :html
+          css_class = (rand < 0.3) ? " class=\"content-list\"" : ""
+          list_items = items.map { |item| "<li>#{item}</li>" }.join("\n")
+          "<ul#{css_class}>\n#{list_items}\n</ul>"
+        else
+          items.join(", ")
+        end
+      end
+
+      def inject_link(text, format)
+        link_data = SAFE_LINKS.sample
+
+        case format
+        when :markdown
+          # Insert link in middle of text
+          "#{text} Learn more about [#{link_data[:text]}](#{link_data[:url]})."
+        when :html
+          # Insert link in middle of text
+          "#{text} Learn more about <a href=\"#{link_data[:url]}\">#{link_data[:text]}</a>."
+        else
+          text
+        end
       end
     end
   end

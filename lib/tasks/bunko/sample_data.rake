@@ -19,12 +19,22 @@ namespace :bunko do
     min_words = ENV.fetch("MIN_WORDS", "200").to_i
     max_words = ENV.fetch("MAX_WORDS", "2000").to_i
     clear_existing = ENV.fetch("CLEAR", "false").downcase == "true"
+    format = ENV.fetch("FORMAT", "plain").downcase.to_sym
+
+    # Validate format
+    unless Bunko::SampleDataGenerator::FORMATS.include?(format)
+      puts "⚠️  Invalid format: #{format}"
+      puts "    Valid formats: #{Bunko::SampleDataGenerator::FORMATS.join(", ")}"
+      puts ""
+      exit 1
+    end
 
     puts "Bunko Sample Data Generator"
     puts "=" * 79
     puts "Configuration:"
     puts "  Posts per type: #{posts_per_type}"
     puts "  Word range: #{min_words}-#{max_words} words"
+    puts "  Content format: #{format}"
     puts "  Clear existing: #{clear_existing ? "Yes" : "No"}"
     puts ""
 
@@ -63,7 +73,7 @@ namespace :bunko do
         # Generate title and content based on post type
         title = Bunko::SampleDataGenerator.title_for(post_type.name)
         target_words = rand(min_words..max_words)
-        content = Bunko::SampleDataGenerator.content_for(post_type.name, target_words: target_words)
+        content = Bunko::SampleDataGenerator.content_for(post_type.name, target_words: target_words, format: format)
 
         # Create unique slug
         base_slug = title.parameterize
@@ -108,8 +118,10 @@ namespace :bunko do
     puts "=" * 79
     puts ""
     puts "Usage examples:"
-    puts "  rake bunko:sample_data                           # 20 posts per type"
+    puts "  rake bunko:sample_data                           # 20 posts per type (plain text)"
     puts "  rake bunko:sample_data COUNT=50                  # 50 posts per type"
+    puts "  rake bunko:sample_data FORMAT=markdown           # Markdown formatted content"
+    puts "  rake bunko:sample_data FORMAT=html               # HTML formatted content"
     puts "  rake bunko:sample_data MIN_WORDS=500 MAX_WORDS=1500"
     puts "  rake bunko:sample_data CLEAR=true                # Clear existing first"
     puts ""

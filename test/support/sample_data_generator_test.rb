@@ -234,4 +234,138 @@ class SampleDataGeneratorTest < Minitest::Test
     assert word_count > 180, "Expected at least 180 words, got #{word_count}"
     assert word_count < 420, "Expected at most 420 words, got #{word_count}"
   end
+
+  # Format-specific tests
+  def test_sentence_with_markdown_format
+    sentence = @generator.sentence(word_count: 10, format: :markdown)
+    assert_kind_of String, sentence
+    assert sentence.end_with?(".")
+  end
+
+  def test_sentence_with_html_format
+    sentence = @generator.sentence(word_count: 10, format: :html)
+    assert_kind_of String, sentence
+    assert sentence.end_with?(".")
+  end
+
+  def test_paragraph_with_markdown_format
+    paragraph = @generator.paragraph(sentence_count: 3, format: :markdown)
+    assert_kind_of String, paragraph
+    assert paragraph.length > 0
+  end
+
+  def test_paragraph_with_html_format
+    paragraph = @generator.paragraph(sentence_count: 3, format: :html)
+    assert_kind_of String, paragraph
+    assert_match(/<p/, paragraph) # Should contain paragraph tags
+  end
+
+  def test_paragraphs_with_markdown_format
+    text = @generator.paragraphs(count: 2, format: :markdown)
+    assert_kind_of String, text
+    assert text.length > 0
+  end
+
+  def test_paragraphs_with_html_format
+    text = @generator.paragraphs(count: 2, format: :html)
+    assert_kind_of String, text
+    assert_match(/<p/, text) # Should contain paragraph tags
+  end
+
+  def test_content_for_blog_with_markdown
+    content = @generator.content_for("blog", target_words: 200, format: :markdown)
+    assert_kind_of String, content
+    assert_match(/## Conclusion/, content) # Markdown heading
+  end
+
+  def test_content_for_blog_with_html
+    content = @generator.content_for("blog", target_words: 200, format: :html)
+    assert_kind_of String, content
+    assert_match(/<h2/, content) # HTML heading
+    assert_match(/<p/, content) # HTML paragraph
+  end
+
+  def test_content_for_docs_with_markdown
+    content = @generator.content_for("docs", target_words: 200, format: :markdown)
+    assert_kind_of String, content
+    assert_match(/## Overview/, content)
+    assert_match(/## Getting Started/, content)
+  end
+
+  def test_content_for_docs_with_html
+    content = @generator.content_for("docs", target_words: 200, format: :html)
+    assert_kind_of String, content
+    assert_match(/<h2/, content)
+    assert_match(/<p/, content)
+  end
+
+  def test_markdown_bold_formatting
+    # Run multiple times since formatting is random
+    has_bold = false
+    20.times do
+      sentence = @generator.sentence(word_count: 10, format: :markdown)
+      if sentence.include?("**")
+        has_bold = true
+        break
+      end
+    end
+    # With 30% chance over 20 tries, we should see at least one bold
+    assert has_bold, "Expected to see bold formatting (**text**) in markdown"
+  end
+
+  def test_markdown_italic_formatting
+    # Run multiple times since formatting is random
+    has_italic = false
+    20.times do
+      sentence = @generator.sentence(word_count: 10, format: :markdown)
+      if sentence.match?(/_\w+_/)
+        has_italic = true
+        break
+      end
+    end
+    # With 30% chance over 20 tries, we should see at least one italic
+    assert has_italic, "Expected to see italic formatting (_text_) in markdown"
+  end
+
+  def test_html_inline_formatting
+    # Run multiple times since formatting is random
+    has_formatting = false
+    20.times do
+      sentence = @generator.sentence(word_count: 10, format: :html)
+      if sentence.match?(/<(strong|em|u)>/)
+        has_formatting = true
+        break
+      end
+    end
+    # With 30% chance over 20 tries, we should see at least one formatted element
+    assert has_formatting, "Expected to see HTML inline formatting (<strong>, <em>, or <u>)"
+  end
+
+  def test_html_paragraph_classes
+    # Run multiple times to check for random classes
+    has_class = false
+    20.times do
+      paragraph = @generator.paragraph(sentence_count: 3, format: :html)
+      if paragraph.include?("class=")
+        has_class = true
+        break
+      end
+    end
+    # With 20% chance over 20 tries, we should see at least one class
+    assert has_class, "Expected to see CSS classes on some HTML paragraphs"
+  end
+
+  def test_html_heading_classes
+    # Run multiple times to check for random classes
+    has_class = false
+    20.times do
+      content = @generator.content_for("blog", target_words: 100, format: :html)
+      if content.match?(/<h2[^>]*class="section-heading"/)
+        has_class = true
+        break
+      end
+    end
+    # With 30% chance on headings over 20 tries, we should see at least one class
+    assert has_class, "Expected to see CSS classes on some HTML headings"
+  end
 end

@@ -228,6 +228,72 @@ class BunkoSampleDataTaskTest < Minitest::Test
     ENV.delete("COUNT")
   end
 
+  def test_sample_data_with_markdown_format
+    ENV["COUNT"] = "2"
+    ENV["FORMAT"] = "markdown"
+
+    run_rake_task("bunko:sample_data")
+
+    # Check that posts contain markdown formatting
+    Post.all.each do |post|
+      # Should have markdown headings
+      assert_match(/## \w+/, post.content)
+    end
+  ensure
+    ENV.delete("COUNT")
+    ENV.delete("FORMAT")
+  end
+
+  def test_sample_data_with_html_format
+    ENV["COUNT"] = "2"
+    ENV["FORMAT"] = "html"
+
+    run_rake_task("bunko:sample_data")
+
+    # Check that posts contain HTML tags
+    Post.all.each do |post|
+      # Should have HTML headings
+      assert_match(/<h2/, post.content)
+      # Should have HTML paragraphs
+      assert_match(/<p/, post.content)
+    end
+  ensure
+    ENV.delete("COUNT")
+    ENV.delete("FORMAT")
+  end
+
+  def test_sample_data_with_invalid_format
+    ENV["COUNT"] = "1"
+    ENV["FORMAT"] = "invalid"
+
+    output = capture_io do
+      assert_raises(SystemExit) do
+        run_rake_task("bunko:sample_data")
+      end
+    end
+
+    assert_match(/Invalid format: invalid/, output.join)
+    assert_match(/Valid formats:/, output.join)
+  ensure
+    ENV.delete("COUNT")
+    ENV.delete("FORMAT")
+  end
+
+  def test_sample_data_default_format_is_plain
+    ENV["COUNT"] = "1"
+    # Don't set FORMAT, should default to plain
+
+    run_rake_task("bunko:sample_data")
+
+    post = Post.first
+    # Plain format should have ## headings but no HTML tags
+    assert_match(/## \w+/, post.content)
+    refute_match(/<h2/, post.content)
+    refute_match(/<p/, post.content)
+  ensure
+    ENV.delete("COUNT")
+  end
+
   private
 
   def run_rake_task(task_name, *args)
