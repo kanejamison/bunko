@@ -12,7 +12,7 @@
 - [x] **Milestone 2: Collection Controllers** - ✅ COMPLETED
 - [x] **Milestone 3: Installation Generator** - ✅ COMPLETED
 - [x] **Milestone 4: Routing Helpers** - ✅ COMPLETED
-- [ ] **Milestone 5: View Helpers** - 🚧 PENDING
+- [x] **Milestone 5: Post Convenience Methods** - ✅ COMPLETED
 - [ ] **Milestone 6: Configuration** - 🚧 PENDING (core system exists, needs expansion)
 - [ ] **Milestone 7: Documentation** - 🚧 PENDING
 - [ ] **Milestone 8: Release** - 🚧 PENDING
@@ -266,50 +266,62 @@ end
 
 ---
 
-## Milestone 5: View Helpers
+## Milestone 5: Post Convenience Methods
 
-**Spec:** Common CMS view patterns should have helper methods that return strings/integers/html.
+**Spec:** Common CMS view patterns should be available as Post instance methods for clean, conflict-free usage in views.
+
+**Implementation Note:** Originally planned as view helpers, we decided to implement these as Post model methods instead. This approach:
+- Avoids namespace conflicts (no `bunko_` prefix needed)
+- Keeps views cleaner (`post.excerpt` vs `bunko_excerpt(post)`)
+- Follows Rails conventions for model presentation logic
+- Works identically in index loops and show views
 
 ### Required Behavior
 
-**Date Helpers:**
-- `bunko_published_date(post)` - returns formatted published_at
-- Supports format options (e.g., `:long`, `:short`, custom strftime) - we should mostly do standard rails stuff. perhaps we add a few like 'x days ago'.
+**Content Formatting:**
+- `post.excerpt(length: 160, omission: "...")` - returns truncated content, strips HTML, preserves word boundaries
+- `post.reading_time_text` - returns "X min read" string (extends existing `reading_time` integer method)
 
-**Content Helpers:**
-- `bunko_reading_time(post)` - returns "X min read" integer (if word_count available) or perhaps time in seconds if requested
-- `bunko_excerpt(post, length: 160)` - returns truncated content
+**Date Formatting:**
+- `post.published_date(format = :long)` - returns formatted published_at using I18n.l
+- Supports Rails date formats: `:long`, `:short`, `:db`, custom strftime
 
-**Status Helpers:**
-- `bunko_post_status_badge(post)` - returns HTML span with status class (developer styles it)
+**Meta Tags:**
+- `post.meta_description_tag` - returns HTML-safe `<meta>` tag if meta_description field exists
+- Returns nil if field doesn't exist or is blank
+- Minimal SEO helper - users handle title tags via Rails' `content_for`
 
-**SEO Helpers:**
-- `bunko_meta_tags(post)` - returns meta tags for title/description (if fields exist)
-- `bunko_og_tags(post)` - returns Open Graph meta tags (if fields exist)
-
-**Navigation Helpers:**
-- `bunko_post_path(post)` - returns path to post show page
-- `bunko_collection_path(post)` - returns path to post's collection index
+**Navigation:**
+- Not needed - routing DSL automatically generates helpers like `blog_path`, `blog_post_path(post)`
 
 ### Acceptance Test
 
 ```erb
-<!-- Developer can use helpers in views: -->
+<!-- Index view: loop over posts -->
+<% @posts.each do |post| %>
+  <article>
+    <h2><%= link_to post.title, blog_post_path(post) %></h2>
+    <p class="meta">
+      <%= post.published_date %> · <%= post.reading_time_text %>
+    </p>
+    <p><%= post.excerpt %></p>
+  </article>
+<% end %>
+
+<!-- Show view: single post -->
+<head>
+  <%= @post.meta_description_tag %>
+</head>
+
 <article>
   <h1><%= @post.title %></h1>
   <p class="meta">
-    <%= bunko_published_date(@post) %>
-    · <%= bunko_reading_time(@post) %>
-    · <%= bunko_post_status_badge(@post) %>
+    <%= @post.published_date(:long) %> · <%= @post.reading_time_text %>
   </p>
-
   <div class="content">
     <%= @post.content %>
   </div>
 </article>
-
-<!-- In head: -->
-<%= bunko_meta_tags(@post) %>
 ```
 
 ---

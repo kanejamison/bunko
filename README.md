@@ -12,10 +12,10 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 - [x] **Milestone 2: Collection Controllers** - `bunko_collection` concern for automatic index/show actions with built-in pagination
 - [x] **Milestone 3: Installation Generator** - `rails generate bunko:install` command and `rails bunko:setup` task
 - [x] **Milestone 4: Routing Helpers** - `bunko_collection` DSL for simple collection routing with automatic hyphenation
-- [ ] **Milestone 5: View Helpers** - Formatting, metadata, and display helpers
+- [x] **Milestone 5: Post Convenience Methods** - Instance methods for excerpts, date formatting, reading time text, and meta tags
 - [ ] **Milestone 6: Configuration** - Expanded configuration system
 - [ ] **Milestone 7: Documentation** - Usage guides and examples
-- [ ] **Milestone 8: Release** - Version 0.1.0 to RubyGems
+- [ ] **Milestone 8: Release** - Version 1.0.0 to RubyGems
 
 ## Philosophy
 
@@ -174,7 +174,48 @@ post.published_at  # => automatically set to current time
 
 ```ruby
 post = Post.create(title: "Article", word_count: 500)
-post.reading_time  # => 2 (minutes, based on 250 wpm default)
+post.reading_time       # => 2 (minutes, based on 250 wpm default)
+post.reading_time_text  # => "2 min read"
+```
+
+### Post Convenience Methods
+
+Bunko provides instance methods on Post for common view patterns:
+
+```ruby
+# Content formatting
+post.excerpt                           # => "This is a preview of the content..."
+post.excerpt(length: 100, omission: "…")  # Custom length and omission
+
+# Date formatting
+post.published_date              # => "November 09, 2025" (locale-aware, :long format)
+post.published_date(:short)      # => "Nov 09" (or locale-specific short format)
+
+# Reading time
+post.reading_time_text           # => "5 min read"
+
+# Meta tags (if meta_description field exists)
+post.meta_description_tag        # => '<meta name="description" content="...">'
+```
+
+**In your views:**
+
+```erb
+<!-- Index: loop over posts -->
+<% @posts.each do |post| %>
+  <h2><%= link_to post.title, blog_post_path(post) %></h2>
+  <p><%= post.published_date %> · <%= post.reading_time_text %></p>
+  <p><%= post.excerpt %></p>
+<% end %>
+
+<!-- Show: single post -->
+<head>
+  <%= @post.meta_description_tag %>
+</head>
+
+<h1><%= @post.title %></h1>
+<p><%= @post.published_date(:long) %> · <%= @post.reading_time_text %></p>
+<div><%= @post.content %></div>
 ```
 
 ### Controller Instance Variables

@@ -123,7 +123,7 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - This gem uses **Standard** for Ruby linting (configured in `.standard.yml`)
 - Tests use **Minitest** framework
 - CI runs on GitHub Actions (`.github/workflows/main.yml`) and executes `bundle exec rake`
-- Current test coverage: 70 tests, 173 assertions
+- Current test coverage: 125 tests, 267 assertions, 61.77% line coverage
 
 ## Current Features (Implemented)
 
@@ -163,6 +163,14 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Smart lookup: controllers check PostType first, then Collection
 - Name conflict validation: prevents PostType/Collection slug collisions
 - Future-ready: designed to support features like authorship, featured flags, taxonomies
+
+**Milestone 5 - Post Convenience Methods:**
+- Instance methods for common view patterns (no namespace conflicts)
+- `post.excerpt(length:, omission:)` - Smart content truncation with HTML stripping
+- `post.published_date(format)` - Locale-aware date formatting via I18n.l
+- `post.reading_time_text` - Returns "X min read" string
+- `post.meta_description_tag` - HTML-safe meta tag generation (if field exists)
+- Works identically in index loops and show views
 
 ## Development Roadmap
 

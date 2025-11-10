@@ -2,37 +2,71 @@
 
 Building toward 1.0.0 release. Using 0.x versions during active development.
 
-### Added
+### Completed Milestones
+
+**✅ Milestone 1: Post Model Behavior**
 - Core `acts_as_bunko_post` concern for ActiveRecord models
   - Scopes: `.published`, `.draft`, `.scheduled`, `.by_post_type(slug)`
   - Automatic slug generation from title (URL-safe, unique within post_type)
   - Publishing workflow with auto-setting of `published_at`
   - Reading time calculation from word_count
   - Status validation
-- Core `bunko_collection` concern for ActionController
+
+**✅ Milestone 2: Collection Controllers**
+- Core `bunko_collection` macro for ActionController (no manual includes needed)
   - Index action with built-in pagination (no external dependencies)
   - Show action with slug-based lookup and proper scoping
   - 404 handling for missing/draft/scheduled posts
   - Configurable per_page, ordering, and layout
-- Two-phase installation system (#PR_NUMBER)
+  - Instance variables: `@posts`, `@post`, `@collection_name`, `@pagination`
+
+**✅ Milestone 3: Installation Generator**
+- Two-phase installation system (#2)
   - `rails generate bunko:install` - Creates migrations, models, and initializer
   - `rails bunko:setup` - Generates controllers, views, and routes from configuration
   - Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`
   - Idempotent setup task (safe to re-run when adding collections)
   - Single-collection setup: `rails bunko:setup[slug]`
   - Template-based code generation from `lib/tasks/templates/`
-- Configuration system via `Bunko.configure` block
-  - Configurable post_types for content collections
+
+**✅ Milestone 4: Routing Helpers**
+- `bunko_collection` DSL method for routes (#4)
+  - Automatic hyphenation: `:case_study` → `/case-study/`
+  - Custom path support: `bunko_collection :blog, path: "articles"`
+  - Custom controller support: `bunko_collection :blog, controller: "articles"`
+  - Action limiting: `only: [:index]` or `except: [:show]`
+  - Follows Rails conventions (like `resources :blog_posts` → `/blog-posts/`)
+
+**✅ Smart Collections (v1)**
+- Virtual collections that aggregate multiple post types
+  - `config.collection` DSL for defining multi-type collections
+  - Optional scopes for filtering: `config.collection "Long Reads", post_types: ["articles"] { |c| c.scope -> { where("word_count > ?", 1500) } }`
+  - Smart lookup: controllers check PostType first, then Collection
+  - Name conflict validation prevents slug collisions
+
+**✅ Milestone 5: Post Convenience Methods**
+- Instance methods for common view patterns (no namespace conflicts)
+  - `post.excerpt(length: 160, omission: "...")` - Smart content truncation with HTML stripping
+  - `post.published_date(format = :long)` - Locale-aware date formatting via I18n.l
+  - `post.reading_time_text` - Returns "X min read" string
+  - `post.meta_description_tag` - HTML-safe meta tag generation (if field exists)
+- Works identically in index loops and show views
+- Clean API: `post.excerpt` instead of `bunko_excerpt(post)`
+
+**Configuration & Infrastructure**
+- Configuration system via `Bunko.configure` block (#3)
+  - `config.post_type` DSL for defining content collections
+  - `config.collection` DSL for smart/virtual collections
   - Configurable reading speed (default: 250 wpm)
   - Configurable valid statuses (default: draft, published, scheduled)
-- Test suite with 52 tests, 126 assertions (100% passing)
+  - Name conflict validation between PostTypes and Collections
+- Test suite: 125 tests, 267 assertions, 61.77% line coverage (#5)
 - CI/CD pipeline testing Ruby 3.2, 3.3, 3.4, 3.5
 
-### In Progress
-- Routing helpers
-- View helpers
-- Expanded configuration options
-- Documentation and examples
+### Next Up
+- **Milestone 6: Configuration Expansion** - Additional configuration options
+- **Milestone 7: Documentation** - Comprehensive guides and examples
+- **Milestone 8: Release** - Version 1.0.0 to RubyGems
 
 ## [0.1.0] - 2025-11-09
 
