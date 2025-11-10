@@ -215,7 +215,6 @@ This approach allows users to customize their post types in the initializer befo
 
 - `--skip-seo` - Skip adding SEO fields (meta_title, meta_description) - SEO fields included by default
 - `--skip-metrics` - Skip adding metrics fields (word_count) - Metrics included by default
-- `--metadata` - Add metadata (jsonb/json) field to migration
 - `--json-content` - Use json/jsonb for content field instead of text (for JSON-based editors)
 
 ### Acceptance Test

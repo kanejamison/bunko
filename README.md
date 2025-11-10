@@ -129,8 +129,8 @@ rails generate bunko:install --skip-seo
 # Exclude metrics fields (word_count, reading_time)
 rails generate bunko:install --skip-metrics
 
-# Add metadata jsonb field for custom data
-rails generate bunko:install --metadata
+# Use JSON/JSONB for content field (for JSON-based editors)
+rails generate bunko:install --json-content
 
 # Minimal install
 rails generate bunko:install --skip-seo --skip-metrics

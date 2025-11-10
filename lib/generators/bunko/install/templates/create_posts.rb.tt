@@ -24,11 +24,6 @@ class CreatePosts < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_
       # Metrics
       t.integer :word_count
 <% end -%>
-<% if include_metadata? -%>
-
-      # Custom metadata
-      t.jsonb :metadata
-<% end -%>
 
       t.timestamps
     end

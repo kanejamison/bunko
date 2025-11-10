@@ -152,7 +152,7 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Two-phase installation pattern:
   1. `rails generate bunko:install` - Creates migrations, models, initializer
   2. `rails bunko:setup` - Generates controllers, views, routes from configuration
-- Generator options: `--skip-seo`, `--skip-metrics`, `--metadata`, `--json-content`
+- Generator options: `--skip-seo`, `--skip-metrics`, `--json-content`
 - Configuration-driven: Define post_types in `config/initializers/bunko.rb`
 - Idempotent setup task (safe to re-run when adding new collections)
 - Single-collection setup: `rails bunko:setup[slug]` for adding individual collections
