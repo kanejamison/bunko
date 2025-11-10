@@ -269,7 +269,7 @@ namespace :bunko do
   end
 
   def render_template(template_name, locals = {})
-    template_path = File.expand_path("templates/#{template_name}", __dir__)
+    template_path = File.expand_path("../templates/#{template_name}", __dir__)
 
     unless File.exist?(template_path)
       raise "Template file not found: #{template_path}"
