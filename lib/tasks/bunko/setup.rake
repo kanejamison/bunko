@@ -4,24 +4,13 @@ require "erb"
 require "fileutils"
 
 namespace :bunko do
-  desc "Set up Bunko by creating PostTypes and generating controllers/views/routes. Optional: rails bunko:setup[name] to set up a specific post type."
-  task :setup, [:name] => :environment do |t, args|
+  desc "Set up Bunko by creating all configured PostTypes and Collections"
+  task setup: :environment do
     puts "Setting up Bunko..."
     puts ""
 
-    # Parse format from ENV
-    format = ENV.fetch("FORMAT", "html").downcase
-
-    # Validate format
-    valid_formats = %w[plain html]
-    unless valid_formats.include?(format)
-      puts "⚠️  Invalid format: #{format}"
-      puts "    Valid formats: #{valid_formats.join(", ")}"
-      puts ""
-      exit 1
-    end
-
     post_types = Bunko.configuration.post_types
+    collections = Bunko.configuration.collections
 
     if post_types.empty?
       puts "⚠️  No post types configured."
@@ -35,149 +24,31 @@ namespace :bunko do
       exit
     end
 
-    # If a specific name was provided, filter to just that one
-    if args[:name]
-      target_name = args[:name]
-      post_types = post_types.select { |pt| pt[:name] == target_name }
-
-      if post_types.empty?
-        puts "⚠️  PostType with name '#{target_name}' not found in config."
-        puts "   Available names: #{Bunko.configuration.post_types.map { |pt| pt[:name] }.join(", ")}"
-        puts ""
-        puts "   Add it to config/initializers/bunko.rb first:"
-        puts "   config.post_type \"#{target_name}\""
-        exit
-      end
-
-      puts "Setting up PostType: #{target_name}"
-      puts ""
-    end
-
-    # Track what we create
-    post_types_created = 0
-    post_types_existing = 0
-    controllers_created = []
-    views_created = []
-    routes_added = []
-
-    collections = Bunko.configuration.collections
-
-    # Validate post_types configuration
-    post_types.each do |pt_config|
-      unless pt_config.is_a?(Hash) && pt_config[:name] && pt_config[:title]
-        puts "⚠️  Invalid post type configuration: #{pt_config.inspect}"
-        puts "   Each post type must be a hash with :name and :title keys."
-        puts "   Example: { name: \"blog\", title: \"Blog\" }"
-        exit
-      end
-    end
-
-    # Step 1: Create PostTypes
-    puts "Creating PostTypes..."
-    post_types.each do |pt_config|
-      post_type = PostType.find_by(name: pt_config[:name])
-
-      if post_type
-        post_types_existing += 1
-        puts "  ✓ PostType already exists: #{pt_config[:title]} (#{pt_config[:name]})"
-      else
-        PostType.create!(
-          name: pt_config[:name],
-          title: pt_config[:title]
-        )
-        post_types_created += 1
-        puts "  ✓ Created PostType: #{pt_config[:title]} (#{pt_config[:name]})"
-      end
-    end
-
-    puts ""
-
-    # Step 2: Generate shared navigation
+    # Generate shared navigation once
     puts "Generating shared navigation..."
     generate_shared_nav
     puts ""
 
-    # Step 3: Generate controllers for each post type
-    puts "Generating controllers..."
+    # Add all post types
     post_types.each do |pt_config|
-      controller_created = generate_controller(pt_config[:name])
-      controllers_created << pt_config[:name] if controller_created
+      Rake::Task["bunko:add"].reenable
+      Rake::Task["bunko:add"].invoke(pt_config[:name])
     end
 
-    puts ""
-
-    # Step 4: Generate views for each post type
-    puts "Generating views..."
-    post_types.each do |pt_config|
-      views_generated = generate_views(pt_config[:name], format: format)
-      views_created << pt_config[:name] if views_generated
-    end
-
-    puts ""
-
-    # Step 5: Add routes for each post type
-    puts "Adding routes..."
-    post_types.each do |pt_config|
-      route_added = add_route(pt_config[:name])
-      routes_added << pt_config[:name] if route_added
-    end
-
-    puts ""
-
-    # Step 6: Generate controllers for each collection
-    if collections.any?
-      puts "Generating collection controllers..."
-      collections.each do |collection_config|
-        controller_created = generate_controller(collection_config[:slug])
-        controllers_created << collection_config[:slug] if controller_created
-      end
-
-      puts ""
-
-      # Step 7: Generate views for each collection
-      puts "Generating collection views..."
-      collections.each do |collection_config|
-        views_generated = generate_views(collection_config[:slug], format: format)
-        views_created << collection_config[:slug] if views_generated
-      end
-
-      puts ""
-
-      # Step 8: Add routes for each collection
-      puts "Adding collection routes..."
-      collections.each do |collection_config|
-        route_added = add_route(collection_config[:slug])
-        routes_added << collection_config[:slug] if route_added
-      end
-
-      puts ""
+    # Add all collections
+    collections.each do |collection_config|
+      Rake::Task["bunko:add"].reenable
+      Rake::Task["bunko:add"].invoke(collection_config[:slug])
     end
 
     puts "=" * 79
     puts "Setup complete!"
     puts ""
-
-    if post_types_created > 0 || post_types_existing > 0
-      puts "PostTypes:"
-      puts "  Created: #{post_types_created}" if post_types_created > 0
-      puts "  Already existed: #{post_types_existing}" if post_types_existing > 0
-      puts ""
-    end
-
-    if collections.any?
-      puts "Collections: #{collections.size} configured (#{collections.map { |c| c[:slug] }.join(", ")})"
-      puts ""
-    end
-
-    puts "Controllers: #{controllers_created.size} generated (#{controllers_created.join(", ")})" if controllers_created.any?
-    puts "Views: #{views_created.size} generated (#{views_created.join(", ")})" if views_created.any?
-    puts "Routes: #{routes_added.size} added (#{routes_added.join(", ")})" if routes_added.any?
-    puts ""
     puts "Next steps:"
     puts "  1. Create your first post in the Rails console or admin panel"
     puts "  2. Visit your collections:"
 
-    # Show PostType routes (convert underscores to hyphens for URLs)
+    # Show PostType routes
     post_types.each do |pt|
       url_path = pt[:name].tr("_", "-")
       puts "     http://localhost:3000/#{url_path}"
@@ -190,109 +61,12 @@ namespace :bunko do
 
     puts "=" * 79
     puts ""
-    puts "Usage examples:"
-    puts "  rails bunko:setup                    # Default (HTML with sanitize)"
-    puts "  rails bunko:setup FORMAT=html        # HTML with sanitize helper"
-    puts "  rails bunko:setup FORMAT=plain       # Plain text with simple_format"
-    puts "  rails bunko:setup[blog]              # Set up specific collection"
-    puts "  rails bunko:setup[blog] FORMAT=plain # Combine options"
+    puts "To add more later, update your initializer and run:"
+    puts "  rails bunko:add[name]"
     puts "=" * 79
   end
 
-  def generate_controller(collection_name)
-    controller_name = "#{collection_name.camelize}Controller"
-    controller_file = Rails.root.join("app/controllers/#{collection_name}_controller.rb")
-
-    if File.exist?(controller_file)
-      puts "  - #{collection_name}_controller.rb already exists (skipped)"
-      return false
-    end
-
-    controller_content = render_template("controller.rb.tt", {
-      controller_name: controller_name,
-      collection_name: collection_name
-    })
-
-    File.write(controller_file, controller_content)
-    puts "  ✓ Created #{collection_name}_controller.rb"
-    true
-  end
-
-  def generate_views(collection_name, format:)
-    views_dir = Rails.root.join("app/views/#{collection_name}")
-
-    if Dir.exist?(views_dir) && Dir.glob("#{views_dir}/*").any?
-      puts "  - #{collection_name} views already exist (skipped)"
-      return false
-    end
-
-    FileUtils.mkdir_p(views_dir)
-
-    # Generate index.html.erb
-    index_content = generate_index_view(collection_name)
-    File.write(File.join(views_dir, "index.html.erb"), index_content)
-
-    # Generate show.html.erb
-    show_content = generate_show_view(collection_name, format: format)
-    File.write(File.join(views_dir, "show.html.erb"), show_content)
-
-    puts "  ✓ Created views for #{collection_name} (index, show)"
-    true
-  end
-
-  def generate_index_view(collection_name)
-    # Rails resources behavior:
-    # - Singular names: blog_index_path, blog_path(slug)
-    # - Plural names: docs_path, doc_path(slug)
-    is_plural = collection_name.pluralize == collection_name
-
-    render_template("index.html.erb.tt", {
-      collection_name: collection_name,
-      collection_title: collection_name.titleize,
-      path_helper: "#{collection_name.singularize}_path",
-      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path"
-    })
-  end
-
-  def generate_show_view(collection_name, format:)
-    is_plural = collection_name.pluralize == collection_name
-
-    render_template("show.html.erb.tt", {
-      collection_name: collection_name,
-      collection_title: collection_name.titleize,
-      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path",
-      format: format
-    })
-  end
-
-  def add_route(collection_name)
-    routes_file = Rails.root.join("config/routes.rb")
-    routes_content = File.read(routes_file)
-
-    route_line = "  bunko_collection :#{collection_name}"
-
-    if routes_content.include?(route_line.strip)
-      puts "  - Route for :#{collection_name} already exists (skipped)"
-      return false
-    end
-
-    # Find the last 'end' in the file and insert before it
-    # This handles the closing end of Rails.application.routes.draw
-    lines = routes_content.lines
-    last_end_index = lines.rindex { |line| line.match?(/^end\s*$/) }
-
-    if last_end_index
-      lines.insert(last_end_index, "#{route_line}\n")
-      updated_content = lines.join
-    else
-      # Fallback: append before the last line if no 'end' found
-      updated_content = routes_content.sub(/\z/, "#{route_line}\n")
-    end
-
-    File.write(routes_file, updated_content)
-    puts "  ✓ Added route for :#{collection_name}"
-    true
-  end
+  # Helper methods
 
   def generate_shared_nav
     shared_dir = Rails.root.join("app/views/shared")

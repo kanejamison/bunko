@@ -130,15 +130,15 @@ class BunkoSetupTaskTest < Minitest::Test
     assert_match(/bunko_collection :docs/, routes_content)
   end
 
-  def test_setup_with_specific_slug_only_sets_up_that_slug
+  def test_add_post_type_adds_single_post_type
     Bunko.configure do |config|
       config.post_type "blog"
       config.post_type "docs"
       config.post_type "changelog"
     end
 
-    # Run setup for just "docs"
-    run_rake_task("bunko:setup", "docs")
+    # Add just "docs" using the add task
+    run_rake_task("bunko:add", "docs")
 
     # Verify only docs PostType was created
     assert_equal 1, PostType.count
@@ -196,7 +196,7 @@ class BunkoSetupTaskTest < Minitest::Test
     assert_equal 1, routes_content.scan("bunko_collection :blog").count
   end
 
-  def test_setup_with_invalid_slug_exits_gracefully
+  def test_add_with_invalid_name_exits_gracefully
     Bunko.configure do |config|
       config.post_type "blog"
     end
@@ -205,12 +205,12 @@ class BunkoSetupTaskTest < Minitest::Test
     # We'll capture the output and verify it contains helpful information
     output = capture_io do
       assert_raises(SystemExit) do
-        run_rake_task("bunko:setup", "nonexistent")
+        run_rake_task("bunko:add", "nonexistent")
       end
     end
 
-    assert_match(/PostType with name 'nonexistent' not found/, output.join)
-    assert_match(/Available names: blog/, output.join)
+    assert_match(/'nonexistent' not found in configuration/, output.join)
+    assert_match(/Available PostTypes: blog/, output.join)
   end
 
   def test_setup_with_empty_config_exits_gracefully
@@ -397,6 +397,126 @@ class BunkoSetupTaskTest < Minitest::Test
     # Verify show view includes nav partial
     show_view = File.read(File.join(@destination, "app/views/blog/show.html.erb"))
     assert_match(/render "shared\/bunko_nav"/, show_view)
+  end
+
+  def test_add_collection_adds_single_collection
+    Bunko.configure do |config|
+      config.post_type "articles"
+      config.post_type "videos"
+      config.collection "resources", post_types: ["articles", "videos"]
+    end
+
+    # Add just the collection
+    run_rake_task("bunko:add", "resources")
+
+    # Verify controller was created
+    assert File.exist?(File.join(@destination, "app/controllers/resources_controller.rb"))
+
+    # Verify views were created
+    assert File.exist?(File.join(@destination, "app/views/resources/index.html.erb"))
+    assert File.exist?(File.join(@destination, "app/views/resources/show.html.erb"))
+
+    # Verify route was added
+    routes_content = File.read(File.join(@destination, "config/routes.rb"))
+    assert_match(/bunko_collection :resources/, routes_content)
+  end
+
+  def test_add_regenerates_nav_for_post_type
+    Bunko.configure do |config|
+      config.post_type "blog"
+      config.post_type "docs"
+    end
+
+    # Run setup for initial nav
+    run_rake_task("bunko:setup")
+
+    nav_content_before = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+    assert_match(/"Blog"/, nav_content_before)
+    assert_match(/"Docs"/, nav_content_before)
+
+    # Add a new post type
+    Bunko.configuration.post_type "changelog"
+
+    run_rake_task("bunko:add", "changelog")
+
+    # Nav should be regenerated with new post type
+    nav_content_after = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+    assert_match(/"Blog"/, nav_content_after)
+    assert_match(/"Docs"/, nav_content_after)
+    assert_match(/"Changelog"/, nav_content_after)
+  end
+
+  def test_add_regenerates_nav_for_collection
+    Bunko.configure do |config|
+      config.post_type "articles"
+      config.post_type "videos"
+    end
+
+    # Run setup for initial nav
+    run_rake_task("bunko:setup")
+
+    nav_content_before = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+    refute_match(/"Resources"/, nav_content_before)
+
+    # Add a new collection
+    Bunko.configuration.collection "resources", post_types: ["articles", "videos"]
+
+    run_rake_task("bunko:add", "resources")
+
+    # Nav should now include the new collection
+    nav_content_after = File.read(File.join(@destination, "app/views/shared/_bunko_nav.html.erb"))
+    assert_match(/"Resources"/, nav_content_after)
+  end
+
+  def test_unified_add_command_works_for_post_type
+    Bunko.configure do |config|
+      config.post_type "blog"
+      config.post_type "docs"
+    end
+
+    # Use unified add command for a post type
+    run_rake_task("bunko:add", "blog")
+
+    # Verify PostType was created
+    assert_equal 1, PostType.count
+    assert PostType.find_by(name: "blog")
+
+    # Verify controller was created
+    assert File.exist?(File.join(@destination, "app/controllers/blog_controller.rb"))
+  end
+
+  def test_unified_add_command_works_for_collection
+    Bunko.configure do |config|
+      config.post_type "articles"
+      config.post_type "videos"
+      config.collection "Resources", post_types: ["articles", "videos"]
+    end
+
+    # Use unified add command for a collection
+    run_rake_task("bunko:add", "resources")
+
+    # Verify controller was created
+    assert File.exist?(File.join(@destination, "app/controllers/resources_controller.rb"))
+
+    # Verify views were created
+    assert File.exist?(File.join(@destination, "app/views/resources/index.html.erb"))
+  end
+
+  def test_unified_add_command_with_invalid_name_exits_gracefully
+    Bunko.configure do |config|
+      config.post_type "blog"
+      config.collection "Resources", post_types: ["blog"]
+    end
+
+    output = capture_io do
+      assert_raises(SystemExit) do
+        run_rake_task("bunko:add", "nonexistent")
+      end
+    end
+
+    assert_match(/'nonexistent' not found in configuration/, output.join)
+    assert_match(/Available PostTypes: blog/, output.join)
+    assert_match(/Available Collections: resources/, output.join)
   end
 
   private
