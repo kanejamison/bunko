@@ -97,10 +97,19 @@ lib/
     └── templates/              # Controller and view templates
 test/
 ├── dummy/                  # Rails dummy app for integration testing
+├── models/                 # Model tests (organized by functionality)
+│   ├── post_scopes_test.rb           # Query scopes (6 tests)
+│   ├── post_slug_test.rb             # Slug generation (10 tests)
+│   ├── post_publishing_test.rb       # Publishing workflow (11 tests)
+│   ├── post_reading_time_test.rb     # Reading time (7 tests)
+│   ├── post_content_formatting_test.rb # Excerpt method (7 tests)
+│   ├── post_date_formatting_test.rb  # Date formatting (5 tests)
+│   ├── post_meta_tags_test.rb        # Meta tags (5 tests)
+│   └── post_type_test.rb             # PostType model (16 tests)
 ├── controllers/            # Controller integration tests
-├── models/                 # Model tests
 ├── routing/                # Routing DSL tests
 ├── generators/             # Generator tests
+├── configuration/          # Configuration tests
 └── tasks/                  # Rake task tests
 .github/workflows/         # CI/CD pipeline (runs rake: test + standard)
 ```
@@ -123,7 +132,9 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - This gem uses **Standard** for Ruby linting (configured in `.standard.yml`)
 - Tests use **Minitest** framework
 - CI runs on GitHub Actions (`.github/workflows/main.yml`) and executes `bundle exec rake`
-- Current test coverage: 70 tests, 173 assertions
+- Current test coverage: 141 tests, 316 assertions, 44.59% line coverage
+  - Coverage tracks all lib files with SimpleCov `track_files "lib/**/*.rb"`
+  - Lower percentage reflects tracking untested files, not reduced actual coverage
 
 ## Current Features (Implemented)
 
@@ -163,6 +174,18 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Smart lookup: controllers check PostType first, then Collection
 - Name conflict validation: prevents PostType/Collection slug collisions
 - Future-ready: designed to support features like authorship, featured flags, taxonomies
+
+**Milestone 5 - Post Convenience Methods:**
+- Instance methods for common view patterns (no namespace conflicts)
+- Implementation: Methods added directly to PostMethods concern (not view helpers)
+  - Avoids namespace conflicts - `post.excerpt` instead of `bunko_excerpt(post)`
+  - Works identically in index loops and show views
+  - No helper prefix needed
+- Methods:
+  - `post.excerpt(length:, omission:)` - Smart content truncation with HTML stripping
+  - `post.published_date(format)` - Locale-aware date formatting via I18n.l
+  - `post.reading_time_text` - Returns "X min read" string
+  - `post.meta_description_tag` - HTML-safe meta tag generation (if field exists)
 
 ## Development Roadmap
 

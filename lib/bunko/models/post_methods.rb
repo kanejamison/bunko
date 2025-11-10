@@ -48,6 +48,42 @@ module Bunko
         (word_count.to_f / Bunko.configuration.reading_speed).ceil
       end
 
+      def reading_time_text
+        return nil unless reading_time.present?
+
+        "#{reading_time} min read"
+      end
+
+      def excerpt(length: 160, omission: "...")
+        return nil unless content.present?
+
+        # Strip HTML tags if present
+        text = content.to_s.gsub(/<[^>]*>/, "")
+
+        # Return full text if shorter than length
+        return text if text.length <= length
+
+        # Truncate to word boundary
+        truncated = text[0...length]
+        last_space = truncated.rindex(" ") || length
+
+        "#{truncated[0...last_space]}#{omission}"
+      end
+
+      def published_date(format = :long)
+        return nil unless published_at.present?
+
+        I18n.l(published_at, format: format)
+      end
+
+      def meta_description_tag
+        return nil unless respond_to?(:meta_description) && meta_description.present?
+
+        # Return HTML-safe meta tag string
+        require "erb"
+        %(<meta name="description" content="#{ERB::Util.html_escape(meta_description)}">).html_safe
+      end
+
       private
 
       def should_generate_slug?

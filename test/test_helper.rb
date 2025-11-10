@@ -4,11 +4,16 @@ require "simplecov"
 SimpleCov.start do
   add_filter "/test/"
   add_filter "/vendor/"
+
+  # Track all files in lib/, even if not loaded during tests
+  track_files "lib/**/*.rb"
+
   add_group "Controllers", "lib/bunko/controllers"
   add_group "Models", "lib/bunko/models"
   add_group "Configuration", "lib/bunko/configuration.rb"
   add_group "Routing", "lib/bunko/routing"
   add_group "Generators", "lib/generators"
+  add_group "Tasks", "lib/tasks"
 end
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
