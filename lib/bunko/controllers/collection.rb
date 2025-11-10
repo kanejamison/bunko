@@ -118,13 +118,13 @@ module Bunko
       def apply_ordering(query)
         case bunko_collection_options[:order]
         when :published_at_desc
-          query.order(published_at: :desc)
+          query.reorder(published_at: :desc)
         when :published_at_asc
-          query.order(published_at: :asc)
+          query.reorder(published_at: :asc)
         when :created_at_desc
-          query.order(created_at: :desc)
+          query.reorder(created_at: :desc)
         when :created_at_asc
-          query.order(created_at: :asc)
+          query.reorder(created_at: :asc)
         else
           query
         end

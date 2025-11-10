@@ -35,15 +35,15 @@
     <%% if @pagination[:total_pages] > 1 %>
       <nav class="pagination">
         <%% if @pagination[:prev_page] %>
-          <%%= link_to "← Previous", <%= index_path_helper %>(page: @pagination[:page] - 1), class: "pagination-prev" %>
+          <%%= link_to "← Previous", <%= index_path_helper %>(page: @pagination[:current_page] - 1), class: "pagination-prev" %>
         <%% end %>
 
         <span class="pagination-info">
-          Page <%%= @pagination[:page] %> of <%%= @pagination[:total_pages] %>
+          Page <%%= @pagination[:current_page] %> of <%%= @pagination[:total_pages] %>
         </span>
 
         <%% if @pagination[:next_page] %>
-          <%%= link_to "Next →", <%= index_path_helper %>(page: @pagination[:page] + 1), class: "pagination-next" %>
+          <%%= link_to "Next →", <%= index_path_helper %>(page: @pagination[:current_page] + 1), class: "pagination-next" %>
         <%% end %>
       </nav>
     <%% end %>
