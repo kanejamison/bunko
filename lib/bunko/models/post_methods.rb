@@ -42,8 +42,11 @@ module Bunko
         # Use configured default if length not specified
         length ||= Bunko.configuration.excerpt_length
 
-        # Strip HTML tags if present
-        text = content.to_s.gsub(/<[^>]*>/, "")
+        # Strip HTML tags using Rails sanitizer (more robust than regex)
+        text = ActionView::Base.full_sanitizer.sanitize(content.to_s)
+
+        # Clean up extra whitespace
+        text = text.gsub(/\s+/, " ").strip
 
         # Return full text if shorter than length
         return text if text.length <= length
