@@ -3,26 +3,6 @@
 require "erb"
 require "fileutils"
 
-# Helper class to provide context for ERB templates
-class InstallTemplateContext
-  def initialize(skip_seo, json_content)
-    @skip_seo = skip_seo
-    @json_content = json_content
-  end
-
-  def include_seo_fields?
-    !@skip_seo
-  end
-
-  def use_json_content?
-    @json_content
-  end
-
-  def get_binding
-    binding
-  end
-end
-
 namespace :bunko do
   desc "Install Bunko by creating migrations, models, and initializer"
   task install: :environment do
@@ -150,9 +130,14 @@ namespace :bunko do
 
     template_content = File.read(template_path)
 
-    # Create a template context with helper methods
-    context = InstallTemplateContext.new(locals[:skip_seo], locals[:json_content])
+    # Create an object with helper methods for the template
+    skip_seo = locals[:skip_seo]
+    json_content = locals[:json_content]
 
-    ERB.new(template_content, trim_mode: "-").result(context.get_binding)
+    context = Object.new
+    context.define_singleton_method(:include_seo_fields?) { !skip_seo }
+    context.define_singleton_method(:use_json_content?) { json_content }
+
+    ERB.new(template_content, trim_mode: "-").result(context.instance_eval { binding })
   end
 end
