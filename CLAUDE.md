@@ -93,8 +93,17 @@ lib/
 │   ├── install_generator.rb    # rails generate bunko:install
 │   └── templates/              # Migration and model templates
 └── tasks/
-    ├── bunko_tasks.rake        # rails bunko:setup task
+    └── bunko/
+        ├── setup.rake          # rails bunko:setup task
+        ├── add.rake            # rails bunko:add[name] task
+        └── sample_data.rake    # rails bunko:sample_data task
     └── templates/              # Controller and view templates
+        ├── controller.rb.tt
+        ├── index.html.erb.tt
+        ├── show.html.erb.tt
+        ├── bunko_nav.html.erb.tt     # Shared nav partial
+        ├── bunko_styles.html.erb.tt  # Shared styles partial (Pico CSS)
+        └── bunko_footer.html.erb.tt  # Shared footer partial
 test/
 ├── dummy/                  # Rails dummy app for integration testing
 ├── models/                 # Model tests (organized by functionality)
@@ -123,9 +132,9 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 
 ## Requirements
 
-- Ruby >= 3.1.0
+- Ruby >= 3.2.0
+- Rails >= 8.0
 - Bundler
-- Rails (when gem is used, though gem itself is framework-agnostic structure)
 
 ## Development Notes
 
@@ -154,7 +163,13 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Generator options: `--skip-seo`, `--json-content`
 - Configuration-driven: Define post_types in `config/initializers/bunko.rb`
 - Idempotent setup task (safe to re-run when adding new collections)
-- Single-collection setup: `rails bunko:setup[slug]` for adding individual collections
+- Single-collection setup: `rails bunko:add[name]` for adding individual collections
+- Generated views include:
+  - Semantic HTML structure (`<header>`, `<main>`, `<section>`, `<footer>`)
+  - Shared partials: `_bunko_nav.html.erb`, `_bunko_styles.html.erb`, `_bunko_footer.html.erb`
+  - Basic styling with Pico CSS (https://picocss.com/) - easily removable for custom designs
+  - Responsive navigation with collection links
+  - Clean, customizable templates
 
 **Milestone 4 - Routing Helpers:**
 - `bunko_collection` DSL method extends `ActionDispatch::Routing::Mapper`
@@ -183,9 +198,37 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
   - `post.published_date(format)` - Locale-aware date formatting via I18n.l
   - `post.reading_time_text` - Returns "X min read" string
 
+**Sample Data Generator:**
+- `rails bunko:sample_data` - Generate realistic sample posts for all configured post types
+- Configurable options:
+  - `COUNT=N` - Number of posts per post type (default: 100)
+  - `FORMAT=plain|markdown|html` - Content format (default: plain)
+  - `MIN_WORDS=N` and `MAX_WORDS=N` - Word count range (default: 200-2000)
+  - `CLEAR=true` - Clear existing posts before generating
+- Generated posts include:
+  - Realistic titles based on post type
+  - Unique slugs
+  - Meta descriptions and title tags
+  - Published dates (90% past, 10% scheduled for future)
+  - Automatic word count calculation
+  - Formatted content with headings, paragraphs, lists, blockquotes, and links
+- HTML format includes semantic tags and optional CSS classes for styling
+- Markdown format includes full Markdown syntax
+- Useful for testing, demos, and development
+
 ## Development Roadmap
 
-See ROADMAP.md for the complete 0.1.0 release plan with specs and milestones.
+See ROADMAP.md for the complete 1.0.0 release plan with specs and milestones.
+
+**Current Status:**
+- ✅ Milestone 1: Post Model Behavior - COMPLETED
+- ✅ Milestone 2: Collection Controllers - COMPLETED
+- ✅ Milestone 3: Installation Generator - COMPLETED
+- ✅ Milestone 4: Routing Helpers - COMPLETED
+- ✅ Milestone 5: Post Convenience Methods - COMPLETED
+- 🚧 Milestone 6: Configuration - PENDING (core system exists, needs expansion)
+- 🚧 Milestone 7: Documentation - PENDING
+- 🚧 Milestone 8: Release - PENDING
 
 ## Architecture Principles
 
