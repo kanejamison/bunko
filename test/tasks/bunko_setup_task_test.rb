@@ -108,7 +108,7 @@ class BunkoSetupTaskTest < Minitest::Test
 
     # Verify view content
     index_view = File.read(File.join(@destination, "app/views/blog/index.html.erb"))
-    assert_match(/class="blog-index"/, index_view)
+    assert_match(/class="container blog-index"/, index_view)
     assert_match(/blog_index_path/, index_view) # Pagination uses blog_index_path (singular resource)
     assert_match(/blog_path/, index_view) # Show links use blog_path
 
