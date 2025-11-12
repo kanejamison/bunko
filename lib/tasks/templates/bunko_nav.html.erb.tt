@@ -1,4 +1,4 @@
-<header>
+<header class="container">
   <nav style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #dee2e6; font-weight: bold;">
     <div>
       <%%= link_to "Home", root_path %>

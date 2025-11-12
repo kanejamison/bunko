@@ -1,7 +1,7 @@
 <%%= render "shared/bunko_styles" %>
 <%%= render "shared/bunko_nav" %>
 
-<main class="<%= collection_name %>-index">
+<main class="container <%= collection_name %>-index">
   <h1><%= collection_title %></h1>
 
   <%% if @posts.any? %>
