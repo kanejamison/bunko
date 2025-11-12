@@ -89,9 +89,6 @@ lib/
 │   ├── routing/                # ActionDispatch routing extensions
 │   │   └── mapper_methods.rb   # bunko_collection DSL method
 │   └── railtie.rb              # Rails integration (loads rake tasks, routing)
-├── generators/bunko/install/
-│   ├── install_generator.rb    # rails generate bunko:install
-│   └── templates/              # Migration and model templates
 └── tasks/
     └── bunko/
         ├── setup.rake          # rails bunko:setup task
@@ -158,11 +155,11 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Scoped queries (each collection only sees its post_type)
 - Available instance variables: `@posts`, `@post`, `@collection_name`, `@pagination`
 
-**Milestone 3 - Installation Generator:**
+**Milestone 3 - Installation:**
 - Two-phase installation pattern:
-  1. `rails generate bunko:install` - Creates migrations, models, initializer
+  1. `rails bunko:install` - Creates migrations, models, initializer
   2. `rails bunko:setup` - Generates controllers, views, routes from configuration
-- Generator options: `--skip-seo`, `--json-content`
+- Install options: `SKIP_SEO=true`, `JSON_CONTENT=true` (passed as environment variables)
 - Configuration-driven: Define post_types in `config/initializers/bunko.rb`
 - Idempotent setup task (safe to re-run when adding new collections)
 - Single-collection setup: `rails bunko:add[name]` for adding individual collections

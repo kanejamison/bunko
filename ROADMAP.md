@@ -156,10 +156,10 @@ end
 
 ## Milestone 3: Installation Generator
 
-**Spec:** Running `rails generate bunko:install` should create everything needed for a working blog.
+**Spec:** Running `rails bunko:install` should create everything needed for a working blog.
 
 **Implementation Note:** This milestone was implemented as a two-phase pattern:
-1. `rails generate bunko:install` - Creates migrations, models, and initializer
+1. `rails bunko:install` - Creates migrations, models, and initializer
 2. `rails bunko:setup` - Generates controllers, views, and routes based on configuration
 
 This approach allows users to customize their post types in the initializer before generating the controllers/views, and makes it easy to add new collections later.
@@ -222,7 +222,7 @@ This approach allows users to customize their post types in the initializer befo
 
 ```bash
 # Developer runs:
-$ rails generate bunko:install
+$ rails bunko:install
 $ rails db:migrate
 
 # Result: They can visit /blog and see a working (empty) blog
@@ -494,7 +494,7 @@ $ gem install bunko
 $ rails new myblog
 $ cd myblog
 $ bundle add bunko
-$ rails generate bunko:install
+$ rails bunko:install
 $ rails db:migrate
 $ rails bunko:setup
 $ rails bunko:sample_data
