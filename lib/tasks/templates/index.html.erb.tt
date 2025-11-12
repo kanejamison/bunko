@@ -1,7 +1,7 @@
 <%%= render "shared/bunko_styles" %>
 <%%= render "shared/bunko_nav" %>
 
-<div class="<%= collection_name %>-index">
+<main class="<%= collection_name %>-index">
   <h1><%= collection_title %></h1>
 
   <%% if @posts.any? %>
@@ -36,7 +36,7 @@
     </div>
 
     <%% if @pagination[:total_pages] > 1 %>
-      <nav class="pagination">
+      <section class="pagination">
         <%% if @pagination[:prev_page] %>
           <%%= link_to "← Previous", <%= index_path_helper %>(page: @pagination[:current_page] - 1), class: "pagination-prev" %>
         <%% end %>
@@ -48,9 +48,9 @@
         <%% if @pagination[:next_page] %>
           <%%= link_to "Next →", <%= index_path_helper %>(page: @pagination[:current_page] + 1), class: "pagination-next" %>
         <%% end %>
-      </nav>
+      </section>
     <%% end %>
   <%% else %>
     <p class="no-posts">No <%= collection_title.downcase %> posts yet.</p>
   <%% end %>
-</div>
+</main>
