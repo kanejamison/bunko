@@ -13,6 +13,7 @@ module Bunko
     end
 
     rake_tasks do
+      load "tasks/bunko/install.rake"
       load "tasks/bunko/setup.rake"
       load "tasks/bunko/add.rake"
       load "tasks/bunko/sample_data.rake"
