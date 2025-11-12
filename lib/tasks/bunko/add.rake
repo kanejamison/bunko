@@ -257,12 +257,12 @@ namespace :bunko do
 
     template_content = File.read(template_path)
 
-    # Create a binding with the local variables
-    b = binding
+    # Create an object with all local variables as methods
+    context = Object.new
     locals.each do |key, value|
-      b.local_variable_set(key, value)
+      context.define_singleton_method(key) { value }
     end
 
-    ERB.new(template_content, trim_mode: "-").result(b)
+    ERB.new(template_content, trim_mode: "-").result(context.instance_eval { binding })
   end
 end
