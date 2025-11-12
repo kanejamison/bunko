@@ -6,17 +6,6 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 
 **Bunko is currently in active development and not yet ready for production use.** We're building toward a 1.0.0 release with core functionality that we think is safe for production usage. See the roadmap below for progress.
 
-### 1.0.0 Roadmap Progress
-
-- [x] **Milestone 1: Post Model Behavior** - Core `acts_as_bunko_post` concern with scopes, slug generation, publishing workflow, and reading time calculation
-- [x] **Milestone 2: Collection Controllers** - `bunko_collection` concern for automatic index/show actions with built-in pagination
-- [x] **Milestone 3: Installation Generator** - `rails generate bunko:install` command and `rails bunko:setup` task
-- [x] **Milestone 4: Routing Helpers** - `bunko_collection` DSL for simple collection routing with automatic hyphenation
-- [x] **Milestone 5: Post Convenience Methods** - Instance methods for excerpts, date formatting, reading time text, and meta tags
-- [ ] **Milestone 6: Configuration** - Expanded configuration system
-- [ ] **Milestone 7: Documentation** - Usage guides and examples
-- [ ] **Milestone 8: Release** - Version 1.0.0 to RubyGems
-
 ## Philosophy
 
 **One model, infinite collections.** Bunko gives you a robust CMS structure in 5 minutes. Whether you just want a classic blog, or if you want dozens of post types across your site, Bunko scales to handle dozens of content collections without new database migrations or excessive code duplication every time you launch a new collection. All content are posts - and you can mount collections of posts to whatever routes you like with #index & #show actions.
@@ -55,10 +44,16 @@ rails generate bunko:install
 
 This creates:
 - Database migrations for `post_types` and `posts`
-- `Post` and `PostType` models with `acts_as_bunko_post`
-- `config/initializers/bunko.rb` with configuration
+- `Post` and `PostType` models with `acts_as_bunko_post` and `acts_as_bunko_post_type`
+- `config/initializers/bunko.rb` with starter configuration
 
-### 3. (Optional) Customize Collections
+### 3. Run Migrations
+
+```bash
+rails db:migrate
+```
+
+### 4. (Optional) Customize Collections
 
 Edit `config/initializers/bunko.rb` to define your content collections:
 
@@ -74,12 +69,6 @@ Bunko.configure do |config|
 end
 ```
 
-### 4. Run Migrations
-
-```bash
-rails db:migrate
-```
-
 ### 5. Generate Controllers, Views, and Routes
 
 ```bash
@@ -93,9 +82,12 @@ This generates everything you need for each configured post type and collection:
 - ✅ Routes (`bunko_collection :blog`, `bunko_collection :docs`)
 - ✅ Navigation partial with all collections
 
+These are all vanilla Rails assets - you can delete or customize them to fit your needs.
+
 **That's it for initial setup!** See "Adding New Post Types or Collections" below for how to add more later.
 
 ### 6. Create Your First Post
+Create a post in CLI or using the sample data generator described below.
 
 ```ruby
 # In Rails console or your admin interface
@@ -135,6 +127,16 @@ rails bunko:sample_data MIN_WORDS=500 MAX_WORDS=1500
 rails bunko:sample_data CLEAR=true
 ```
 
+### 9. Wait that's it?
+Yes! For now anyways.
+
+- Hook up your own editor however you like.
+- Route your admin/editor behind whatever auth you like.
+- Use whatever SEO gem or helper you like.
+- Use whatever sitemap generator you like.
+
+We'll continue building new generators and possibly a mountable UI to help with this. For now we're recommending just using an admin tool like Avo with markdown or Rhino editor which gives you solid editing and Active Record integrations.
+
 ## Adding More Content Types
 
 Need to add a new blog, documentation section, or any content type? Update your initializer and run one command:
@@ -151,7 +153,7 @@ end
 rails bunko:add[changelog]
 ```
 
-Bunko creates the database entry and generates the controller, views, routes, and updates your navigation automatically.
+Bunko creates the database entry if it's a post_type and generates the controller, views, routes, and updates your navigation automatically.
 
 **Content Formats:**
 
@@ -170,13 +172,7 @@ rails bunko:sample_data FORMAT=html
 
 **What gets generated:**
 
-The sample data generator creates structured content tailored to each post type:
-
-- **Blog posts**: Introduction, body content, and conclusion
-- **Documentation**: Overview, getting started, examples (with code blocks), and configuration
-- **Changelogs**: Version numbers with Added/Fixed/Changed/Improved sections
-- **Case studies**: Challenge, solution, results (with metrics), and conclusion
-- **Tutorials**: Prerequisites, numbered steps, and troubleshooting
+The sample data generator creates structured content some what randomly. It's a combination of lorem ipsum and random words, plus various formatted content.
 
 All posts include:
 - Realistic titles based on post type
@@ -184,12 +180,12 @@ All posts include:
 - Meta descriptions
 - Title tags
 - Published dates (90% past, 10% scheduled for future)
-- Automatic word count calculation
+- Realistic lengths and automatic word count calculation
 
 **HTML Format Features:**
 
 When using `FORMAT=html`, content includes:
-- Semantic HTML5 tags (`<h2>`, `<p>`, `<blockquote>`, `<ul>`, `<li>`)
+- Semantic tags (`<h2>`, `<p>`, `<blockquote>`, `<ul>`, `<li>`)
 - Random inline formatting (`<strong>`, `<em>`, `<u>`)
 - Optional CSS classes for styling:
   - `class="content-paragraph"` on some paragraphs
@@ -216,10 +212,8 @@ Customize the installation to fit your needs:
 rails generate bunko:install --skip-seo
 
 # Use JSON/JSONB for content field (for JSON-based editors)
+# This creates a JSONB column for Post.content instead of a text column
 rails generate bunko:install --json-content
-
-# Minimal install (no SEO fields)
-rails generate bunko:install --skip-seo
 ```
 
 ## Available Features
@@ -234,6 +228,7 @@ Post.by_post_type("blog")  # All posts for a specific collection
 ```
 
 ### Automatic Slug Generation
+Slugs are generated on save if the slug field is empty. Edit it however you like and it will persist even if you change the title.
 
 ```ruby
 post = Post.new(title: "Hello World!")
@@ -365,15 +360,25 @@ Bunko.configure do |config|
   end
 
   # Optional configuration
-  config.reading_speed = 250           # words per minute for reading time calculation (default: 250)
-  config.excerpt_length = 160          # characters for post.excerpt method (default: 160)
-  config.auto_update_word_count = true # automatically update word_count when content changes (default: true)
+
+  # words per minute for reading time calculation (default: 250)
+  # config.reading_speed = 250
+
+  # characters for post.excerpt method (default: 160)
+  # config.excerpt_length = 160
+
+  # automatically update word_count when content changes (default: true)
+  # turn this off if you want to update the word count with different logic
+  # config.auto_update_word_count = true
+
 end
 ```
 
 ### Collections
 
-Every post type automatically gets its own collection (e.g., `blog` gets `/blog/`). But Bunko also lets you create **dynamic collections** that aggregate or filter content in powerful ways.
+Every post_type automatically gets its own collection (e.g., `blog` gets `/blog/`).
+
+But Bunko also lets you create **dynamic collections** that aggregate or filter content in powerful ways.
 
 **Example: Multi-Type Collection**
 
@@ -383,12 +388,14 @@ Combine multiple post types into a single collection:
 config.post_type "articles"
 config.post_type "videos"
 config.post_type "tutorials"
+config.post_type "updates"
 
 config.collection "resources", post_types: ["articles", "videos", "tutorials"]
 # Auto-generates title "Resources", creates /resources/
 ```
 
 This displays all three types together at `/resources/`.
+Posts will still be properly shown through their standard post_type URL.
 
 **Example: Scoped Collection**
 
@@ -483,14 +490,15 @@ Bunko automatically detects whether you're adding a post type or a collection an
 
 ## What Bunko Doesn't Do
 
-- **No authentication** - Use Devise, Rodauth, or whatever you like
-- **No authorization** - Use Pundit, CanCanCan, or your own solution
-- **No admin UI required** - Generate one or build your own
+- **No editor restrictions** - Use Lexxy, Trix, Rhino, markdown, etc.
+- **No authentication** - Use Devise, etc, or whatever you like
+- **No authorization** - Use Pundit, CanCanCan, or your own solution to decide who can edit Posts
+- **No admin UI required** - Use Avo, etc, or build your own
 - **No JavaScript** - No Stimulus controllers or Turbo frames forced on you
 - **No CSS** - Style it however you want
 - **No image handling** - Use ActiveStorage, Cloudinary, or anything else
-- **No comments** - Integrate Disqus, build your own, or skip them
-- **No search** - Use pg_search, Meilisearch, or implement your own
+- **No comments** - Integrate third party comments, build your own, or skip them
+- **No search** - Use pg_search, etc. Add your own indexes to the Post table as needed
 
 ## Why Bunko?
 
@@ -511,12 +519,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/kanejamison/bunko. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/kanejamison/bunko/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/kanejamison/bunko. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to be kind and respectful.
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
-
-## Code of Conduct
-
-Everyone interacting in the Bunko project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/kanejamison/bunko/blob/main/CODE_OF_CONDUCT.md).

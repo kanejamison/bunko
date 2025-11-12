@@ -1,6 +1,6 @@
 # Bunko 1.0 Roadmap
 
-**Goal:** Ship a production-ready CMS gem where a Rails developer can add `gem "bunko"`, run one generator, and have a working blog in under 5 minutes. Officially we are only targeting support for Rails but we are trying to keep dependencies as light as possible.
+**Goal:** Ship a production-ready CMS gem where a Rails developer can add `gem "bunko"`, run a couple generators, and have a working blog in under 5 minutes. Officially we are only targeting support for Rails but we are trying to keep dependencies as light as possible.
 
 **Note:** Version 0.1.0 was released as a placeholder to register the gem name. We're now building toward 1.0.0, using 0.x versions during active development.
 
@@ -68,10 +68,10 @@ By 1.0, a Rails developer should be able to:
 - Users should possibly be able to route their core Posts model behind their existing admin / auth area, similar to how they mount sidekiq. This section is intended to be admin only for post editing - so full CRUD but not publicly visible. This should be optional, eg if they want to use a tool like Avo with their [Rhino editor](https://docs.avohq.io/3.0/fields/rhino.html) or [Markdown editor](https://docs.avohq.io/3.0/fields/markdown.html), they don't need to mount this section at all. https://avohq.io/
 
 ```
-require "sidekiq/web" # require the web UI
+require "bunko/editor" # require the web UI
 
 Rails.application.routes.draw do
-  mount Sidekiq::Web => "/sidekiq" # access it at http://localhost:3000/sidekiq
+  mount Bunko::Editor => "/posts" # access it at http://localhost:3000/posts
   ...
 end
 ```
@@ -81,7 +81,7 @@ end
 ```ruby
 # Developer can do this:
 class Post < ApplicationRecord
-  acts_as_bunko_post  # or whatever the API is
+  acts_as_bunko_post
 end
 
 # And get this behavior:
@@ -267,9 +267,8 @@ end
 **Spec:** Common CMS view patterns should be available as Post instance methods for clean, conflict-free usage in views.
 
 **Implementation Note:** Originally planned as view helpers, we decided to implement these as Post model methods instead. This approach:
-- Avoids namespace conflicts (no `bunko_` prefix needed)
+- Avoids namespace conflicts (no `bunko_` prefix needed for generic helper names)
 - Keeps views cleaner (`post.excerpt` vs `bunko_excerpt(post)`)
-- Follows Rails conventions for model presentation logic
 - Works identically in index loops and show views
 
 ### Required Behavior
@@ -404,8 +403,8 @@ New developer can:
 ### Required Before Release
 
 **Compatibility:**
-- Works with Rails 7.2+ and follows Rails EOL maintenance policy
-- Works with Ruby 3.1, 3.2, 3.3, 3.4 and follows Ruby EOL maintenance policy
+- Works with Rails 8.0+ and follows Rails EOL maintenance policy
+- Works with Ruby 3.2, 3.3, 3.4 and follows Ruby EOL maintenance policy
 - Works with PostgreSQL, SQLite, MySQL
 - Test coverage > 90%
 - All Standard linter checks pass
@@ -439,43 +438,24 @@ $ cd myblog
 $ bundle add bunko
 $ rails generate bunko:install
 $ rails db:migrate
+$ rails bunko:setup
+$ rails bunko:sample_data
 $ rails server
 
-# Visit http://localhost:3000/blog and see working blog
+# Visit http://localhost:3000/blog and see working blog with sample content
 ```
 
 ---
 
-## Out of Scope for 0.1
+## Out of Scope for 1.0
 
 These are excellent features but not required for initial release:
 
-- **Admin UI generator** - `rails generate bunko:admin` (0.2.0)
-- **Seed task** - `rails bunko:seed` for sample content (0.2.0)
-- **Custom fields DSL** - Beyond metadata jsonb (0.3.0)
-- **Publishing callbacks** - `after_publish`, etc. (0.3.0)
-- **Versioning support** - Draft history, rollback (0.3.0)
-- **Multi-collection controllers** - Single controller, many types (0.2.0)
-- **Author associations** - belongs_to :author (0.2.0)
-- **Category/tag models** - For now, use strings or metadata (0.3.0)
-
----
-
-## Initial Release Development Approach
-
-**PR-Based Development:**
-- Each milestone is one or more PRs
-- PRs focus on making specs pass
-- Implementation details are decided in PR, not roadmap
-- Tests confirm specs are met
-
-**Testing Strategy:**
-- Write specs first (behavior-driven)
-- Create test app in test/dummy
-- Aim for high test coverage
-- Test across Ruby/Rails versions in CI
-
-**Quality Standards:**
-- All code passes Standard linter
-- No runtime dependencies beyond Rails
-- Public APIs are documented
+- **Admin UI generator** - `rails generate bunko:admin`
+- **Seed task** - `rails bunko:seed` for sample content
+- **Custom fields DSL** - Beyond metadata jsonb
+- **Publishing callbacks** - `after_publish`, etc.
+- **Versioning support** - Draft history, rollback
+- **Multi-collection controllers** - Single controller, many types
+- **Author associations** - belongs_to :author
+- **Category/tag models** - For now, use strings or metadata
