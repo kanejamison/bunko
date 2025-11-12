@@ -54,3 +54,5 @@
     <p class="no-posts">No <%= collection_title.downcase %> posts yet.</p>
   <%% end %>
 </main>
+
+<%%= render "shared/bunko_footer" %>

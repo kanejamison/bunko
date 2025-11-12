@@ -28,6 +28,7 @@ namespace :bunko do
     puts "Generating shared partials..."
     generate_shared_nav
     generate_shared_styles
+    generate_shared_footer
     puts ""
 
     # Add all post types
@@ -106,6 +107,24 @@ namespace :bunko do
     File.write(styles_file, styles_content)
 
     puts "  ✓ Created shared/_bunko_styles.html.erb"
+    true
+  end
+
+  def generate_shared_footer
+    shared_dir = Rails.root.join("app/views/shared")
+    footer_file = shared_dir.join("_bunko_footer.html.erb")
+
+    if File.exist?(footer_file)
+      puts "  - _bunko_footer.html.erb already exists (skipped)"
+      return false
+    end
+
+    FileUtils.mkdir_p(shared_dir)
+
+    footer_content = render_template("bunko_footer.html.erb.tt", {})
+    File.write(footer_file, footer_content)
+
+    puts "  ✓ Created shared/_bunko_footer.html.erb"
     true
   end
 

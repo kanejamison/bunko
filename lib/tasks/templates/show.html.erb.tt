@@ -34,3 +34,5 @@
      <%%= link_to "← Back to <%= collection_title %>", <%= index_path_helper %>, class: "back-link" %>
   </section>
 </main>
+
+<%%= render "shared/bunko_footer" %>
