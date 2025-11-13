@@ -16,7 +16,7 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 
 ## Philosophy
 
-**One model, infinite collections.** Bunko gives you a robust CMS structure in 5 minutes. Whether you just want a classic blog, or if you want dozens of post types across your site, Bunko scales to handle dozens of content collections without new database migrations or excessive code duplication every time you launch a new collection. All content are posts - and you can mount collections of posts to whatever routes you like with #index & #show actions.
+**One model, infinite collections.** Bunko gives you a robust CMS structure in 5 minutes. Whether you just want a classic blog, or if you want dozens of post types across your site, Bunko scales to handle dozens of content collections without new database migrations or excessive code duplication every time you launch a new collection. All content are posts - and you can mount collections of posts to whatever routes you like with #index & #show actions. Need standalone pages like About or Contact? Use `bunko_page` for single-page routes without a collection index.
 
 ## Overview
 
@@ -89,6 +89,7 @@ This generates everything you need for each configured post type and collection:
 - ✅ View templates (`app/views/blog/index.html.erb`, `app/views/blog/show.html.erb`)
 - ✅ Routes (`bunko_collection :blog`, `bunko_collection :docs`)
 - ✅ Navigation partial with all collections
+- ✅ Static pages support (`PagesController`, `pages` PostType, default template)
 
 These are all vanilla Rails assets - you can delete or customize them to fit your needs.
 
@@ -355,6 +356,90 @@ bunko_collection :blog, only: [:index]
 # Only generates index route (no show route)
 ```
 
+### Static Pages
+
+Bunko includes built-in support for standalone pages (like About, Contact, Privacy Policy) that don't need a full collection with an index page.
+
+**How it works:**
+
+Static pages use the same `Post` model as collections, but with a special `"pages"` post_type and a dedicated routing helper.
+
+```ruby
+# config/routes.rb
+bunko_page :about      # → GET /about
+bunko_page :contact    # → GET /contact
+bunko_page :privacy    # → GET /privacy
+```
+
+All pages route to a shared `PagesController` that's automatically generated during `rails bunko:setup`.
+
+**Creating page content:**
+
+```ruby
+# In Rails console or your admin interface
+pages_type = PostType.find_by(name: "pages")
+
+Post.create!(
+  title: "About Us",
+  content: "<p>Welcome to our company...</p>",
+  post_type: pages_type,
+  slug: "about",  # Must match the route name
+  status: "published"
+)
+```
+
+**Custom page templates:**
+
+By default, all pages use `app/views/pages/show.html.erb`. For custom layouts, create a view matching the page slug:
+
+```erb
+<!-- app/views/pages/about.html.erb -->
+<%= render "shared/bunko_styles" %>
+<%= render "shared/bunko_nav" %>
+
+<main class="container">
+  <div class="about-hero">
+    <h1><%= @post.title %></h1>
+  </div>
+
+  <div class="about-content">
+    <%= sanitize @post.content %>
+  </div>
+</main>
+```
+
+**Routing options:**
+
+```ruby
+# Custom path
+bunko_page :about, path: "about-us"
+# Generates: GET /about-us
+
+# Custom controller
+bunko_page :contact, controller: "static_pages"
+# Routes to: static_pages#show
+
+# Nested pages (works with namespaces)
+namespace :legal do
+  bunko_page :privacy    # → GET /legal/privacy
+  bunko_page :terms      # → GET /legal/terms
+end
+```
+
+**Disabling static pages:**
+
+If you don't need static pages, disable them in your configuration:
+
+```ruby
+# config/initializers/bunko.rb
+Bunko.configure do |config|
+  config.allow_static_pages = false
+  config.post_type "blog"
+end
+```
+
+**Note:** The `"pages"` post_type name is reserved for this feature. If you try to create a post_type named "pages", Bunko will raise an error.
+
 ### Configuration
 
 ```ruby
@@ -368,6 +453,9 @@ Bunko.configure do |config|
   end
 
   # Optional configuration
+
+  # Enable/disable static pages feature (default: true)
+  # config.allow_static_pages = true
 
   # words per minute for reading time calculation (default: 250)
   # config.reading_speed = 250

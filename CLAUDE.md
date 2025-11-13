@@ -101,6 +101,8 @@ lib/
         ├── controller.rb.tt
         ├── index.html.erb.tt
         ├── show.html.erb.tt
+        ├── pages_controller.rb.tt    # PagesController template for static pages
+        ├── page_show.html.erb.tt     # Default page view template
         ├── bunko_nav.html.erb.tt     # Shared nav partial
         ├── bunko_styles.html.erb.tt  # Shared styles partial (Pico CSS)
         └── bunko_footer.html.erb.tt  # Shared footer partial
@@ -216,6 +218,17 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Markdown format includes full Markdown syntax
 - Useful for testing, demos, and development
 
+**Static Pages (Milestone 6):**
+- `bunko_page` routing DSL for standalone pages (e.g., About, Contact, Privacy)
+- Single shared `PagesController` for all pages (no per-page controller generation)
+- Smart view resolution: checks for custom templates (e.g., `pages/about.html.erb`) or falls back to default
+- Opt-out configuration: `config.allow_static_pages = false`
+- Reserved "pages" post_type namespace with validation
+- Auto-generated during `rails bunko:setup` if enabled (default: true)
+- Supports custom paths and controllers: `bunko_page :about, path: "about-us"`
+- Works with namespaces: `namespace :legal do bunko_page :privacy end`
+- Same Post model as collections (one-model architecture maintained)
+
 ## Development Roadmap
 
 See ROADMAP.md for the complete 1.0.0 release plan with specs and milestones.
@@ -226,9 +239,10 @@ See ROADMAP.md for the complete 1.0.0 release plan with specs and milestones.
 - ✅ Milestone 3: Installation Generator - COMPLETED
 - ✅ Milestone 4: Routing Helpers - COMPLETED
 - ✅ Milestone 5: Post Convenience Methods - COMPLETED
-- 🚧 Milestone 6: Configuration - PENDING (core system exists, needs expansion)
-- 🚧 Milestone 7: Documentation - PENDING
-- 🚧 Milestone 8: Release - PENDING
+- ✅ Milestone 6: Static Pages - COMPLETED
+- 🚧 Milestone 7: Configuration - PENDING (core system exists, may need expansion)
+- 🚧 Milestone 8: Documentation - PENDING
+- 🚧 Milestone 9: Release - PENDING
 
 ## Architecture Principles
 
