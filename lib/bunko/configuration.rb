@@ -41,7 +41,7 @@ module Bunko
       # end
     end
 
-    attr_accessor :reading_speed, :excerpt_length, :auto_update_word_count, :valid_statuses, :post_types, :collections
+    attr_accessor :reading_speed, :excerpt_length, :auto_update_word_count, :valid_statuses, :post_types, :collections, :allow_static_pages
 
     def initialize
       @reading_speed = 250 # words per minute
@@ -50,6 +50,7 @@ module Bunko
       @valid_statuses = %w[draft published scheduled]
       @post_types = [] # Must be configured in initializer
       @collections = [] # Multi-type collections
+      @allow_static_pages = true # Enable standalone pages feature by default
     end
 
     def post_type(name, title: nil, &block)
@@ -62,6 +63,11 @@ module Bunko
 
       unless name_str.match?(/\A[a-z0-9_]+\z/)
         raise ArgumentError, "PostType name '#{name_str}' must contain only lowercase letters, numbers, and underscores"
+      end
+
+      # Reserved name for static pages feature
+      if name_str == "pages"
+        raise ArgumentError, "PostType name 'pages' is reserved for the static pages feature. Use config.allow_static_pages to control this feature."
       end
 
       # Check for conflicts with existing collections

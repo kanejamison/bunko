@@ -49,6 +49,46 @@ module Bunko
           param: :slug,
           **options
       end
+
+      # Defines a route for a standalone Bunko page
+      #
+      # @param page_name [Symbol] The name identifier for the page (e.g., :about, :contact)
+      # @param options [Hash] Routing options
+      # @option options [String] :path Custom URL path (default: name with hyphens)
+      # @option options [String] :controller Custom controller name (default: "pages")
+      #
+      # @example Basic usage
+      #   bunko_page :about
+      #   # Generates: GET /about -> pages#show with params[:page] = "about"
+      #
+      # @example Custom path
+      #   bunko_page :about, path: "about-us"
+      #   # Generates: GET /about-us -> pages#show with params[:page] = "about"
+      #
+      # @example Custom controller
+      #   bunko_page :contact, controller: "static_pages"
+      #   # Generates: GET /contact -> static_pages#show with params[:page] = "contact"
+      #
+      def bunko_page(page_name, **options)
+        # Extract options with defaults
+        custom_path = options.delete(:path)
+        controller = options.delete(:controller) || "pages"
+
+        # Page slug stored with underscores in database
+        slug = page_name.to_s.underscore
+
+        # URL path uses hyphens (Rails convention)
+        path_value = custom_path || slug.tr("_", "-")
+
+        # Route name uses underscores for path helpers (e.g., about_path)
+        route_name = slug.to_sym
+
+        # Define single GET route
+        get path_value,
+          to: "#{controller}#show",
+          defaults: {page: slug},
+          as: route_name
+      end
     end
   end
 end
