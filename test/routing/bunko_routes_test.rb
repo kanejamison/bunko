@@ -106,4 +106,91 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_respond_to @routes.url_helpers, :case_studies_path  # index/collection
     assert_respond_to @routes.url_helpers, :case_study_path    # show/member (Rails singularizes)
   end
+
+  # Static pages routing tests
+  test "bunko_page creates single GET route" do
+    @routes.draw do
+      bunko_page :about
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Should only have one route (no :slug param)
+    assert_includes paths, "/about(.:format)"
+    refute_includes paths, "/about/:page(.:format)"
+  end
+
+  test "bunko_page converts underscores to hyphens in path" do
+    @routes.draw do
+      bunko_page :privacy_policy
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Path should use hyphens
+    assert_includes paths, "/privacy-policy(.:format)"
+  end
+
+  test "bunko_page routes to pages#show by default" do
+    @routes.draw do
+      bunko_page :about
+    end
+
+    route = @routes.routes.find { |r| r.path.spec.to_s == "/about(.:format)" }
+    assert_equal "pages", route.defaults[:controller]
+    assert_equal "show", route.defaults[:action]
+  end
+
+  test "bunko_page passes page param in defaults" do
+    @routes.draw do
+      bunko_page :contact
+    end
+
+    route = @routes.routes.find { |r| r.path.spec.to_s == "/contact(.:format)" }
+    assert_equal "contact", route.defaults[:page]
+  end
+
+  test "bunko_page accepts custom path option" do
+    @routes.draw do
+      bunko_page :about, path: "about-us"
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Should use custom path
+    assert_includes paths, "/about-us(.:format)"
+    refute_includes paths, "/about(.:format)"
+  end
+
+  test "bunko_page accepts custom controller option" do
+    @routes.draw do
+      bunko_page :contact, controller: "static_pages"
+    end
+
+    route = @routes.routes.find { |r| r.path.spec.to_s == "/contact(.:format)" }
+    assert_equal "static_pages", route.defaults[:controller]
+  end
+
+  test "bunko_page generates path helper" do
+    @routes.draw do
+      bunko_page :about
+    end
+
+    # Helper uses underscored page name
+    assert_respond_to @routes.url_helpers, :about_path
+  end
+
+  test "bunko_page works with multiple pages" do
+    @routes.draw do
+      bunko_page :about
+      bunko_page :contact
+      bunko_page :privacy_policy
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    assert_includes paths, "/about(.:format)"
+    assert_includes paths, "/contact(.:format)"
+    assert_includes paths, "/privacy-policy(.:format)"
+  end
 end
