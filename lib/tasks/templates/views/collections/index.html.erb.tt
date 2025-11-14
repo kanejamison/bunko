@@ -19,18 +19,20 @@
           </h2>
 
           <div class="post-meta">
-            <%% if post.published_at %>
-              <time datetime="<%%= post.published_at.iso8601 %>">
-                <%%= post.published_at.strftime("%B %d, %Y") %>
-              </time>
-            <%% end %>
+            <strong>
+                <%% if post.published_at %>
+                <time datetime="<%%= post.published_at.iso8601 %>">
+                    <%%= post.published_at.strftime("%B %d, %Y") %>
+                </time>
+                <%% end %>
 
-            <%% if post.reading_time %>
-              <span>&nbsp;•&nbsp;</span>
-              <span class="reading-time">
-                <%%= post.reading_time %> min read
-              </span>
-            <%% end %>
+                <%% if post.reading_time %>
+                <span>&nbsp;•&nbsp;</span>
+                <span class="reading-time">
+                    <%%= post.reading_time %> min read
+                </span>
+                <%% end %>
+            </strong>
           </div>
 
           <%% if post.content.present? %>
