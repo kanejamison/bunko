@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require "erb"
 require "fileutils"
-require "ostruct"
+require_relative "helpers"
 
 namespace :bunko do
+  include Bunko::RakeHelpers
+
   desc "Install Bunko by creating migrations, models, and initializer"
   task install: :environment do
     puts "Installing Bunko..."
@@ -47,8 +48,8 @@ namespace :bunko do
     end
 
     migration_content = render_template("db/migrate/create_post_types.rb.tt", {
-      skip_seo: skip_seo,
-      json_content: json_content
+      include_seo_fields?: !skip_seo,
+      use_json_content?: json_content
     })
 
     File.write(migration_file, migration_content)
@@ -66,8 +67,8 @@ namespace :bunko do
     end
 
     migration_content = render_template("db/migrate/create_posts.rb.tt", {
-      skip_seo: skip_seo,
-      json_content: json_content
+      include_seo_fields?: !skip_seo,
+      use_json_content?: json_content
     })
 
     File.write(migration_file, migration_content)
@@ -120,23 +121,5 @@ namespace :bunko do
     puts "=" * 79
     puts instructions
     puts "=" * 79
-  end
-
-  def render_template(template_name, locals = {})
-    template_path = File.expand_path("../templates/#{template_name}", __dir__)
-
-    unless File.exist?(template_path)
-      raise "Template file not found: #{template_path}"
-    end
-
-    template_content = File.read(template_path)
-
-    # Create a context object with helper methods for the template
-    context = OpenStruct.new(
-      include_seo_fields?: !locals[:skip_seo],
-      use_json_content?: locals[:json_content]
-    )
-
-    ERB.new(template_content, trim_mode: "-").result(context.instance_eval { binding })
   end
 end
