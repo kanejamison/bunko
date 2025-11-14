@@ -40,6 +40,15 @@ class BunkoSetupTaskTest < Minitest::Test
 
     # Load Rails rake tasks and our bunko tasks
     Dummy::Application.load_tasks if Rake::Task.tasks.empty?
+
+    # Always force reload of bunko tasks to pick up code changes
+    ["bunko:setup", "bunko:add"].each do |task_name|
+      if Rake::Task.task_defined?(task_name)
+        Rake::Task[task_name].clear
+      end
+    end
+    load File.expand_path("../../lib/tasks/bunko/setup.rake", __dir__)
+    load File.expand_path("../../lib/tasks/bunko/add.rake", __dir__)
   end
 
   def teardown

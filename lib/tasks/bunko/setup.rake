@@ -92,7 +92,7 @@ namespace :bunko do
 
     FileUtils.mkdir_p(shared_dir)
 
-    nav_content = render_template("bunko_nav.html.erb.tt", {})
+    nav_content = render_template("views/layouts/bunko_nav.html.erb.tt", {})
     File.write(nav_file, nav_content)
 
     puts "  ✓ Created shared/_bunko_nav.html.erb"
@@ -110,7 +110,7 @@ namespace :bunko do
 
     FileUtils.mkdir_p(shared_dir)
 
-    styles_content = render_template("bunko_styles.html.erb.tt", {})
+    styles_content = render_template("views/layouts/bunko_styles.html.erb.tt", {})
     File.write(styles_file, styles_content)
 
     puts "  ✓ Created shared/_bunko_styles.html.erb"
@@ -128,7 +128,7 @@ namespace :bunko do
 
     FileUtils.mkdir_p(shared_dir)
 
-    footer_content = render_template("bunko_footer.html.erb.tt", {})
+    footer_content = render_template("views/layouts/bunko_footer.html.erb.tt", {})
     File.write(footer_file, footer_content)
 
     puts "  ✓ Created shared/_bunko_footer.html.erb"
@@ -144,13 +144,13 @@ namespace :bunko do
 
     template_content = File.read(template_path)
 
-    # Create a binding with the local variables
-    b = binding
+    # Create an object with all local variables as methods
+    context = Object.new
     locals.each do |key, value|
-      b.local_variable_set(key, value)
+      context.define_singleton_method(key) { value }
     end
 
-    ERB.new(template_content, trim_mode: "-").result(b)
+    ERB.new(template_content, trim_mode: "-").result(context.instance_eval { binding })
   end
 
   def setup_static_pages
@@ -175,7 +175,7 @@ namespace :bunko do
       return false
     end
 
-    controller_content = render_template("pages_controller.rb.tt", {})
+    controller_content = render_template("controllers/pages_controller.rb.tt", {})
     File.write(controller_path, controller_content)
 
     puts "  ✓ Created app/controllers/pages_controller.rb"
@@ -193,7 +193,7 @@ namespace :bunko do
 
     FileUtils.mkdir_p(views_dir)
 
-    show_content = render_template("page_show.html.erb.tt", {})
+    show_content = render_template("views/pages/show.html.erb.tt", {})
     File.write(show_file, show_content)
 
     puts "  ✓ Created app/views/pages/show.html.erb"

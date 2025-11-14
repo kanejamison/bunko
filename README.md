@@ -47,7 +47,7 @@ bundle install
 ### 2. Install Bunko
 
 ```bash
-rails generate bunko:install
+rails bunko:install
 ```
 
 This creates:
@@ -218,11 +218,11 @@ Customize the installation to fit your needs:
 
 ```bash
 # Exclude SEO fields (title_tag, meta_description)
-rails generate bunko:install --skip-seo
+SKIP_SEO=true rails bunko:install
 
 # Use JSON/JSONB for content field (for JSON-based editors)
 # This creates a JSONB column for Post.content instead of a text column
-rails generate bunko:install --json-content
+JSON_CONTENT=true rails bunko:install
 ```
 
 ## Available Features

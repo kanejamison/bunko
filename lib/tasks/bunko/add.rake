@@ -119,7 +119,7 @@ namespace :bunko do
       return false
     end
 
-    controller_content = render_template("controller.rb.tt", {
+    controller_content = render_template("controllers/controller.rb.tt", {
       controller_name: controller_name,
       collection_name: collection_name
     })
@@ -154,7 +154,7 @@ namespace :bunko do
   def generate_index_view(collection_name)
     is_plural = collection_name.pluralize == collection_name
 
-    render_template("index.html.erb.tt", {
+    render_template("views/collections/index.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
       path_helper: "#{collection_name.singularize}_path",
@@ -165,7 +165,7 @@ namespace :bunko do
   def generate_show_view(collection_name, format:)
     is_plural = collection_name.pluralize == collection_name
 
-    render_template("show.html.erb.tt", {
+    render_template("views/collections/show.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
       index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path",
@@ -208,7 +208,7 @@ namespace :bunko do
     # If nav doesn't exist, generate from scratch (edge case)
     unless File.exist?(nav_file)
       FileUtils.mkdir_p(shared_dir)
-      nav_content = render_template("bunko_nav.html.erb.tt", {
+      nav_content = render_template("views/layouts/bunko_nav.html.erb.tt", {
         post_types: Bunko.configuration.post_types,
         collections: Bunko.configuration.collections
       })
@@ -257,12 +257,12 @@ namespace :bunko do
 
     template_content = File.read(template_path)
 
-    # Create a binding with the local variables
-    b = binding
+    # Create an object with all local variables as methods
+    context = Object.new
     locals.each do |key, value|
-      b.local_variable_set(key, value)
+      context.define_singleton_method(key) { value }
     end
 
-    ERB.new(template_content, trim_mode: "-").result(b)
+    ERB.new(template_content, trim_mode: "-").result(context.instance_eval { binding })
   end
 end
