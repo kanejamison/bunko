@@ -93,6 +93,8 @@ This generates everything you need for each configured post type and collection:
 
 These are all vanilla Rails assets - you can delete or customize them to fit your needs.
 
+**Styling:** Generated views include [Pico CSS](https://picocss.com/) for basic styling. This is purely optional and can be easily removed or replaced with your own CSS framework. To customize or remove it, simply edit `app/views/shared/_bunko_styles.html.erb` or delete it entirely and add your own stylesheets.
+
 **That's it for initial setup!** See "Adding New Post Types or Collections" below for how to add more later.
 
 ### 6. Create Your First Post
@@ -111,14 +113,7 @@ Post.create!(
 )
 ```
 
-### 7. Visit Your Blog
-
-Start your Rails server and visit:
-- `http://localhost:3000/blog` - Blog index
-- `http://localhost:3000/docs` - Documentation index
-- `http://localhost:3000/changelog` - Changelog index
-
-### 8. (Optional) Generate Sample Data
+#### or Generate Sample Data
 
 Want to see your collections in action? Bunko includes a sample data generator that creates realistic posts for all your configured post types:
 
@@ -136,47 +131,16 @@ rails bunko:sample_data MIN_WORDS=500 MAX_WORDS=1500
 rails bunko:sample_data CLEAR=true
 ```
 
-### 9. Wait that's it?
-Yes! For now anyways.
-
-- Hook up your own editor however you like.
-- Route your admin/editor behind whatever auth you like.
-- Use whatever SEO gem or helper you like.
-- Use whatever sitemap generator you like.
-
-We'll continue building new generators and possibly a mountable UI to help with this. For now we're recommending just using an admin tool like Avo with markdown or Rhino editor which gives you solid editing and Active Record integrations.
-
-## Adding More Content Types
-
-Need to add a new blog, documentation section, or any content type? Update your initializer and run one command:
-
-```ruby
-# config/initializers/bunko.rb
-Bunko.configure do |config|
-  config.post_type "blog"
-  config.post_type "changelog"  # Add this
-end
-```
-
-```bash
-rails bunko:add[changelog]
-```
-
-Bunko creates the database entry if it's a post_type and generates the controller, views, routes, and updates your navigation automatically.
-
 **Content Formats:**
 
 The generator supports three content formats:
 
 ```bash
-# Plain text (default) - Simple text with ## headings
-rails bunko:sample_data FORMAT=plain
+# HTML (Default) - Semantic HTML with optional CSS classes
+rails bunko:sample_data FORMAT=html
 
 # Markdown - Full markdown formatting with bold, italic, lists, links, blockquotes
 rails bunko:sample_data FORMAT=markdown
-
-# HTML - Semantic HTML with optional CSS classes
-rails bunko:sample_data FORMAT=html
 ```
 
 **What gets generated:**
@@ -211,6 +175,41 @@ When using `FORMAT=markdown`, content includes:
 - Unordered lists (`- item`)
 - Blockquotes (`> quote`)
 - Links to safe external resources
+
+### 7. Visit Your Blog
+
+Start your Rails server and visit:
+- `http://localhost:3000/blog` - Blog index
+- `http://localhost:3000/docs` - Documentation index
+- `http://localhost:3000/changelog` - Changelog index
+
+### 8. Wait that's it?
+Yes! For now anyways. The following features are planned but we want to keep them un-opinionated in order to play nicely with your existing setup:
+
+- Hook up your own editor however you like.
+- Route your admin/editor behind whatever auth you like.
+- Use whatever SEO gem or helper you like.
+- Use whatever sitemap generator you like.
+
+We'll continue building new generators and possibly a mountable UI to help with this. For now we're recommending just using an admin tool like Avo with markdown or Rhino editor which gives you solid editing and Active Record integrations.
+
+## Adding More Content Types After Setup
+
+Need to add a new blog, documentation section, or any content type? Update your initializer and run one command:
+
+```ruby
+# config/initializers/bunko.rb
+Bunko.configure do |config|
+  config.post_type "blog"
+  config.post_type "changelog"  # Add this
+end
+```
+
+```bash
+rails bunko:add[changelog]
+```
+
+Bunko creates the database entry if it's a post_type and generates the controller, views, routes, and updates your navigation automatically. You can delete any of the generated views and replace them with your custom versions used on other collections.
 
 ## Generator Options
 
@@ -443,30 +442,50 @@ end
 ### Configuration
 
 ```ruby
-# config/initializers/bunko.rb
-Bunko.configure do |config|
-  # Define content collections (used by rails bunko:setup)
-  config.post_type "blog"  # Title auto-generated as "Blog"
+# frozen_string_literal: true
 
+Bunko.configure do |config|
+  # Define your post types (use lowercase with underscores)
+  # These will be created when you run: rails bunko:setup
+  config.post_type "blog" # Title will be auto-generated as "Blog"
+
+  # Want more? Add additional post types:
   config.post_type "docs" do |type|
-    type.title = "Documentation"  # Custom title
+    type.title = "Documentation" # Custom title (optional)
   end
 
-  # Optional configuration
+  config.post_type "changelog" # Title: "Changelog"
 
-  # Enable/disable static pages feature (default: true)
+  config.post_type "case_studies" do |type|
+    type.title = "Case Studies" # Custom title
+  end
+  #
+  # Note: Names use underscores, URLs automatically use hyphens (/case-studies/)
+
+  # Smart collections - aggregate or filter posts from multiple post types
+  config.collection "resources", post_types: ["blog", "docs", "tutorials"]
+  config.collection "long_reads" do |c|
+    c.post_types = ["blog", "tutorials"]
+    c.scope = -> { where("word_count > ?", 1200) }
+  end
+
+  # Enable standalone pages feature (About, Contact, Privacy, etc.)
+  # When enabled, rails bunko:setup creates a PagesController and pages PostType
+  # Use bunko_page :about in routes to create single-page routes
+  # Default: true
   # config.allow_static_pages = true
 
-  # words per minute for reading time calculation (default: 250)
+  # Reading speed for calculating estimated reading time (in words per minute)
+  # Default: 250
   # config.reading_speed = 250
 
-  # characters for post.excerpt method (default: 160)
+  # Excerpt length for post.excerpt method (in characters)
+  # Default: 160
   # config.excerpt_length = 160
 
-  # automatically update word_count when content changes (default: true)
-  # turn this off if you want to update the word count with different logic
+  # Automatically update word_count when content changes
+  # Default: true
   # config.auto_update_word_count = true
-
 end
 ```
 

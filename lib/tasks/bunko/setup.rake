@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-require "erb"
 require "fileutils"
+require_relative "helpers"
 
 namespace :bunko do
+  include Bunko::RakeHelpers
+
   desc "Set up Bunko by creating all configured PostTypes and Collections"
   task setup: :environment do
     puts "Setting up Bunko..."
@@ -133,24 +135,6 @@ namespace :bunko do
 
     puts "  ✓ Created shared/_bunko_footer.html.erb"
     true
-  end
-
-  def render_template(template_name, locals = {})
-    template_path = File.expand_path("../templates/#{template_name}", __dir__)
-
-    unless File.exist?(template_path)
-      raise "Template file not found: #{template_path}"
-    end
-
-    template_content = File.read(template_path)
-
-    # Create an object with all local variables as methods
-    context = Object.new
-    locals.each do |key, value|
-      context.define_singleton_method(key) { value }
-    end
-
-    ERB.new(template_content, trim_mode: "-").result(context.instance_eval { binding })
   end
 
   def setup_static_pages

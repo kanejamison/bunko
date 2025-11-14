@@ -335,11 +335,16 @@ module Bunko
 
         case format
         when :markdown
-          # Insert link in middle of text
+          # Append link after paragraph
           "#{text} Learn more about [#{link_data[:text]}](#{link_data[:url]})."
         when :html
-          # Insert link in middle of text
-          "#{text} Learn more about <a href=\"#{link_data[:url]}\">#{link_data[:text]}</a>."
+          # Inject link inside the paragraph tag (before closing </p>)
+          if text.include?("</p>")
+            text.sub("</p>", " Learn more about <a href=\"#{link_data[:url]}\">#{link_data[:text]}</a>.</p>")
+          else
+            # Fallback for non-paragraph HTML
+            "#{text} Learn more about <a href=\"#{link_data[:url]}\">#{link_data[:text]}</a>."
+          end
         else
           text
         end

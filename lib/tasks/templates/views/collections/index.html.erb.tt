@@ -19,23 +19,25 @@
           </h2>
 
           <div class="post-meta">
-            <%% if post.published_at %>
-              <time datetime="<%%= post.published_at.iso8601 %>">
-                <%%= post.published_at.strftime("%B %d, %Y") %>
-              </time>
-            <%% end %>
+            <strong>
+                <%% if post.published_at %>
+                <time datetime="<%%= post.published_at.iso8601 %>">
+                    <%%= post.published_at.strftime("%B %d, %Y") %>
+                </time>
+                <%% end %>
 
-            <%% if post.reading_time %>
-              <span>&nbsp;•&nbsp;</span>
-              <span class="reading-time">
-                <%%= post.reading_time %> min read
-              </span>
-            <%% end %>
+                <%% if post.reading_time %>
+                <span>&nbsp;•&nbsp;</span>
+                <span class="reading-time">
+                    <%%= post.reading_time %> min read
+                </span>
+                <%% end %>
+            </strong>
           </div>
 
           <%% if post.content.present? %>
             <div class="post-excerpt">
-              <%%= truncate(post.content, length: 200) %>
+              <%%= post.excerpt(length: 200) %>
             </div>
           <%% end %>
         </article>
@@ -43,7 +45,7 @@
     </div>
 
     <%% if @pagination[:total_pages] > 1 %>
-      <section class="pagination">
+      <section class="pagination" style=display: flex; justify-content: space-between;">
         <%% if @pagination[:prev_page] %>
           <%%= link_to "← Previous", <%= index_path_helper %>(page: @pagination[:current_page] - 1), class: "pagination-prev" %>
         <%% end %>
