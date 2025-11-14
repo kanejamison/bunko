@@ -19,7 +19,7 @@ namespace :bunko do
     min_words = ENV.fetch("MIN_WORDS", "200").to_i
     max_words = ENV.fetch("MAX_WORDS", "2000").to_i
     clear_existing = ENV.fetch("CLEAR", "false").downcase == "true"
-    format = ENV.fetch("FORMAT", "plain").downcase.to_sym
+    format = ENV.fetch("FORMAT", "html").downcase.to_sym
 
     # Validate format
     unless Bunko::SampleDataGenerator::FORMATS.include?(format)
@@ -118,10 +118,9 @@ namespace :bunko do
     puts "=" * 79
     puts ""
     puts "Usage examples:"
-    puts "  rake bunko:sample_data                           # 100 posts per type (plain text)"
+    puts "  rake bunko:sample_data                           # 100 posts per type (HTML with images)"
     puts "  rake bunko:sample_data COUNT=50                  # 50 posts per type"
     puts "  rake bunko:sample_data FORMAT=markdown           # Markdown formatted content"
-    puts "  rake bunko:sample_data FORMAT=html               # HTML formatted content"
     puts "  rake bunko:sample_data MIN_WORDS=500 MAX_WORDS=1500"
     puts "  rake bunko:sample_data CLEAR=true                # Clear existing first"
     puts ""

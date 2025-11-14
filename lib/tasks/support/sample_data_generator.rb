@@ -42,8 +42,18 @@ module Bunko
       {url: "https://rubygems.org", text: "RubyGems"}
     ].freeze
 
+    # Random image dimensions from picsum.photos
+    IMAGE_SIZES = [
+      {width: 800, height: 400, type: :hero},
+      {width: 1200, height: 600, type: :hero},
+      {width: 700, height: 500, type: :content},
+      {width: 600, height: 400, type: :content},
+      {width: 500, height: 350, type: :content},
+      {width: 400, height: 300, type: :inline}
+    ].freeze
+
     # Supported content formats
-    FORMATS = [:plain, :markdown, :html].freeze
+    FORMATS = [:markdown, :html].freeze
 
     class << self
       # Generate a random word from various pools
@@ -378,6 +388,15 @@ module Bunko
           paragraphs.insert(list_index, format_list(format))
         end
 
+        # Randomly inject images (50% chance for 1-2 images)
+        if rand < 0.5
+          num_images = rand(1..2)
+          num_images.times do
+            image_index = rand(1...paragraphs.length)
+            paragraphs.insert(image_index, format_image(format))
+          end
+        end
+
         # Randomly inject a link into one paragraph (40% chance)
         if rand < 0.4 && paragraphs.any?
           link_para_index = rand(0...paragraphs.length)
@@ -426,6 +445,28 @@ module Bunko
           "#{text} Learn more about <a href=\"#{link_data[:url]}\">#{link_data[:text]}</a>."
         else
           text
+        end
+      end
+
+      def format_image(format)
+        # Select a random image size
+        image = IMAGE_SIZES.sample
+        width = image[:width]
+        height = image[:height]
+
+        # Generate random seed for consistent random image
+        seed = rand(1..1000)
+        image_url = "https://picsum.photos/#{width}/#{height}?random=#{seed}"
+        alt_text = "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample}"
+
+        case format
+        when :markdown
+          "![#{alt_text}](#{image_url})"
+        when :html
+          css_class = (rand < 0.3) ? " class=\"content-image\"" : ""
+          "<img src=\"#{image_url}\" alt=\"#{alt_text}\" width=\"#{width}\" height=\"#{height}\"#{css_class}>"
+        else
+          ""
         end
       end
     end
