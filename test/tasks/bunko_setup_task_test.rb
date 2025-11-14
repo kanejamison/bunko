@@ -6,6 +6,9 @@ require "fileutils"
 
 class BunkoSetupTaskTest < Minitest::Test
   def setup
+    # Reset Bunko configuration before each test
+    Bunko.reset_configuration!
+
     # Clean database before each test (Post first due to foreign key constraints)
     Post.delete_all
     PostType.delete_all
