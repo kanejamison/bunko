@@ -3,7 +3,7 @@
     <%%= link_to "Home", root_path %>
 
     <div>
-      <%# bunko_collection_links - additional collections will be added here unless you delete this line %>
+      <%%# bunko_collection_links - additional collections will be added here unless you delete this line %>
     </div>
   </nav>
 </header>
