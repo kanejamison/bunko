@@ -46,7 +46,7 @@ module Bunko
         else
           # No custom path - use collection_name for resource name, hyphenate for path
           resource_name = collection_name
-          path_value = collection_name.to_s.tr("_", "-")
+          path_value = collection_name.to_s.dasherize
         end
 
         # Define the routes
@@ -82,19 +82,20 @@ module Bunko
         custom_path = options.delete(:path)
         controller = options.delete(:controller) || "pages"
 
-        # Page slug stored with underscores in database
+        # Convert to underscores for Ruby conventions (route name, helpers)
         slug = page_name.to_s.underscore
 
         # URL path uses hyphens (Rails convention)
-        path_value = custom_path || slug.tr("_", "-")
+        path_value = custom_path || slug.dasherize
 
         # Route name uses underscores for path helpers (e.g., about_path)
         route_name = slug.to_sym
 
         # Define single GET route
+        # Pass hyphenated slug to match Post.slug format in database
         get path_value,
           to: "#{controller}#show",
-          defaults: {page: slug},
+          defaults: {page: slug.dasherize},
           as: route_name
       end
     end

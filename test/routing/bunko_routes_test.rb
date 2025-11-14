@@ -153,6 +153,16 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_equal "contact", route.defaults[:page]
   end
 
+  test "bunko_page passes hyphenated slug in defaults for underscored route names" do
+    @routes.draw do
+      bunko_page :privacy_policy
+    end
+
+    route = @routes.routes.find { |r| r.path.spec.to_s == "/privacy-policy(.:format)" }
+    # Should pass hyphenated slug to match Post.slug format in database
+    assert_equal "privacy-policy", route.defaults[:page]
+  end
+
   test "bunko_page accepts custom path option" do
     @routes.draw do
       bunko_page :about, path: "about-us"
@@ -195,6 +205,44 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_includes paths, "/about(.:format)"
     assert_includes paths, "/contact(.:format)"
     assert_includes paths, "/privacy-policy(.:format)"
+  end
+
+  test "bunko_page works inside namespace" do
+    @routes.draw do
+      namespace :legal do
+        bunko_page :privacy_policy
+        bunko_page :terms_and_conditions
+      end
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Should create namespaced routes
+    assert_includes paths, "/legal/privacy-policy(.:format)"
+    assert_includes paths, "/legal/terms-and-conditions(.:format)"
+  end
+
+  test "bunko_page in namespace generates namespaced path helpers" do
+    @routes.draw do
+      namespace :legal do
+        bunko_page :privacy_policy
+      end
+    end
+
+    # Helper uses namespace prefix
+    assert_respond_to @routes.url_helpers, :legal_privacy_policy_path
+  end
+
+  test "bunko_page in namespace passes hyphenated slug" do
+    @routes.draw do
+      namespace :legal do
+        bunko_page :terms_and_conditions
+      end
+    end
+
+    route = @routes.routes.find { |r| r.path.spec.to_s == "/legal/terms-and-conditions(.:format)" }
+    # Should pass hyphenated slug to match Post.slug format
+    assert_equal "terms-and-conditions", route.defaults[:page]
   end
 
   # Collection vs PostType routing tests
