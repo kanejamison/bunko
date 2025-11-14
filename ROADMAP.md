@@ -13,9 +13,10 @@
 - [x] **Milestone 3: Installation Generator** - ✅ COMPLETED
 - [x] **Milestone 4: Routing Helpers** - ✅ COMPLETED
 - [x] **Milestone 5: Post Convenience Methods** - ✅ COMPLETED
-- [ ] **Milestone 6: Configuration** - 🚧 PENDING (core system exists, needs expansion)
-- [ ] **Milestone 7: Documentation** - 🚧 PENDING
-- [ ] **Milestone 8: Release** - 🚧 PENDING
+- [x] **Milestone 6: Static Pages** - ✅ COMPLETED
+- [ ] **Milestone 7: Configuration** - 🚧 PENDING (core system exists, may need expansion)
+- [ ] **Milestone 8: Documentation** - 🚧 PENDING
+- [ ] **Milestone 9: Release** - 🚧 PENDING
 
 ---
 
@@ -30,6 +31,7 @@ By 1.0, a Rails developer should be able to:
 5. ✅ Organize content into different post types without migrations
 6. ✅ Customize views with their own HTML/CSS
 7. ✅ Automatically use slug-based URLs instead of IDs
+8. ✅ Create standalone pages (About, Contact, etc.) without full collections
 
 ---
 
@@ -312,7 +314,63 @@ end
 
 ---
 
-## Milestone 6: Configuration
+## Milestone 6: Static Pages
+
+**Spec:** Developers should be able to create standalone pages (About, Contact, Privacy Policy) without needing a full collection with an index page.
+
+### Required Behavior
+
+**Routing DSL:**
+- `bunko_page :about` creates a single route: `GET /about → pages#show`
+- Supports custom paths: `bunko_page :about, path: "about-us"`
+- Supports custom controllers: `bunko_page :contact, controller: "static_pages"`
+- Works with namespaces: `namespace :legal do bunko_page :privacy end`
+
+**PagesController:**
+- Single shared controller for all pages (no per-page controller generation)
+- Smart view resolution: checks for custom page template (e.g., `pages/about.html.erb`) first
+- Falls back to default `pages/show.html.erb` if custom template doesn't exist
+- Raises 404 if page Post not found
+
+**Configuration:**
+- Opt-out support: `config.allow_static_pages = false`
+- Reserved "pages" post_type namespace with validation error
+- Auto-generated during `rails bunko:setup` if enabled (default: true)
+
+**Architecture:**
+- Uses same Post model as collections (maintains one-model architecture)
+- Pages stored with `post_type = "pages"`
+- Slug must match route name (e.g., route `bunko_page :about` expects Post with slug "about")
+
+### Acceptance Test
+
+```ruby
+# In config/routes.rb:
+Rails.application.routes.draw do
+  bunko_page :about
+  bunko_page :contact
+  bunko_page :privacy
+end
+
+# Create page content:
+pages_type = PostType.find_by(name: "pages")
+
+Post.create!(
+  title: "About Us",
+  content: "<p>Welcome to our company...</p>",
+  post_type: pages_type,
+  slug: "about",  # Must match route name
+  status: "published"
+)
+
+# Result:
+# GET /about → renders pages/about.html.erb or pages/show.html.erb
+# GET /contact → 404 (no Post with slug "contact" exists yet)
+```
+
+---
+
+## Milestone 7: Configuration
 
 **Spec:** Bunko behavior should be customizable via initializer without modifying gem code.
 
@@ -354,7 +412,7 @@ post = Post.create!(title: "Very Long Title...")
 
 ---
 
-## Milestone 7: Documentation
+## Milestone 8: Documentation
 
 **Spec:** Documentation should be excellent, examples should be practical.
 
@@ -396,9 +454,9 @@ New developer can:
 
 ---
 
-## Milestone 8: Release
+## Milestone 9: Release
 
-**Spec:** 0.1.0 is published to RubyGems and ready for production use.
+**Spec:** 1.0.0 is published to RubyGems and ready for production use.
 
 ### Required Before Release
 
@@ -413,7 +471,7 @@ New developer can:
 - bunko.gemspec has no TODOs
 - Proper description and summary
 - Correct homepage and source URLs
-- Appropriate version number (0.1.0)
+- Appropriate version number (1.0.0)
 - CHANGELOG.md updated
 
 **Documentation:**

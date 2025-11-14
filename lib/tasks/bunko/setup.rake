@@ -11,12 +11,15 @@ namespace :bunko do
 
     post_types = Bunko.configuration.post_types
     collections = Bunko.configuration.collections
+    allow_static_pages = Bunko.configuration.allow_static_pages
 
-    if post_types.empty?
-      puts "⚠️  No post types configured."
-      puts "   Add them to config/initializers/bunko.rb and run this task again."
+    if post_types.empty? && !allow_static_pages
+      puts "⚠️  No post types configured and static pages are disabled."
+      puts "   Either enable static pages or add post types to config/initializers/bunko.rb"
       puts ""
       puts "   Example:"
+      puts "   config.allow_static_pages = true"
+      puts "   # OR"
       puts "   config.post_type \"blog\""
       puts "   config.post_type \"docs\" do |type|"
       puts "     type.title = \"Documentation\""
@@ -30,6 +33,13 @@ namespace :bunko do
     generate_shared_styles
     generate_shared_footer
     puts ""
+
+    # Set up static pages if enabled
+    if allow_static_pages
+      puts "Setting up static pages..."
+      setup_static_pages
+      puts ""
+    end
 
     # Add all post types
     post_types.each do |pt_config|
@@ -82,10 +92,7 @@ namespace :bunko do
 
     FileUtils.mkdir_p(shared_dir)
 
-    nav_content = render_template("bunko_nav.html.erb.tt", {
-      post_types: Bunko.configuration.post_types,
-      collections: Bunko.configuration.collections
-    })
+    nav_content = render_template("bunko_nav.html.erb.tt", {})
     File.write(nav_file, nav_content)
 
     puts "  ✓ Created shared/_bunko_nav.html.erb"
@@ -144,5 +151,52 @@ namespace :bunko do
     end
 
     ERB.new(template_content, trim_mode: "-").result(b)
+  end
+
+  def setup_static_pages
+    # Create "pages" PostType in database
+    PostType.find_or_create_by!(name: "pages") do |pt|
+      pt.title = "Pages"
+    end
+    puts "  ✓ Created 'pages' PostType in database"
+
+    # Generate PagesController
+    generate_pages_controller
+
+    # Generate pages/show.html.erb view
+    generate_pages_show_view
+  end
+
+  def generate_pages_controller
+    controller_path = Rails.root.join("app/controllers/pages_controller.rb")
+
+    if File.exist?(controller_path)
+      puts "  - pages_controller.rb already exists (skipped)"
+      return false
+    end
+
+    controller_content = render_template("pages_controller.rb.tt", {})
+    File.write(controller_path, controller_content)
+
+    puts "  ✓ Created app/controllers/pages_controller.rb"
+    true
+  end
+
+  def generate_pages_show_view
+    views_dir = Rails.root.join("app/views/pages")
+    show_file = views_dir.join("show.html.erb")
+
+    if File.exist?(show_file)
+      puts "  - pages/show.html.erb already exists (skipped)"
+      return false
+    end
+
+    FileUtils.mkdir_p(views_dir)
+
+    show_content = render_template("page_show.html.erb.tt", {})
+    File.write(show_file, show_content)
+
+    puts "  ✓ Created app/views/pages/show.html.erb"
+    true
   end
 end

@@ -18,6 +18,19 @@ Bunko.configure do |config|
   #
   # Note: Names use underscores, URLs automatically use hyphens (/case-studies/)
 
+  # Smart collections - aggregate or filter posts from multiple post types
+  # config.collection "resources", post_types: ["articles", "videos", "tutorials"]
+  # config.collection "long_reads" do |c|
+  #   c.post_types = ["articles", "tutorials"]
+  #   c.scope = -> { where("word_count > ?", 1500) }
+  # end
+
+  # Enable standalone pages feature (About, Contact, Privacy, etc.)
+  # When enabled, rails bunko:setup creates a PagesController and pages PostType
+  # Use bunko_page :about in routes to create single-page routes
+  # Default: true
+  # config.allow_static_pages = true
+
   # Reading speed for calculating estimated reading time (in words per minute)
   # Default: 250
   # config.reading_speed = 250

@@ -223,10 +223,10 @@ namespace :bunko do
     # Generate the new link
     is_plural = name.pluralize == name
     path_helper = is_plural ? "#{name}_path" : "#{name}_index_path"
-    new_link = "    <%= link_to \"#{title}\", #{path_helper}, style: \"text-decoration: none; color: #007bff;\" %>\n"
+    new_link = "      <%= link_to \"#{title}\", #{path_helper} %>\n"
 
-    # Check if link already exists
-    if nav_content.include?(new_link.strip)
+    # Check if link already exists (check for the title and path, not exact match)
+    if nav_content.match?(/link_to\s+"#{Regexp.escape(title)}",\s+#{path_helper}/)
       puts "  - #{title} already in nav (skipped)"
       return false
     end
@@ -234,7 +234,7 @@ namespace :bunko do
     # Try to insert before the marker comment (preferred)
     marker = "<%# bunko_collection_links - additional collections will be added here unless you delete this line %>"
     nav_content = if nav_content.include?(marker)
-      nav_content.sub(marker, "#{new_link}    #{marker}")
+      nav_content.sub(marker, "#{new_link}      #{marker}")
     else
       # Fallback: Find the closing </div> before </nav> and insert the new link before it
       nav_content.sub(/(\s*)<\/div>\s*<\/nav>/) do

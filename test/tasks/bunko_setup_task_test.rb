@@ -59,6 +59,7 @@ class BunkoSetupTaskTest < Minitest::Test
     # Reset configuration to default (empty - must be configured)
     Bunko.configuration.post_types = []
     Bunko.configuration.collections = []
+    Bunko.configuration.allow_static_pages = true  # Reset to default
   end
 
   def test_setup_creates_post_types_in_database
@@ -71,10 +72,11 @@ class BunkoSetupTaskTest < Minitest::Test
     # Run the task
     run_rake_task("bunko:setup")
 
-    # Verify PostTypes were created
-    assert_equal 2, PostType.count
+    # Verify PostTypes were created (including default "pages" PostType)
+    assert_equal 3, PostType.count
     assert PostType.find_by(name: "blog")
     assert PostType.find_by(name: "docs")
+    assert PostType.find_by(name: "pages")
   end
 
   def test_setup_generates_controllers_for_each_post_type
@@ -161,8 +163,8 @@ class BunkoSetupTaskTest < Minitest::Test
     run_rake_task("bunko:setup")
     run_rake_task("bunko:setup")
 
-    # Should still only have one PostType
-    assert_equal 1, PostType.count
+    # Should still only have two PostTypes (blog + pages)
+    assert_equal 2, PostType.count
   end
 
   def test_setup_is_idempotent_for_controllers
@@ -216,6 +218,7 @@ class BunkoSetupTaskTest < Minitest::Test
   def test_setup_with_empty_config_exits_gracefully
     Bunko.configure do |config|
       config.post_types = []
+      config.allow_static_pages = false
     end
 
     output = capture_io do
@@ -224,7 +227,7 @@ class BunkoSetupTaskTest < Minitest::Test
       end
     end
 
-    assert_match(/No post types configured/, output.join)
+    assert_match(/No post types configured and static pages are disabled/, output.join)
   end
 
   def test_setup_generates_controllers_for_collections

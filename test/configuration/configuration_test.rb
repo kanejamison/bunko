@@ -408,4 +408,29 @@ class ConfigurationTest < ActiveSupport::TestCase
     assert_equal ["videos"], collection[:post_types]
     assert_instance_of Proc, collection[:scope]
   end
+
+  # Static pages configuration tests
+  test "allow_static_pages defaults to true" do
+    config = Bunko.configuration
+    assert_equal true, config.allow_static_pages
+  end
+
+  test "allow_static_pages can be set to false" do
+    Bunko.configure do |config|
+      config.allow_static_pages = false
+    end
+
+    assert_equal false, Bunko.configuration.allow_static_pages
+  end
+
+  test "rejects post_type name 'pages'" do
+    error = assert_raises(ArgumentError) do
+      Bunko.configure do |config|
+        config.post_type "pages"
+      end
+    end
+
+    assert_match(/reserved for the static pages feature/, error.message)
+    assert_match(/config.allow_static_pages/, error.message)
+  end
 end
