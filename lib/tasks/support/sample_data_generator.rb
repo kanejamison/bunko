@@ -69,7 +69,10 @@ module Bunko
       end
 
       # Generate a sentence with specified word count and optional formatting
-      def sentence(word_count: rand(8..15), capitalize: true, format: :plain)
+      def sentence(word_count: nil, capitalize: true, format: :plain)
+        # Vary sentence length: 20% short (3-5 words), 80% medium (8-15 words)
+        word_count ||= (rand < 0.2) ? rand(3..5) : rand(8..15)
+
         words = Array.new(word_count) { LOREM_WORDS.sample }
         sentence = words.join(" ")
         sentence = sentence.capitalize if capitalize
@@ -84,7 +87,10 @@ module Bunko
       end
 
       # Generate a paragraph with specified sentence count and optional formatting
-      def paragraph(sentence_count: rand(4..8), format: :plain)
+      def paragraph(sentence_count: nil, format: :plain)
+        # Vary paragraph length: 25% short (1-2 sentences), 75% medium (4-8 sentences)
+        sentence_count ||= (rand < 0.25) ? rand(1..2) : rand(4..8)
+
         text = Array.new(sentence_count) { sentence(format: format) }.join(" ")
 
         # Wrap in paragraph tags for HTML (20% chance for class)
@@ -156,6 +162,7 @@ module Bunko
         section_words = target_words / 5
         [
           paragraphs(target_words: section_words * 0.5, format: format),
+          format_hero_image(format),
           format_heading("#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}", format),
           paragraphs(target_words: section_words * 0.5, format: format),
           format_subheading("Key Points", format),
@@ -175,14 +182,19 @@ module Bunko
         method = VERBS.sample
         obj = NOUNS.sample
         param = NOUNS.sample
+        comment = sentence(word_count: rand(5..8)).chomp(".")
 
-        <<~CODE.chomp
-          ```ruby
-          # #{sentence(word_count: rand(5..8))}
-          #{obj} = #{obj.capitalize}.new(#{param}: '#{word(:adjective)}')
-          #{obj}.#{method}!
-          ```
-        CODE
+        code_content = "# #{comment}\n#{obj} = #{obj.capitalize}.new(#{param}: '#{word(:adjective)}')\n#{obj}.#{method}!"
+
+        case format
+        when :markdown
+          "```ruby\n#{code_content}\n```"
+        when :html
+          css_class = (rand < 0.3) ? " class=\"code-block\"" : ""
+          "<pre#{css_class}><code>#{code_content}</code></pre>"
+        else
+          code_content
+        end
       end
 
       # Formatting helpers
@@ -255,11 +267,19 @@ module Bunko
           paragraphs.insert(list_index, format_list(format))
         end
 
+        # Randomly inject a code block (25% chance)
+        if rand < 0.25
+          code_index = rand(1...paragraphs.length)
+          paragraphs.insert(code_index, code_example(format))
+        end
+
         # Randomly inject images (50% chance for 1-2 images)
-        if rand < 0.5
+        # Skip first 3 paragraphs to give space after hero image
+        if rand < 0.5 && paragraphs.length > 3
           num_images = rand(1..2)
           num_images.times do
-            image_index = rand(1...paragraphs.length)
+            # Start from index 3 to avoid hero image area
+            image_index = rand(3...paragraphs.length)
             paragraphs.insert(image_index, format_image(format))
           end
         end
@@ -287,14 +307,24 @@ module Bunko
 
       def format_list(format)
         items = rand(3..5).times.map { "#{VERBS.sample.capitalize} #{NOUNS.sample}" }
+        # 50% chance for ordered list, 50% for unordered
+        ordered = rand < 0.5
 
         case format
         when :markdown
-          items.map { |item| "- #{item}" }.join("\n")
+          if ordered
+            items.map.with_index(1) { |item, i| "#{i}. #{item}" }.join("\n")
+          else
+            items.map { |item| "- #{item}" }.join("\n")
+          end
         when :html
           css_class = (rand < 0.3) ? " class=\"content-list\"" : ""
           list_items = items.map { |item| "<li>#{item}</li>" }.join("\n")
-          "<ul#{css_class}>\n#{list_items}\n</ul>"
+          if ordered
+            "<ol#{css_class}>\n#{list_items}\n</ol>"
+          else
+            "<ul#{css_class}>\n#{list_items}\n</ul>"
+          end
         else
           items.join(", ")
         end
@@ -315,9 +345,32 @@ module Bunko
         end
       end
 
+      def format_hero_image(format)
+        # Hero images are always the largest sizes
+        hero_sizes = IMAGE_SIZES.select { |img| img[:type] == :hero }
+        image = hero_sizes.sample
+        width = image[:width]
+        height = image[:height]
+
+        # Generate random seed for consistent random image
+        seed = rand(1..1000)
+        image_url = "https://picsum.photos/#{width}/#{height}?random=#{seed}"
+        alt_text = "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample}"
+
+        case format
+        when :markdown
+          "![#{alt_text}](#{image_url})"
+        when :html
+          "<img src=\"#{image_url}\" alt=\"#{alt_text}\" width=\"#{width}\" height=\"#{height}\" class=\"hero-image\">"
+        else
+          ""
+        end
+      end
+
       def format_image(format)
-        # Select a random image size
-        image = IMAGE_SIZES.sample
+        # Select a random image size (excluding hero sizes for inline images)
+        non_hero_sizes = IMAGE_SIZES.reject { |img| img[:type] == :hero }
+        image = non_hero_sizes.sample
         width = image[:width]
         height = image[:height]
 
