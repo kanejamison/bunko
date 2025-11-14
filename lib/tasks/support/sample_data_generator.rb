@@ -187,10 +187,7 @@ module Bunko
 
       # Formatting helpers
       def format_heading(text, format)
-        case format
-        when :markdown
-          "## #{text}"
-        when :html
+        if format == :html
           css_class = (rand < 0.3) ? " class=\"section-heading\"" : ""
           "<h2#{css_class}>#{text}</h2>"
         else
@@ -199,10 +196,7 @@ module Bunko
       end
 
       def format_subheading(text, format)
-        case format
-        when :markdown
-          "### #{text}"
-        when :html
+        if format == :html
           css_class = (rand < 0.3) ? " class=\"subsection-heading\"" : ""
           "<h3#{css_class}>#{text}</h3>"
         else

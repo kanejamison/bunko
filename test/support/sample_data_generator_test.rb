@@ -87,24 +87,6 @@ class SampleDataGeneratorTest < Minitest::Test
     assert word_count < 130, "Expected at most 130 words, got #{word_count}"
   end
 
-  # Company name generation tests
-  def test_company_name_returns_string
-    company = @generator.company_name
-    assert_kind_of String, company
-    assert company.length > 0
-  end
-
-  def test_company_name_contains_two_parts
-    company = @generator.company_name
-    assert_equal 2, company.split.length
-  end
-
-  # Version number generation tests
-  def test_version_number_format
-    version = @generator.version_number
-    assert_match(/^\d+\.\d+\.\d+$/, version)
-  end
-
   # Date generation tests
   def test_past_date_returns_time
     date = @generator.past_date
@@ -139,92 +121,62 @@ class SampleDataGeneratorTest < Minitest::Test
   end
 
   # Title generation tests
-  def test_title_for_blog
+  def test_title_for_returns_string
     title = @generator.title_for("blog")
     assert_kind_of String, title
     assert title.length > 0
   end
 
-  def test_title_for_docs
-    title = @generator.title_for("docs")
-    assert_kind_of String, title
-    assert title.length > 0
+  def test_title_for_generates_varied_titles
+    # Generate multiple titles to ensure variety
+    titles = 10.times.map { @generator.title_for("blog") }
+    # At least 3 different titles in 10 tries
+    assert titles.uniq.length >= 3, "Expected variety in generated titles"
   end
 
-  def test_title_for_changelog
-    title = @generator.title_for("changelog")
-    assert_kind_of String, title
-    assert_match(/Version \d+\.\d+\.\d+/, title)
-  end
-
-  def test_title_for_case_study
-    title = @generator.title_for("case_study")
-    assert_kind_of String, title
-    assert_match(/How .+ /, title)
-  end
-
-  def test_title_for_tutorial
-    title = @generator.title_for("tutorial")
-    assert_kind_of String, title
-    assert title.length > 0
-  end
-
-  def test_title_for_unknown_type
-    title = @generator.title_for("unknown")
-    assert_kind_of String, title
-    assert title.length > 0
+  def test_title_for_works_with_any_post_type
+    %w[blog docs changelog case_study tutorial unknown].each do |post_type|
+      title = @generator.title_for(post_type)
+      assert_kind_of String, title
+      assert title.length > 0
+    end
   end
 
   # Content generation tests
-  def test_content_for_blog
+  def test_content_for_returns_string
     content = @generator.content_for("blog", target_words: 200)
     assert_kind_of String, content
-    assert_match(/## Conclusion/, content)
-  end
-
-  def test_content_for_docs
-    content = @generator.content_for("docs", target_words: 200)
-    assert_kind_of String, content
-    assert_match(/## Overview/, content)
-    assert_match(/## Getting Started/, content)
-    assert_match(/## Examples/, content)
-    assert_match(/## Configuration/, content)
-    assert_match(/```ruby/, content)
-  end
-
-  def test_content_for_changelog
-    content = @generator.content_for("changelog", target_words: 200)
-    assert_kind_of String, content
-    assert_match(/## Added/, content)
-    assert_match(/## Fixed/, content)
-    assert_match(/## Changed/, content)
-    assert_match(/## Improved/, content)
-  end
-
-  def test_content_for_case_study
-    content = @generator.content_for("case_study", target_words: 200)
-    assert_kind_of String, content
-    assert_match(/## The Challenge/, content)
-    assert_match(/## The Solution/, content)
-    assert_match(/## The Results/, content)
-    assert_match(/## Conclusion/, content)
-    assert_match(/\d+% increase in/, content)
-  end
-
-  def test_content_for_tutorial
-    content = @generator.content_for("tutorial", target_words: 200)
-    assert_kind_of String, content
-    assert_match(/## Prerequisites/, content)
-    assert_match(/## Step 1: Setup/, content)
-    assert_match(/## Step 2: Implementation/, content)
-    assert_match(/## Step 3: Testing/, content)
-    assert_match(/## Troubleshooting/, content)
-  end
-
-  def test_content_for_unknown_type
-    content = @generator.content_for("unknown", target_words: 100)
-    assert_kind_of String, content
     assert content.length > 0
+  end
+
+  def test_content_for_contains_h2_headings
+    content = @generator.content_for("blog", target_words: 200)
+    # Should have multiple H2 headings
+    h2_count = content.scan(/^## /).length
+    assert h2_count >= 3, "Expected at least 3 H2 headings, got #{h2_count}"
+  end
+
+  def test_content_for_contains_h3_subheadings
+    content = @generator.content_for("blog", target_words: 200)
+    # Should have H3 subheadings
+    assert_match(/### Key Points/, content)
+    assert_match(/### Implementation Details/, content)
+  end
+
+  def test_content_for_contains_summary
+    content = @generator.content_for("blog", target_words: 200)
+    # Should end with Summary section
+    assert_match(/## Summary/, content)
+  end
+
+  def test_content_for_works_with_any_post_type
+    # All post types use the same generator now
+    %w[blog docs changelog case_study tutorial unknown].each do |post_type|
+      content = @generator.content_for(post_type, target_words: 200)
+      assert_kind_of String, content
+      assert content.length > 0
+      assert_match(/^## /, content) # Contains at least one H2
+    end
   end
 
   def test_content_respects_target_words
@@ -272,31 +224,22 @@ class SampleDataGeneratorTest < Minitest::Test
     assert_match(/<p/, text) # Should contain paragraph tags
   end
 
-  def test_content_for_blog_with_markdown
+  def test_content_with_markdown_format
     content = @generator.content_for("blog", target_words: 200, format: :markdown)
     assert_kind_of String, content
-    assert_match(/## Conclusion/, content) # Markdown heading
+    assert_match(/^## /, content) # Markdown H2 heading
+    assert_match(/^### /, content) # Markdown H3 subheading
+    refute_match(/<h2/, content) # Should not have HTML tags
+    refute_match(/<p/, content) # Should not have HTML tags
   end
 
-  def test_content_for_blog_with_html
+  def test_content_with_html_format
     content = @generator.content_for("blog", target_words: 200, format: :html)
     assert_kind_of String, content
-    assert_match(/<h2/, content) # HTML heading
+    assert_match(/<h2/, content) # HTML H2 heading
+    assert_match(/<h3/, content) # HTML H3 subheading
     assert_match(/<p/, content) # HTML paragraph
-  end
-
-  def test_content_for_docs_with_markdown
-    content = @generator.content_for("docs", target_words: 200, format: :markdown)
-    assert_kind_of String, content
-    assert_match(/## Overview/, content)
-    assert_match(/## Getting Started/, content)
-  end
-
-  def test_content_for_docs_with_html
-    content = @generator.content_for("docs", target_words: 200, format: :html)
-    assert_kind_of String, content
-    assert_match(/<h2/, content)
-    assert_match(/<p/, content)
+    refute_match(/^## /, content) # Should not have markdown headings
   end
 
   def test_markdown_supports_inline_formatting

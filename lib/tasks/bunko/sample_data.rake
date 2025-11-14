@@ -95,7 +95,7 @@ namespace :bunko do
           slug: slug,
           content: content,
           meta_description: meta_description,
-          title_tag: "#{title} | #{Bunko::SampleDataGenerator.company_name}",
+          title_tag: "#{title} | Sample Site",
           status: "published",
           published_at: published_at
         )
