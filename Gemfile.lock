@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bunko (0.1.0)
+    bunko (0.2.0)
       rails (>= 8.0)
 
 GEM
