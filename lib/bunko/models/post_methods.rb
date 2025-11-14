@@ -19,7 +19,14 @@ module Bunko
 
         # Validations
         validates :title, presence: true
-        validates :slug, presence: true, uniqueness: {scope: :post_type_id}
+        validates :slug,
+          presence: true,
+          uniqueness: {scope: :post_type_id},
+          format: {
+            with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/,
+            message: "must contain only lowercase letters, numbers, and hyphens"
+          },
+          length: {maximum: 255}
 
         # Default scope for ordering
         default_scope { order(created_at: :desc) }
