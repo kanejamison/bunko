@@ -2,6 +2,7 @@
 
 require "erb"
 require "fileutils"
+require "ostruct"
 
 namespace :bunko do
   desc "Install Bunko by creating migrations, models, and initializer"
@@ -130,13 +131,11 @@ namespace :bunko do
 
     template_content = File.read(template_path)
 
-    # Create an object with helper methods for the template
-    skip_seo = locals[:skip_seo]
-    json_content = locals[:json_content]
-
-    context = Object.new
-    context.define_singleton_method(:include_seo_fields?) { !skip_seo }
-    context.define_singleton_method(:use_json_content?) { json_content }
+    # Create a context object with helper methods for the template
+    context = OpenStruct.new(
+      include_seo_fields?: !locals[:skip_seo],
+      use_json_content?: locals[:json_content]
+    )
 
     ERB.new(template_content, trim_mode: "-").result(context.instance_eval { binding })
   end
