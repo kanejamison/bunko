@@ -19,8 +19,17 @@ module Bunko
         def generate_slug
           return if title.blank?
 
-          # Generate slug and clean up any trailing/leading hyphens or underscores
-          base_slug = title.parameterize.gsub(/^[-_]+|[-_]+$/, "")
+          # Generate slug using parameterize, then normalize:
+          # 1. Convert underscores to hyphens (parameterize keeps them in Rails 8+)
+          # 2. Remove consecutive hyphens
+          # 3. Remove leading/trailing hyphens or underscores
+          base_slug = title.parameterize
+            .tr("_", "-").squeeze("-")
+            .gsub(/^[-_]+|[-_]+$/, "")
+
+          # Skip if slug would be empty (e.g., title with only non-Latin characters)
+          return if base_slug.blank?
+
           self.slug = base_slug
 
           # Ensure uniqueness within post_type
