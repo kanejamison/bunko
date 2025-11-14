@@ -109,4 +109,44 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Terms and Conditions", response.body
   end
+
+  # Security tests for path traversal prevention
+  test "query string params cannot override page slug" do
+    # Attack: Try to load a different page via query string
+    get "/about-us?page=privacy-policy"
+    assert_response :success
+    # Should still load the "about-us" page, not privacy-policy
+    assert_match "About our company", response.body
+    assert_no_match "Our privacy policy", response.body
+  end
+
+  test "path traversal via query string is ignored" do
+    # Attack: Try to use path traversal in params
+    get "/about-us?page=../../etc/passwd"
+    assert_response :success
+    # Should still load the "about-us" page
+    assert_match "About our company", response.body
+  end
+
+  test "malicious template names in query string are ignored" do
+    # Attack: Try to render arbitrary templates
+    get "/about-us?page=admin/users"
+    assert_response :success
+    # Should still load the "about-us" page from the path
+    assert_match "About our company", response.body
+  end
+
+  test "trailing slashes do not affect page resolution" do
+    get "/about-us/"
+    assert_response :success
+    assert_match "About our company", response.body
+  end
+
+  test "namespaced routes ignore query string params" do
+    get "/legal/privacy-policy?page=terms-and-conditions"
+    assert_response :success
+    # Should load privacy-policy, not terms-and-conditions
+    assert_match "Our privacy policy", response.body
+    assert_no_match "Our terms", response.body
+  end
 end
