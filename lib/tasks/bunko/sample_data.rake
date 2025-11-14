@@ -16,7 +16,7 @@ namespace :bunko do
 
     # Parse configuration from ENV
     posts_per_type = ENV.fetch("COUNT", ENV.fetch("POSTS_PER_TYPE", "100")).to_i
-    min_words = ENV.fetch("MIN_WORDS", "200").to_i
+    min_words = ENV.fetch("MIN_WORDS", "500").to_i
     max_words = ENV.fetch("MAX_WORDS", "2000").to_i
     clear_existing = ENV.fetch("CLEAR", "false").downcase == "true"
     format = ENV.fetch("FORMAT", "html").downcase.to_sym

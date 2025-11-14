@@ -118,16 +118,6 @@ module Bunko
         paras.join("\n\n")
       end
 
-      # Generate a company name
-      def company_name
-        "#{COMPANIES.sample} #{COMPANIES.sample}"
-      end
-
-      # Generate a version number
-      def version_number
-        "#{rand(1..9)}.#{rand(0..20)}.#{rand(0..50)}"
-      end
-
       # Generate a random date in the past
       def past_date(years_ago: 2)
         seconds_ago = rand(0..(years_ago * 365 * 24 * 60 * 60))
@@ -140,177 +130,45 @@ module Bunko
         Time.now + seconds_ahead
       end
 
-      # Generate a title based on post type
+      # Generate a title
       def title_for(post_type_name)
-        case post_type_name
-        when /blog/i
-          blog_title
-        when /doc/i
-          doc_title
-        when /changelog|release|version/i
-          changelog_title
-        when /case.?stud|success|customer/i
-          case_study_title
-        when /news|announcement/i
-          news_title
-        when /tutorial|guide/i
-          tutorial_title
-        when /api|reference/i
-          api_title
-        else
-          generic_title
-        end
-      end
-
-      # Generate content structure based on post type
-      def content_for(post_type_name, target_words:, format: :plain)
-        case post_type_name
-        when /blog/i
-          blog_content(target_words, format)
-        when /doc/i
-          doc_content(target_words, format)
-        when /changelog|release|version/i
-          changelog_content(target_words, format)
-        when /case.?stud|success|customer/i
-          case_study_content(target_words, format)
-        when /tutorial|guide/i
-          tutorial_content(target_words, format)
-        else
-          default_content(target_words, format)
-        end
-      end
-
-      private
-
-      # Title generators
-      def blog_title
         [
           "#{VERBS.sample.capitalize} Your #{NOUNS.sample.capitalize} with #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}",
           "How to #{VERBS.sample.capitalize} #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}",
           "The Complete Guide to #{NOUNS.sample.capitalize} #{NOUNS.sample.capitalize}",
           "Understanding #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}",
-          "#{rand(5..10)} Ways to #{VERBS.sample.capitalize} Your #{NOUNS.sample.capitalize}"
+          "#{rand(5..10)} Ways to #{VERBS.sample.capitalize} Your #{NOUNS.sample.capitalize}",
+          "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize} for #{NOUNS.sample.capitalize}",
+          "#{VERBS.sample.capitalize} #{NOUNS.sample.capitalize} Like a Pro",
+          "A Deep Dive into #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}"
         ].sample
       end
 
-      def doc_title
-        "#{VERBS.sample.capitalize} #{NOUNS.sample} with #{ADJECTIVES.sample} #{NOUNS.sample}"
+      # Generate content structure
+      def content_for(post_type_name, target_words:, format: :plain)
+        default_content(target_words, format)
       end
 
-      def changelog_title
-        "Version #{version_number} - #{VERBS.sample.capitalize} #{NOUNS.sample}"
-      end
+      private
 
-      def case_study_title
-        "How #{company_name} #{VERBS.sample} their #{NOUNS.sample}"
-      end
-
-      def news_title
-        "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize} #{VERBS.sample.capitalize}d"
-      end
-
-      def tutorial_title
-        "A Complete Guide to #{VERBS.sample.capitalize}ing #{NOUNS.sample.capitalize}"
-      end
-
-      def api_title
-        "#{TECH_TERMS.sample} #{NOUNS.sample.capitalize} Reference"
-      end
-
-      def generic_title
-        words = Array.new(rand(3..8)) { LOREM_WORDS.sample }
-        words.map(&:capitalize).join(" ")
-      end
-
-      # Content generators
-      def blog_content(target_words, format = :plain)
-        heading = format_heading("Conclusion", format)
-        [
-          paragraphs(target_words: target_words * 0.15, format: format),
-          paragraphs(target_words: target_words * 0.70, format: format),
-          heading,
-          paragraphs(target_words: target_words * 0.15, format: format)
-        ].join("\n\n")
-      end
-
-      def doc_content(target_words, format = :plain)
-        section_words = target_words / 4
-        [
-          format_heading("Overview", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("Getting Started", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("Examples", format),
-          code_example(format),
-          paragraphs(target_words: section_words * 0.5, format: format),
-          format_heading("Configuration", format),
-          paragraphs(target_words: section_words * 0.5, format: format)
-        ].join("\n\n")
-      end
-
-      def changelog_content(target_words, format = :plain)
-        num_items = rand(3..6)
-        [
-          format_heading("Added", format),
-          num_items.times.map { "- #{VERBS.sample.capitalize} #{ADJECTIVES.sample} #{NOUNS.sample} functionality" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format),
-          "\n#{format_heading("Fixed", format)}",
-          num_items.times.map { "- #{sentence(word_count: rand(5..10), format: format)}" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format),
-          "\n#{format_heading("Changed", format)}",
-          num_items.times.map { "- #{sentence(word_count: rand(5..10), format: format)}" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format),
-          "\n#{format_heading("Improved", format)}",
-          num_items.times.map { "- #{VERBS.sample.capitalize} #{NOUNS.sample} performance" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format)
-        ].join("\n")
-      end
-
-      def case_study_content(target_words, format = :plain)
-        section_words = target_words / 4
-        [
-          format_heading("The Challenge", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("The Solution", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("The Results", format),
-          "- #{rand(100..500)}% increase in #{NOUNS.sample}",
-          "- #{rand(50..200)}% improvement in #{NOUNS.sample}",
-          "- #{rand(20..90)}% reduction in #{NOUNS.sample}",
-          "- #{rand(2..10)}x faster #{NOUNS.sample} processing",
-          paragraphs(target_words: section_words * 0.5, format: format),
-          format_heading("Conclusion", format),
-          paragraphs(target_words: section_words, format: format)
-        ].join("\n\n")
-      end
-
-      def tutorial_content(target_words, format = :plain)
-        step_words = target_words / 5
-        [
-          format_heading("Prerequisites", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Step 1: Setup", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Step 2: Implementation", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Step 3: Testing", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Troubleshooting", format),
-          paragraphs(target_words: step_words, format: format)
-        ].join("\n\n")
-      end
-
+      # Content generator
       def default_content(target_words, format = :plain)
-        num_sections = rand(2..4)
-        section_words = target_words / num_sections
-        sections = []
-
-        num_sections.times do |i|
-          sections << format_heading(generic_title, format) if i > 0
-          sections << paragraphs(target_words: section_words, format: format)
-        end
-
-        sections.join("\n\n")
+        section_words = target_words / 5
+        [
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_heading("#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}", format),
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_subheading("Key Points", format),
+          paragraphs(target_words: section_words * 0.4, format: format),
+          format_heading("#{VERBS.sample.capitalize} #{NOUNS.sample.capitalize}", format),
+          paragraphs(target_words: section_words * 0.6, format: format),
+          format_heading("#{ADJECTIVES.sample.capitalize} Approach", format),
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_subheading("Implementation Details", format),
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_heading("Summary", format),
+          paragraphs(target_words: section_words * 0.4, format: format)
+        ].join("\n\n")
       end
 
       def code_example(format = :plain)
@@ -337,6 +195,18 @@ module Bunko
           "<h2#{css_class}>#{text}</h2>"
         else
           "## #{text}"
+        end
+      end
+
+      def format_subheading(text, format)
+        case format
+        when :markdown
+          "### #{text}"
+        when :html
+          css_class = (rand < 0.3) ? " class=\"subsection-heading\"" : ""
+          "<h3#{css_class}>#{text}</h3>"
+        else
+          "### #{text}"
         end
       end
 
