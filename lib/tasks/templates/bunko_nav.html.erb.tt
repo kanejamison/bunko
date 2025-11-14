@@ -2,17 +2,7 @@
   <nav>
     <%%= link_to "Home", root_path %>
 
-    <div style="display: flex; gap: 1rem;">
-<% post_types.each do |post_type| -%>
-<% is_plural = post_type[:name].pluralize == post_type[:name] -%>
-<% path_helper = is_plural ? "#{post_type[:name]}_path" : "#{post_type[:name]}_index_path" -%>
-      <%%= link_to "<%= post_type[:title] %>", <%= path_helper %> %>
-<% end -%>
-<% collections.each do |collection| -%>
-<% is_plural = collection[:name].pluralize == collection[:name] -%>
-<% path_helper = is_plural ? "#{collection[:name]}_path" : "#{collection[:name]}_index_path" -%>
-      <%%= link_to "<%= collection[:title] %>", <%= path_helper %> %>
-<% end -%>
+    <div>
       <%# bunko_collection_links - additional collections will be added here unless you delete this line %>
     </div>
   </nav>

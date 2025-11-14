@@ -92,10 +92,7 @@ namespace :bunko do
 
     FileUtils.mkdir_p(shared_dir)
 
-    nav_content = render_template("bunko_nav.html.erb.tt", {
-      post_types: Bunko.configuration.post_types,
-      collections: Bunko.configuration.collections
-    })
+    nav_content = render_template("bunko_nav.html.erb.tt", {})
     File.write(nav_file, nav_content)
 
     puts "  ✓ Created shared/_bunko_nav.html.erb"
