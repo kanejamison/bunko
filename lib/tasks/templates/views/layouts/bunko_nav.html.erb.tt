@@ -1,8 +1,8 @@
 <header class="container">
-  <nav>
+  <nav style="gap: 1rem;">
     <%%= link_to "Home", root_path %>
 
-    <div>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: end;">
       <%%# bunko_collection_links - additional collections will be added here unless you delete this line %>
     </div>
   </nav>
