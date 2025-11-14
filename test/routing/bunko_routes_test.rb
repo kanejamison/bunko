@@ -8,6 +8,9 @@ ActionDispatch::Routing::Mapper.include Bunko::Routing::MapperMethods unless Act
 
 class BunkoRoutesTest < ActiveSupport::TestCase
   def setup
+    # Reset configuration before each test to avoid collisions
+    Bunko.reset_configuration!
+
     @routes = ActionDispatch::Routing::RouteSet.new
     @routes.draw do
       # Tests will define routes in each test method
@@ -192,5 +195,117 @@ class BunkoRoutesTest < ActiveSupport::TestCase
     assert_includes paths, "/about(.:format)"
     assert_includes paths, "/contact(.:format)"
     assert_includes paths, "/privacy-policy(.:format)"
+  end
+
+  # Collection vs PostType routing tests
+  test "bunko_collection with Collection config only creates index route" do
+    # Configure a Collection
+    Bunko.configure do |config|
+      config.post_type "articles"
+      config.collection "long_reads" do |c|
+        c.post_types = ["articles"]
+        c.scope = -> { where("word_count > ?", 1500) }
+      end
+    end
+
+    @routes.draw do
+      bunko_collection :long_reads
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Should have index route
+    assert_includes paths, "/long-reads(.:format)"
+
+    # Should NOT have show route (Collections don't get show routes)
+    refute_includes paths, "/long-reads/:slug(.:format)"
+  ensure
+    Bunko.reset_configuration!
+  end
+
+  test "bunko_collection with PostType config creates both index and show routes" do
+    # Configure a PostType
+    Bunko.configure do |config|
+      config.post_type "articles"
+    end
+
+    @routes.draw do
+      bunko_collection :articles
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Should have both index and show routes
+    assert_includes paths, "/articles(.:format)"
+    assert_includes paths, "/articles/:slug(.:format)"
+  ensure
+    Bunko.reset_configuration!
+  end
+
+  test "bunko_collection allows overriding actions with only option for Collections" do
+    # Configure a Collection
+    Bunko.configure do |config|
+      config.post_type "articles"
+      config.collection "featured" do |c|
+        c.post_types = ["articles"]
+      end
+    end
+
+    # Even though it's a Collection, user can force both routes with :only
+    @routes.draw do
+      bunko_collection :featured, only: [:index, :show]
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Should have both routes (user explicitly requested)
+    assert_includes paths, "/featured(.:format)"
+    assert_includes paths, "/featured/:slug(.:format)"
+  ensure
+    Bunko.reset_configuration!
+  end
+
+  test "bunko_collection without config defaults to PostType behavior" do
+    # No configuration - should default to PostType behavior (both routes)
+    @routes.draw do
+      bunko_collection :blog
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # Should have both routes by default
+    assert_includes paths, "/blog(.:format)"
+    assert_includes paths, "/blog/:slug(.:format)"
+  end
+
+  test "multiple bunko_collections with mixed PostTypes and Collections" do
+    # Configure mixed types
+    Bunko.configure do |config|
+      config.post_type "articles"
+      config.post_type "videos"
+      config.collection "all_content" do |c|
+        c.post_types = ["articles", "videos"]
+      end
+    end
+
+    @routes.draw do
+      bunko_collection :articles      # PostType
+      bunko_collection :videos        # PostType
+      bunko_collection :all_content   # Collection
+    end
+
+    paths = @routes.routes.map { |r| r.path.spec.to_s }
+
+    # PostTypes should have both index and show
+    assert_includes paths, "/articles(.:format)"
+    assert_includes paths, "/articles/:slug(.:format)"
+    assert_includes paths, "/videos(.:format)"
+    assert_includes paths, "/videos/:slug(.:format)"
+
+    # Collection should only have index
+    assert_includes paths, "/all-content(.:format)"
+    refute_includes paths, "/all-content/:slug(.:format)"
+  ensure
+    Bunko.reset_configuration!
   end
 end

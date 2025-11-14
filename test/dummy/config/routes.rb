@@ -1,13 +1,23 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  # Blog routes
-  get "/blog", to: "blog#index", as: :blog_index
-  get "/blog/:slug", to: "blog#show", as: :blog
+  # Blog routes (PostType)
+  bunko_collection :blog
 
-  # Docs routes
-  get "/docs", to: "docs#index", as: :docs_index
-  get "/docs/:slug", to: "docs#show", as: :docs
+  # Docs routes (PostType)
+  bunko_collection :docs
+
+  # Articles routes (PostType) - for collection routing tests
+  bunko_collection :articles
+
+  # Videos routes (PostType) - for collection routing tests
+  bunko_collection :videos
+
+  # Long Reads (Collection) - for collection routing tests
+  bunko_collection :long_reads
+
+  # All Content (Collection) - for collection routing tests
+  bunko_collection :all_content
 
   # Test routes for nonexistent PostType
   get "/nonexistent", to: "nonexistent#index", as: :nonexistent_index

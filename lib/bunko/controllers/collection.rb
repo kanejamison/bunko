@@ -81,6 +81,12 @@ module Bunko
         post_type_config = Bunko.configuration.find_post_type(@collection_name)
         collection_config = Bunko.configuration.find_collection(@collection_name)
 
+        # Collections should not have show routes (posts are accessed via their canonical PostType URL)
+        if collection_config
+          render plain: "Posts in this collection can only be accessed through their PostType URL. This collection only supports index.", status: :not_found
+          return
+        end
+
         if post_type_config
           # Single PostType collection
           @post_type = PostType.find_by(name: @collection_name)
@@ -90,14 +96,6 @@ module Bunko
           end
 
           base_query = post_model.published.by_post_type(@collection_name)
-        elsif collection_config
-          # Multi-type collection
-          base_query = post_model.published.where(post_type: PostType.where(name: collection_config[:post_types]))
-
-          # Apply collection scope if defined
-          if collection_config[:scope]
-            base_query = base_query.instance_exec(&collection_config[:scope])
-          end
         else
           render plain: "Collection '#{@collection_name}' not found. Add it to config/initializers/bunko.rb", status: :not_found
           return

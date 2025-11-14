@@ -1,12 +1,13 @@
-<main class="container docs-index">
-  <h1>Docs</h1>
+<main class="container long-reads-index">
+  <h1>Long Reads</h1>
 
   <% if @posts.any? %>
     <div class="posts">
       <% @posts.each do |post| %>
         <article class="post-preview">
           <h2>
-            <%= link_to post.title, docs_path(post.slug) %>
+            <%# Collections link to canonical PostType URLs %>
+            <%= link_to post.title, send("#{post.post_type.name.singularize}_path", post.slug) %>
           </h2>
 
           <div class="post-meta">
@@ -36,7 +37,7 @@
     <% if @pagination[:total_pages] > 1 %>
       <section class="pagination">
         <% if @pagination[:prev_page] %>
-          <%= link_to "← Previous", docs_path(page: @pagination[:current_page] - 1), class: "pagination-prev" %>
+          <%= link_to "← Previous", long_reads_path(page: @pagination[:current_page] - 1), class: "pagination-prev" %>
         <% end %>
 
         <span class="pagination-info">
@@ -44,11 +45,11 @@
         </span>
 
         <% if @pagination[:next_page] %>
-          <%= link_to "Next →", docs_path(page: @pagination[:current_page] + 1), class: "pagination-next" %>
+          <%= link_to "Next →", long_reads_path(page: @pagination[:current_page] + 1), class: "pagination-next" %>
         <% end %>
       </section>
     <% end %>
   <% else %>
-    <p class="no-posts">No docs posts yet.</p>
+    <p class="no-posts">No long reads posts yet.</p>
   <% end %>
 </main>
