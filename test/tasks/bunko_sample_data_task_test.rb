@@ -179,23 +179,27 @@ class BunkoSampleDataTaskTest < Minitest::Test
     ENV.delete("MAX_WORDS")
   end
 
-  def test_sample_data_generates_type_specific_content
+  def test_sample_data_generates_consistent_content_structure
     ENV["COUNT"] = "1"
 
     run_rake_task("bunko:sample_data")
 
-    # Check blog post has conclusion
+    # All posts should have the same generic structure now
+    # Check blog post has summary and subheadings
     blog_post = Post.where(post_type: @blog_type).first
-    assert_match(/## Conclusion/, blog_post.content)
+    assert_match(/Summary/, blog_post.content)
+    assert_match(/Key Points/, blog_post.content)
+    assert_match(/Implementation Details/, blog_post.content)
 
-    # Check docs post has structured sections
+    # Check docs post has same structure (no longer type-specific)
     docs_post = Post.where(post_type: @docs_type).first
-    assert_match(/## Overview/, docs_post.content)
-    assert_match(/## Getting Started/, docs_post.content)
+    assert_match(/Summary/, docs_post.content)
+    assert_match(/Key Points/, docs_post.content)
 
-    # Check changelog has version info in title
+    # All posts should have generic titles now (no version numbers)
     changelog_post = Post.where(post_type: @changelog_type).first
-    assert_match(/Version \d+\.\d+\.\d+/, changelog_post.title)
+    assert_kind_of String, changelog_post.title
+    assert changelog_post.title.length > 0
   ensure
     ENV.delete("COUNT")
   end
@@ -279,17 +283,17 @@ class BunkoSampleDataTaskTest < Minitest::Test
     ENV.delete("FORMAT")
   end
 
-  def test_sample_data_default_format_is_plain
+  def test_sample_data_default_format_is_html
     ENV["COUNT"] = "1"
-    # Don't set FORMAT, should default to plain
+    # Don't set FORMAT, should default to HTML
 
     run_rake_task("bunko:sample_data")
 
     post = Post.first
-    # Plain format should have ## headings but no HTML tags
-    assert_match(/## \w+/, post.content)
-    refute_match(/<h2/, post.content)
-    refute_match(/<p/, post.content)
+    # HTML format should have HTML tags, not markdown
+    assert_match(/<h2/, post.content)
+    assert_match(/<p/, post.content)
+    refute_match(/^## \w+/, post.content)
   ensure
     ENV.delete("COUNT")
   end

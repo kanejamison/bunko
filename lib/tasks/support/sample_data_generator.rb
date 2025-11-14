@@ -42,8 +42,18 @@ module Bunko
       {url: "https://rubygems.org", text: "RubyGems"}
     ].freeze
 
+    # Random image dimensions from picsum.photos
+    IMAGE_SIZES = [
+      {width: 800, height: 400, type: :hero},
+      {width: 1200, height: 600, type: :hero},
+      {width: 700, height: 500, type: :content},
+      {width: 600, height: 400, type: :content},
+      {width: 500, height: 350, type: :content},
+      {width: 400, height: 300, type: :inline}
+    ].freeze
+
     # Supported content formats
-    FORMATS = [:plain, :markdown, :html].freeze
+    FORMATS = [:markdown, :html].freeze
 
     class << self
       # Generate a random word from various pools
@@ -59,7 +69,10 @@ module Bunko
       end
 
       # Generate a sentence with specified word count and optional formatting
-      def sentence(word_count: rand(8..15), capitalize: true, format: :plain)
+      def sentence(word_count: nil, capitalize: true, format: :plain)
+        # Vary sentence length: 20% short (3-5 words), 80% medium (8-15 words)
+        word_count ||= (rand < 0.2) ? rand(3..5) : rand(8..15)
+
         words = Array.new(word_count) { LOREM_WORDS.sample }
         sentence = words.join(" ")
         sentence = sentence.capitalize if capitalize
@@ -74,7 +87,10 @@ module Bunko
       end
 
       # Generate a paragraph with specified sentence count and optional formatting
-      def paragraph(sentence_count: rand(4..8), format: :plain)
+      def paragraph(sentence_count: nil, format: :plain)
+        # Vary paragraph length: 25% short (1-2 sentences), 75% medium (4-8 sentences)
+        sentence_count ||= (rand < 0.25) ? rand(1..2) : rand(4..8)
+
         text = Array.new(sentence_count) { sentence(format: format) }.join(" ")
 
         # Wrap in paragraph tags for HTML (20% chance for class)
@@ -108,16 +124,6 @@ module Bunko
         paras.join("\n\n")
       end
 
-      # Generate a company name
-      def company_name
-        "#{COMPANIES.sample} #{COMPANIES.sample}"
-      end
-
-      # Generate a version number
-      def version_number
-        "#{rand(1..9)}.#{rand(0..20)}.#{rand(0..50)}"
-      end
-
       # Generate a random date in the past
       def past_date(years_ago: 2)
         seconds_ago = rand(0..(years_ago * 365 * 24 * 60 * 60))
@@ -130,199 +136,70 @@ module Bunko
         Time.now + seconds_ahead
       end
 
-      # Generate a title based on post type
+      # Generate a title
       def title_for(post_type_name)
-        case post_type_name
-        when /blog/i
-          blog_title
-        when /doc/i
-          doc_title
-        when /changelog|release|version/i
-          changelog_title
-        when /case.?stud|success|customer/i
-          case_study_title
-        when /news|announcement/i
-          news_title
-        when /tutorial|guide/i
-          tutorial_title
-        when /api|reference/i
-          api_title
-        else
-          generic_title
-        end
-      end
-
-      # Generate content structure based on post type
-      def content_for(post_type_name, target_words:, format: :plain)
-        case post_type_name
-        when /blog/i
-          blog_content(target_words, format)
-        when /doc/i
-          doc_content(target_words, format)
-        when /changelog|release|version/i
-          changelog_content(target_words, format)
-        when /case.?stud|success|customer/i
-          case_study_content(target_words, format)
-        when /tutorial|guide/i
-          tutorial_content(target_words, format)
-        else
-          default_content(target_words, format)
-        end
-      end
-
-      private
-
-      # Title generators
-      def blog_title
         [
           "#{VERBS.sample.capitalize} Your #{NOUNS.sample.capitalize} with #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}",
           "How to #{VERBS.sample.capitalize} #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}",
           "The Complete Guide to #{NOUNS.sample.capitalize} #{NOUNS.sample.capitalize}",
           "Understanding #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}",
-          "#{rand(5..10)} Ways to #{VERBS.sample.capitalize} Your #{NOUNS.sample.capitalize}"
+          "#{rand(5..10)} Ways to #{VERBS.sample.capitalize} Your #{NOUNS.sample.capitalize}",
+          "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize} for #{NOUNS.sample.capitalize}",
+          "#{VERBS.sample.capitalize} #{NOUNS.sample.capitalize} Like a Pro",
+          "A Deep Dive into #{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}"
         ].sample
       end
 
-      def doc_title
-        "#{VERBS.sample.capitalize} #{NOUNS.sample} with #{ADJECTIVES.sample} #{NOUNS.sample}"
+      # Generate content structure
+      def content_for(post_type_name, target_words:, format: :plain)
+        default_content(target_words, format)
       end
 
-      def changelog_title
-        "Version #{version_number} - #{VERBS.sample.capitalize} #{NOUNS.sample}"
-      end
+      private
 
-      def case_study_title
-        "How #{company_name} #{VERBS.sample} their #{NOUNS.sample}"
-      end
-
-      def news_title
-        "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize} #{VERBS.sample.capitalize}d"
-      end
-
-      def tutorial_title
-        "A Complete Guide to #{VERBS.sample.capitalize}ing #{NOUNS.sample.capitalize}"
-      end
-
-      def api_title
-        "#{TECH_TERMS.sample} #{NOUNS.sample.capitalize} Reference"
-      end
-
-      def generic_title
-        words = Array.new(rand(3..8)) { LOREM_WORDS.sample }
-        words.map(&:capitalize).join(" ")
-      end
-
-      # Content generators
-      def blog_content(target_words, format = :plain)
-        heading = format_heading("Conclusion", format)
-        [
-          paragraphs(target_words: target_words * 0.15, format: format),
-          paragraphs(target_words: target_words * 0.70, format: format),
-          heading,
-          paragraphs(target_words: target_words * 0.15, format: format)
-        ].join("\n\n")
-      end
-
-      def doc_content(target_words, format = :plain)
-        section_words = target_words / 4
-        [
-          format_heading("Overview", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("Getting Started", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("Examples", format),
-          code_example(format),
-          paragraphs(target_words: section_words * 0.5, format: format),
-          format_heading("Configuration", format),
-          paragraphs(target_words: section_words * 0.5, format: format)
-        ].join("\n\n")
-      end
-
-      def changelog_content(target_words, format = :plain)
-        num_items = rand(3..6)
-        [
-          format_heading("Added", format),
-          num_items.times.map { "- #{VERBS.sample.capitalize} #{ADJECTIVES.sample} #{NOUNS.sample} functionality" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format),
-          "\n#{format_heading("Fixed", format)}",
-          num_items.times.map { "- #{sentence(word_count: rand(5..10), format: format)}" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format),
-          "\n#{format_heading("Changed", format)}",
-          num_items.times.map { "- #{sentence(word_count: rand(5..10), format: format)}" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format),
-          "\n#{format_heading("Improved", format)}",
-          num_items.times.map { "- #{VERBS.sample.capitalize} #{NOUNS.sample} performance" }.join("\n"),
-          paragraphs(target_words: target_words * 0.2, format: format)
-        ].join("\n")
-      end
-
-      def case_study_content(target_words, format = :plain)
-        section_words = target_words / 4
-        [
-          format_heading("The Challenge", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("The Solution", format),
-          paragraphs(target_words: section_words, format: format),
-          format_heading("The Results", format),
-          "- #{rand(100..500)}% increase in #{NOUNS.sample}",
-          "- #{rand(50..200)}% improvement in #{NOUNS.sample}",
-          "- #{rand(20..90)}% reduction in #{NOUNS.sample}",
-          "- #{rand(2..10)}x faster #{NOUNS.sample} processing",
-          paragraphs(target_words: section_words * 0.5, format: format),
-          format_heading("Conclusion", format),
-          paragraphs(target_words: section_words, format: format)
-        ].join("\n\n")
-      end
-
-      def tutorial_content(target_words, format = :plain)
-        step_words = target_words / 5
-        [
-          format_heading("Prerequisites", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Step 1: Setup", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Step 2: Implementation", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Step 3: Testing", format),
-          paragraphs(target_words: step_words, format: format),
-          format_heading("Troubleshooting", format),
-          paragraphs(target_words: step_words, format: format)
-        ].join("\n\n")
-      end
-
+      # Content generator
       def default_content(target_words, format = :plain)
-        num_sections = rand(2..4)
-        section_words = target_words / num_sections
-        sections = []
-
-        num_sections.times do |i|
-          sections << format_heading(generic_title, format) if i > 0
-          sections << paragraphs(target_words: section_words, format: format)
-        end
-
-        sections.join("\n\n")
+        section_words = target_words / 5
+        [
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_hero_image(format),
+          format_heading("#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}", format),
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_subheading("Key Points", format),
+          paragraphs(target_words: section_words * 0.4, format: format),
+          format_heading("#{VERBS.sample.capitalize} #{NOUNS.sample.capitalize}", format),
+          paragraphs(target_words: section_words * 0.6, format: format),
+          format_heading("#{ADJECTIVES.sample.capitalize} Approach", format),
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_subheading("Implementation Details", format),
+          paragraphs(target_words: section_words * 0.5, format: format),
+          format_heading("Summary", format),
+          paragraphs(target_words: section_words * 0.4, format: format)
+        ].join("\n\n")
       end
 
       def code_example(format = :plain)
         method = VERBS.sample
         obj = NOUNS.sample
         param = NOUNS.sample
+        comment = sentence(word_count: rand(5..8)).chomp(".")
 
-        <<~CODE.chomp
-          ```ruby
-          # #{sentence(word_count: rand(5..8))}
-          #{obj} = #{obj.capitalize}.new(#{param}: '#{word(:adjective)}')
-          #{obj}.#{method}!
-          ```
-        CODE
+        code_content = "# #{comment}\n#{obj} = #{obj.capitalize}.new(#{param}: '#{word(:adjective)}')\n#{obj}.#{method}!"
+
+        case format
+        when :markdown
+          "```ruby\n#{code_content}\n```"
+        when :html
+          css_class = (rand < 0.3) ? " class=\"code-block\"" : ""
+          "<pre#{css_class}><code>#{code_content}</code></pre>"
+        else
+          code_content
+        end
       end
 
       # Formatting helpers
       def format_heading(text, format)
-        case format
-        when :markdown
-          "## #{text}"
-        when :html
+        if format == :html
           css_class = (rand < 0.3) ? " class=\"section-heading\"" : ""
           "<h2#{css_class}>#{text}</h2>"
         else
@@ -330,35 +207,47 @@ module Bunko
         end
       end
 
+      def format_subheading(text, format)
+        if format == :html
+          css_class = (rand < 0.3) ? " class=\"subsection-heading\"" : ""
+          "<h3#{css_class}>#{text}</h3>"
+        else
+          "### #{text}"
+        end
+      end
+
       def apply_inline_formatting(text, format)
         # Pick a random formatting style
         style = [:bold, :italic, :underline].sample
 
-        # Find a word to format (avoid the last word with period)
+        # Find words to format (avoid the last word with period)
         words = text.chomp(".").split
         return text if words.length < 3
 
-        word_index = rand(1...(words.length - 1))
-        word = words[word_index]
+        # Pick 1-5 consecutive words to format
+        num_words_to_format = [rand(1..5), words.length - 2].min
+        start_index = rand(1...(words.length - num_words_to_format))
+        words_to_format = words[start_index, num_words_to_format].join(" ")
 
-        formatted_word = case format
+        formatted_text = case format
         when :markdown
           case style
-          when :bold then "**#{word}**"
-          when :italic then "_#{word}_"
-          when :underline then word # Markdown doesn't have underline
+          when :bold then "**#{words_to_format}**"
+          when :italic then "_#{words_to_format}_"
+          when :underline then words_to_format # Markdown doesn't have underline
           end
         when :html
           case style
-          when :bold then "<strong>#{word}</strong>"
-          when :italic then "<em>#{word}</em>"
-          when :underline then "<u>#{word}</u>"
+          when :bold then "<strong>#{words_to_format}</strong>"
+          when :italic then "<em>#{words_to_format}</em>"
+          when :underline then "<u>#{words_to_format}</u>"
           end
         else
-          word
+          words_to_format
         end
 
-        words[word_index] = formatted_word
+        # Replace the words with formatted version
+        words[start_index, num_words_to_format] = [formatted_text]
         "#{words.join(" ")}."
       end
 
@@ -376,6 +265,23 @@ module Bunko
         if rand < 0.3
           list_index = rand(1...paragraphs.length)
           paragraphs.insert(list_index, format_list(format))
+        end
+
+        # Randomly inject a code block (25% chance)
+        if rand < 0.25
+          code_index = rand(1...paragraphs.length)
+          paragraphs.insert(code_index, code_example(format))
+        end
+
+        # Randomly inject images (50% chance for 1-2 images)
+        # Skip first 3 paragraphs to give space after hero image
+        if rand < 0.5 && paragraphs.length > 3
+          num_images = rand(1..2)
+          num_images.times do
+            # Start from index 3 to avoid hero image area
+            image_index = rand(3...paragraphs.length)
+            paragraphs.insert(image_index, format_image(format))
+          end
         end
 
         # Randomly inject a link into one paragraph (40% chance)
@@ -401,14 +307,24 @@ module Bunko
 
       def format_list(format)
         items = rand(3..5).times.map { "#{VERBS.sample.capitalize} #{NOUNS.sample}" }
+        # 50% chance for ordered list, 50% for unordered
+        ordered = rand < 0.5
 
         case format
         when :markdown
-          items.map { |item| "- #{item}" }.join("\n")
+          if ordered
+            items.map.with_index(1) { |item, i| "#{i}. #{item}" }.join("\n")
+          else
+            items.map { |item| "- #{item}" }.join("\n")
+          end
         when :html
           css_class = (rand < 0.3) ? " class=\"content-list\"" : ""
           list_items = items.map { |item| "<li>#{item}</li>" }.join("\n")
-          "<ul#{css_class}>\n#{list_items}\n</ul>"
+          if ordered
+            "<ol#{css_class}>\n#{list_items}\n</ol>"
+          else
+            "<ul#{css_class}>\n#{list_items}\n</ul>"
+          end
         else
           items.join(", ")
         end
@@ -426,6 +342,51 @@ module Bunko
           "#{text} Learn more about <a href=\"#{link_data[:url]}\">#{link_data[:text]}</a>."
         else
           text
+        end
+      end
+
+      def format_hero_image(format)
+        # Hero images are always the largest sizes
+        hero_sizes = IMAGE_SIZES.select { |img| img[:type] == :hero }
+        image = hero_sizes.sample
+        width = image[:width]
+        height = image[:height]
+
+        # Generate random seed for consistent random image
+        seed = rand(1..1000)
+        image_url = "https://picsum.photos/#{width}/#{height}?random=#{seed}"
+        alt_text = "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample}"
+
+        case format
+        when :markdown
+          "![#{alt_text}](#{image_url})"
+        when :html
+          "<img src=\"#{image_url}\" alt=\"#{alt_text}\" width=\"#{width}\" height=\"#{height}\" class=\"hero-image\">"
+        else
+          ""
+        end
+      end
+
+      def format_image(format)
+        # Select a random image size (excluding hero sizes for inline images)
+        non_hero_sizes = IMAGE_SIZES.reject { |img| img[:type] == :hero }
+        image = non_hero_sizes.sample
+        width = image[:width]
+        height = image[:height]
+
+        # Generate random seed for consistent random image
+        seed = rand(1..1000)
+        image_url = "https://picsum.photos/#{width}/#{height}?random=#{seed}"
+        alt_text = "#{ADJECTIVES.sample.capitalize} #{NOUNS.sample}"
+
+        case format
+        when :markdown
+          "![#{alt_text}](#{image_url})"
+        when :html
+          css_class = (rand < 0.3) ? " class=\"content-image\"" : ""
+          "<img src=\"#{image_url}\" alt=\"#{alt_text}\" width=\"#{width}\" height=\"#{height}\"#{css_class}>"
+        else
+          ""
         end
       end
     end
