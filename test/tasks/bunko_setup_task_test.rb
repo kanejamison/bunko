@@ -6,6 +6,9 @@ require "fileutils"
 
 class BunkoSetupTaskTest < Minitest::Test
   def setup
+    # Reset Bunko configuration before each test
+    Bunko.reset_configuration!
+
     # Clean database before each test (Post first due to foreign key constraints)
     Post.delete_all
     PostType.delete_all
@@ -270,9 +273,9 @@ class BunkoSetupTaskTest < Minitest::Test
 
     run_rake_task("bunko:setup")
 
-    # Verify views were created
+    # Verify views were created (Collections only get index view, not show view)
     assert File.exist?(File.join(@destination, "app/views/resources/index.html.erb"))
-    assert File.exist?(File.join(@destination, "app/views/resources/show.html.erb"))
+    refute File.exist?(File.join(@destination, "app/views/resources/show.html.erb")), "Collections should not have show views"
   end
 
   def test_setup_adds_routes_for_collections
@@ -436,9 +439,9 @@ class BunkoSetupTaskTest < Minitest::Test
     # Verify controller was created
     assert File.exist?(File.join(@destination, "app/controllers/resources_controller.rb"))
 
-    # Verify views were created
+    # Verify views were created (Collections only get index view, not show view)
     assert File.exist?(File.join(@destination, "app/views/resources/index.html.erb"))
-    assert File.exist?(File.join(@destination, "app/views/resources/show.html.erb"))
+    refute File.exist?(File.join(@destination, "app/views/resources/show.html.erb")), "Collections should not have show views"
 
     # Verify route was added
     routes_content = File.read(File.join(@destination, "config/routes.rb"))

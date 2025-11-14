@@ -27,7 +27,15 @@ module Bunko
         # Extract options with defaults
         custom_path = options.delete(:path)
         controller = options.delete(:controller) || collection_name.to_s
-        actions = options.delete(:only) || [:index, :show]
+
+        # Smart detection: Collections (multi-type aggregations) only get index routes
+        # PostTypes get both index and show routes
+        collection_config = Bunko.configuration.find_collection(collection_name.to_s)
+
+        # Default actions: Collections get [:index], PostTypes get [:index, :show]
+        # Users can override with :only option
+        default_actions = collection_config ? [:index] : [:index, :show]
+        actions = options.delete(:only) || default_actions
 
         # Resource name must use underscores (for path helpers)
         # Path can use hyphens (for URLs)

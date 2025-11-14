@@ -9,7 +9,13 @@
       <%% @posts.each do |post| %>
         <article class="post-preview">
           <h2>
+            <% if is_collection %>
+            <%# Collections link to canonical PostType URLs %>
+            <%%= link_to post.title, send("#{post.post_type.name.singularize}_path", post.slug) %>
+            <% else %>
+            <%# PostTypes link to their own show page %>
             <%%= link_to post.title, <%= path_helper %>(post.slug) %>
+            <% end %>
           </h2>
 
           <div class="post-meta">

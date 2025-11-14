@@ -2,7 +2,7 @@
   <img width="960" height="239" alt="bunko-repo-header-image" src="https://github.com/user-attachments/assets/537b4a36-3ba4-41f6-9c54-a633117803a8" />
 </p>
 
-[![Tests](https://github.com/kanejamison/bunko/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/kanejamison/bunko/actions/workflows/main.yml)
+[![Tests](https://github.com/kanejamison/bunko/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kanejamison/bunko/actions/workflows/ci.yml)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/standardrb/standard)
 [![Gem Version](https://badge.fury.io/rb/bunko.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/bunko)
 

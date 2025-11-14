@@ -61,7 +61,8 @@ namespace :bunko do
     end
 
     # Step 2: Always generate artifacts (for both PostTypes and Collections)
-    generate_artifacts(name, format: format)
+    is_collection = collection_config.present?
+    generate_artifacts(name, format: format, is_collection: is_collection)
 
     # Step 3: Add to nav
     if pt_config
@@ -94,7 +95,7 @@ namespace :bunko do
     puts ""
   end
 
-  def generate_artifacts(name, format:)
+  def generate_artifacts(name, format:, is_collection:)
     # Step 1: Generate controller
     puts "Generating controller..."
     generate_controller(name)
@@ -102,7 +103,7 @@ namespace :bunko do
 
     # Step 2: Generate views
     puts "Generating views..."
-    generate_views(name, format: format)
+    generate_views(name, format: format, is_collection: is_collection)
     puts ""
 
     # Step 3: Add route
@@ -129,7 +130,7 @@ namespace :bunko do
     true
   end
 
-  def generate_views(collection_name, format:)
+  def generate_views(collection_name, format:, is_collection:)
     views_dir = Rails.root.join("app/views/#{collection_name}")
 
     if Dir.exist?(views_dir) && Dir.glob("#{views_dir}/*").any?
@@ -140,25 +141,31 @@ namespace :bunko do
     FileUtils.mkdir_p(views_dir)
 
     # Generate index.html.erb
-    index_content = generate_index_view(collection_name)
+    index_content = generate_index_view(collection_name, is_collection: is_collection)
     File.write(File.join(views_dir, "index.html.erb"), index_content)
 
-    # Generate show.html.erb
-    show_content = generate_show_view(collection_name, format: format)
-    File.write(File.join(views_dir, "show.html.erb"), show_content)
+    # Collections only get index view, PostTypes get both index and show
+    if is_collection
+      puts "  ✓ Created views for #{collection_name} (index only - collection)"
+    else
+      # Generate show.html.erb for PostTypes only
+      show_content = generate_show_view(collection_name, format: format)
+      File.write(File.join(views_dir, "show.html.erb"), show_content)
+      puts "  ✓ Created views for #{collection_name} (index, show)"
+    end
 
-    puts "  ✓ Created views for #{collection_name} (index, show)"
     true
   end
 
-  def generate_index_view(collection_name)
+  def generate_index_view(collection_name, is_collection:)
     is_plural = collection_name.pluralize == collection_name
 
     render_template("views/collections/index.html.erb.tt", {
       collection_name: collection_name,
       collection_title: collection_name.titleize,
       path_helper: "#{collection_name.singularize}_path",
-      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path"
+      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path",
+      is_collection: is_collection
     })
   end
 
