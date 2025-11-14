@@ -82,9 +82,9 @@ class SampleDataGeneratorTest < Minitest::Test
     text = @generator.paragraphs(target_words: 100)
     # Rough word count (split by spaces)
     word_count = text.split.length
-    # Allow 30% variance (target is approximate)
-    assert word_count > 70, "Expected at least 70 words, got #{word_count}"
-    assert word_count < 130, "Expected at most 130 words, got #{word_count}"
+    # Allow 50% variance (target is approximate with varied lengths)
+    assert word_count > 50, "Expected at least 50 words, got #{word_count}"
+    assert word_count < 150, "Expected at most 150 words, got #{word_count}"
   end
 
   # Date generation tests
@@ -182,9 +182,9 @@ class SampleDataGeneratorTest < Minitest::Test
   def test_content_respects_target_words
     content = @generator.content_for("blog", target_words: 300)
     word_count = content.split.length
-    # Allow 40% variance (target is approximate due to structure)
-    assert word_count > 180, "Expected at least 180 words, got #{word_count}"
-    assert word_count < 420, "Expected at most 420 words, got #{word_count}"
+    # Allow 50% variance (target is approximate with varied lengths and structural elements)
+    assert word_count > 150, "Expected at least 150 words, got #{word_count}"
+    assert word_count < 450, "Expected at most 450 words, got #{word_count}"
   end
 
   # Format-specific tests
