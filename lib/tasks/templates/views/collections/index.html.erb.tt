@@ -35,7 +35,7 @@
 
           <%% if post.content.present? %>
             <div class="post-excerpt">
-              <%%= truncate(post.content, length: 200) %>
+              <%%= post.excerpt(length: 200) %>
             </div>
           <%% end %>
         </article>
