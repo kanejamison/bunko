@@ -45,7 +45,7 @@ namespace :bunko do
       return false
     end
 
-    migration_content = render_template("create_post_types.rb.tt", {
+    migration_content = render_template("db/migrate/create_post_types.rb.tt", {
       skip_seo: skip_seo,
       json_content: json_content
     })
@@ -64,7 +64,7 @@ namespace :bunko do
       return false
     end
 
-    migration_content = render_template("create_posts.rb.tt", {
+    migration_content = render_template("db/migrate/create_posts.rb.tt", {
       skip_seo: skip_seo,
       json_content: json_content
     })
@@ -80,7 +80,7 @@ namespace :bunko do
     if File.exist?(post_file)
       puts "  - app/models/post.rb already exists (skipped)"
     else
-      post_content = render_template("post.rb.tt", {})
+      post_content = render_template("models/post.rb.tt", {})
       File.write(post_file, post_content)
       puts "  ✓ Created app/models/post.rb"
     end
@@ -90,7 +90,7 @@ namespace :bunko do
     if File.exist?(post_type_file)
       puts "  - app/models/post_type.rb already exists (skipped)"
     else
-      post_type_content = render_template("post_type.rb.tt", {})
+      post_type_content = render_template("models/post_type.rb.tt", {})
       File.write(post_type_file, post_type_content)
       puts "  ✓ Created app/models/post_type.rb"
     end
@@ -106,7 +106,7 @@ namespace :bunko do
     end
 
     FileUtils.mkdir_p(initializer_dir)
-    initializer_content = render_template("bunko.rb.tt", {})
+    initializer_content = render_template("config/initializers/bunko.rb.tt", {})
     File.write(initializer_file, initializer_content)
     puts "  ✓ Created config/initializers/bunko.rb"
     true
