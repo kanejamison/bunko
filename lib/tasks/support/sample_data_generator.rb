@@ -208,31 +208,34 @@ module Bunko
         # Pick a random formatting style
         style = [:bold, :italic, :underline].sample
 
-        # Find a word to format (avoid the last word with period)
+        # Find words to format (avoid the last word with period)
         words = text.chomp(".").split
         return text if words.length < 3
 
-        word_index = rand(1...(words.length - 1))
-        word = words[word_index]
+        # Pick 1-5 consecutive words to format
+        num_words_to_format = [rand(1..5), words.length - 2].min
+        start_index = rand(1...(words.length - num_words_to_format))
+        words_to_format = words[start_index, num_words_to_format].join(" ")
 
-        formatted_word = case format
+        formatted_text = case format
         when :markdown
           case style
-          when :bold then "**#{word}**"
-          when :italic then "_#{word}_"
-          when :underline then word # Markdown doesn't have underline
+          when :bold then "**#{words_to_format}**"
+          when :italic then "_#{words_to_format}_"
+          when :underline then words_to_format # Markdown doesn't have underline
           end
         when :html
           case style
-          when :bold then "<strong>#{word}</strong>"
-          when :italic then "<em>#{word}</em>"
-          when :underline then "<u>#{word}</u>"
+          when :bold then "<strong>#{words_to_format}</strong>"
+          when :italic then "<em>#{words_to_format}</em>"
+          when :underline then "<u>#{words_to_format}</u>"
           end
         else
-          word
+          words_to_format
         end
 
-        words[word_index] = formatted_word
+        # Replace the words with formatted version
+        words[start_index, num_words_to_format] = [formatted_text]
         "#{words.join(" ")}."
       end
 
