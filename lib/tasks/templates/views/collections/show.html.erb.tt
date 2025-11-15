@@ -32,6 +32,11 @@
 <% end -%>
     </div>
 
+    <%# TEST VULNERABILITY: XSS with query params %>
+    <%% if params[:ref] %>
+      <div class="referrer">Referred from: <%%= params[:ref].html_safe %></div>
+    <%% end %>
+
     <footer class="post-footer">
         <%%= link_to "← Back to <%= collection_title %>", <%= index_path_helper %>, class: "back-link" %>
     </footer>

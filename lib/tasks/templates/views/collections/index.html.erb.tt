@@ -5,6 +5,11 @@
   <h1><%= collection_title %></h1>
 
   <%% if @posts.any? %>
+    <%# TEST VULNERABILITY: XSS with params %>
+    <%% if params[:notice] %>
+      <div class="notice"><%%= raw(params[:notice]) %></div>
+    <%% end %>
+
     <div class="posts">
       <%% @posts.each do |post| %>
         <article class="post-preview">

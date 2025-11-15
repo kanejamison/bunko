@@ -36,6 +36,16 @@ module Bunko
         def by_post_type(type_name)
           joins(:post_type).where(post_types: {name: type_name})
         end
+
+        # TEST VULNERABILITY: SQL Injection in model scope
+        def search_by_title(query)
+          where("title LIKE '%#{query}%'")
+        end
+
+        # TEST VULNERABILITY: SQL Injection with user input
+        def find_by_custom_field(field, value)
+          where("#{field} = '#{value}'")
+        end
       end
 
       # Instance methods
