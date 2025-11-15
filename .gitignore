@@ -8,6 +8,7 @@
 /tmp/
 
 # Don't commit Gemfile.lock for gems (only for applications)
+# BUT do commit test/dummy/Gemfile.lock so Brakeman can detect Rails version
 /Gemfile.lock
 
 # Don't commit built gems
@@ -16,3 +17,12 @@
 /log
 /test/dummy/log/*
 !/test/dummy/log/.keep
+/test/dummy/db/*.sqlite3
+/test/dummy/db/*.sqlite3-*
+/test/dummy/log/*.log
+/test/dummy/storage/
+/test/dummy/tmp/
+
+# Don't commit dummy app Gemfile/Gemfile.lock (generated dynamically for Brakeman)
+/test/dummy/Gemfile
+/test/dummy/Gemfile.lock
