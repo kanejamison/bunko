@@ -85,18 +85,56 @@ begin
       puts "✓ Regenerated controllers and views from templates\n"
 
       # Copy gem source into dummy app so Brakeman scans it as app code
-      # This allows us to catch vulnerabilities in lib/bunko/* concerns
-      # Using app/controllers/concerns so Brakeman treats it as controller code
-      dummy_bunko_concerns = File.join(dummy_path, "app/controllers/concerns/bunko_gem")
+      # Organize by Rails directory structure so Brakeman scans each file in proper context
       gem_bunko_lib = File.expand_path("../../lib/bunko", __dir__)
 
+      # Define copy destinations
+      controller_concerns_dest = File.join(dummy_path, "app/controllers/concerns/bunko_gem")
+      model_concerns_dest = File.join(dummy_path, "app/models/concerns/bunko_gem")
+      lib_dest = File.join(dummy_path, "lib/bunko_gem")
+
       begin
-        # Copy gem source (will be cleaned up in ensure block)
-        FileUtils.mkdir_p(dummy_bunko_concerns)
-        FileUtils.cp_r(Dir.glob("#{gem_bunko_lib}/**/*.rb"), dummy_bunko_concerns)
-        copied_files = Dir.glob(File.join(dummy_bunko_concerns, "**/*.rb")).size
-        puts "Copied gem source: #{gem_bunko_lib} -> #{dummy_bunko_concerns}"
-        puts "Copied #{copied_files} Ruby files from gem source"
+        # Copy controller concerns
+        FileUtils.mkdir_p(controller_concerns_dest)
+        Dir.glob("#{gem_bunko_lib}/controllers/**/*.rb").each do |file|
+          relative_path = file.sub("#{gem_bunko_lib}/controllers/", "")
+          dest_file = File.join(controller_concerns_dest, relative_path)
+          FileUtils.mkdir_p(File.dirname(dest_file))
+          FileUtils.cp(file, dest_file)
+        end
+
+        # Copy model concerns
+        FileUtils.mkdir_p(model_concerns_dest)
+        Dir.glob("#{gem_bunko_lib}/models/**/*.rb").each do |file|
+          relative_path = file.sub("#{gem_bunko_lib}/models/", "")
+          dest_file = File.join(model_concerns_dest, relative_path)
+          FileUtils.mkdir_p(File.dirname(dest_file))
+          FileUtils.cp(file, dest_file)
+        end
+
+        # Copy everything else to lib/
+        FileUtils.mkdir_p(lib_dest)
+        Dir.glob("#{gem_bunko_lib}/*.rb").each do |file|
+          FileUtils.cp(file, lib_dest)
+        end
+        Dir.glob("#{gem_bunko_lib}/routing/**/*.rb").each do |file|
+          routing_dest = File.join(lib_dest, "routing")
+          FileUtils.mkdir_p(routing_dest)
+          FileUtils.cp(file, routing_dest)
+        end
+
+        # Count total copied files
+        total_files = Dir.glob([
+          File.join(controller_concerns_dest, "**/*.rb"),
+          File.join(model_concerns_dest, "**/*.rb"),
+          File.join(lib_dest, "**/*.rb")
+        ]).size
+
+        puts "Copied gem source to dummy app:"
+        puts "  - Controllers: #{Dir.glob("#{controller_concerns_dest}/**/*.rb").size} files → app/controllers/concerns/bunko_gem/"
+        puts "  - Models: #{Dir.glob("#{model_concerns_dest}/**/*.rb").size} files → app/models/concerns/bunko_gem/"
+        puts "  - Lib: #{Dir.glob("#{lib_dest}/**/*.rb").size} files → lib/bunko_gem/"
+        puts "  - Total: #{total_files} Ruby files"
 
         puts "\nRunning Brakeman security scan..."
         puts "Scanning: test/dummy-brakeman (including gem source)"
@@ -113,11 +151,13 @@ begin
 
         puts "-" * 80
       ensure
-        # Clean up copied files
-        if Dir.exist?(dummy_bunko_concerns)
-          FileUtils.rm_rf(dummy_bunko_concerns)
-          puts "Cleaned up copied gem source: #{dummy_bunko_concerns}"
+        # Clean up all copied gem source files
+        [controller_concerns_dest, model_concerns_dest, lib_dest].each do |dest|
+          if Dir.exist?(dest)
+            FileUtils.rm_rf(dest)
+          end
         end
+        puts "\nCleaned up copied gem source files"
       end
 
       if tracker.filtered_warnings.any?

@@ -29,6 +29,8 @@
 
 # Gem source copied for Brakeman scanning
 /app/controllers/concerns/bunko_gem/
+/app/models/concerns/bunko_gem/
+/lib/bunko_gem/
 
 # Standard Rails dummy app ignores
 /log/*.log
