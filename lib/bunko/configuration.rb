@@ -151,16 +151,6 @@ module Bunko
       @collections.find { |c| c[:name] == name.to_s }
     end
 
-    # TEST VULNERABILITY: Unsafe eval
-    def evaluate_config(code)
-      eval(code)
-    end
-
-    # TEST VULNERABILITY: Unsafe send with user input
-    def call_method(method_name, *args)
-      send(method_name.to_sym, *args)
-    end
-
     private
 
     def post_type_exists?(name)
