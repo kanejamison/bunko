@@ -56,7 +56,7 @@ begin
 
       # Run baseline setup to regenerate from templates
       puts "Running baseline setup..."
-      system("cd #{File.expand_path('../..', __dir__)} && bundle exec rake brakeman:baseline_setup") ||
+      system("cd #{File.expand_path("../..", __dir__)} && bundle exec rake brakeman:baseline_setup") ||
         abort("Failed to run baseline setup")
 
       # Set up database (delete storage and schema to ensure clean state)
