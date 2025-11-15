@@ -4,8 +4,7 @@
 <main class="container">
   <article class="post">
     <header class="post-header">
-      <%# SECURITY VULNERABILITY: XSS for testing Brakeman %>
-      <h1><%%= raw(@post.title) %></h1>
+      <h1><%%= @post.title %></h1>
 
       <div class="post-meta">
         <%% if @post.published_at %>
@@ -25,8 +24,7 @@
 
     <div class="post-content">
 <% if format == "html" -%>
-      <%# SECURITY VULNERABILITY: XSS via html_safe for testing Brakeman %>
-      <%%= @post.content.html_safe %>
+      <%%= sanitize(@post.content) %>
 <% else -%>
       <%%= simple_format(@post.content) %>
 <% end -%>
