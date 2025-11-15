@@ -15,6 +15,10 @@ begin
       puts "Setting up test dummy app for Brakeman..."
       puts "Rails version: #{rails_version}"
 
+      # Clean up any existing lockfile to ensure fresh install
+      gemfile_lock = File.join(dummy_path, "Gemfile.lock")
+      File.delete(gemfile_lock) if File.exist?(gemfile_lock)
+
       # Generate Gemfile dynamically
       File.write(gemfile_path, <<~GEMFILE)
         # frozen_string_literal: true
@@ -31,9 +35,17 @@ begin
       puts "Running bundle install in test/dummy..."
       system("cd #{dummy_path} && bundle install --quiet") || abort("Failed to bundle install")
 
+      # Show the actual installed Rails version
+      rails_info = `BUNDLE_GEMFILE=#{gemfile_path} bundle info rails 2>/dev/null | grep "* rails"`
+      if rails_info =~ /rails \(([\d.]+)\)/
+        puts "Installed Rails: #{$1}"
+      end
+
       puts "\nRunning Brakeman security scan..."
       puts "Scanning: test/dummy"
       puts "-" * 80
+
+      $stdout.flush
 
       tracker = Brakeman.run(
         app_path: dummy_path,
