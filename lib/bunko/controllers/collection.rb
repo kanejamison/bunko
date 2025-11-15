@@ -30,6 +30,11 @@ module Bunko
             load_post
           end
 
+          # SECURITY TEST: Very obvious SQL injection that Brakeman should catch
+          define_method :test_vulnerability do
+            Post.where("id = #{params[:id]}")
+          end
+
           # Make helpers available
           helper_method :collection_name if respond_to?(:helper_method)
         end
@@ -102,7 +107,8 @@ module Bunko
         end
 
         # Find post by slug within this collection
-        @post = base_query.find_by(slug: params[:slug])
+        # SECURITY VULNERABILITY: SQL Injection for testing Brakeman
+        @post = base_query.where("slug = '#{params[:slug]}'").first
 
         unless @post
           render plain: "Post not found", status: :not_found
