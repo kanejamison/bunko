@@ -4,3 +4,5 @@ log/*.log
 tmp/
 .byebug_history
 vendor/bunko
+Gemfile
+Gemfile.lock

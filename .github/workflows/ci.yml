@@ -41,7 +41,10 @@ jobs:
         run: bundle exec standardrb
   security:
     runs-on: ubuntu-latest
-    name: Security - Brakeman
+    name: Security - Brakeman (Rails ${{ matrix.rails }})
+    strategy:
+      matrix:
+        rails: ["~> 8.0.0", "~> 8.1.0"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
@@ -52,4 +55,4 @@ jobs:
       - name: bundle install
         run: bundle install
       - name: Run Brakeman vendor scan
-        run: bundle exec rake brakeman:vendor_scan
+        run: RAILS_VERSION="${{ matrix.rails }}" bundle exec rake brakeman:vendor_scan
