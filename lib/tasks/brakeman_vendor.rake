@@ -110,7 +110,7 @@ begin
       end
 
       # Count generated files
-      controllers = Dir.glob("#{dummy_path}/app/controllers/*_controller.rb").reject { |f| f.include?("application") }.size
+      controllers = Dir.glob("#{dummy_path}/app/controllers/*_controller.rb").count { |f| !f.include?("application") }
       views = Dir.glob("#{dummy_path}/app/views/**/*.erb").size
 
       puts "✓ Generated #{controllers} controllers and #{views} view templates"
