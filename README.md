@@ -632,6 +632,138 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+## Testing
+
+Bunko uses a unique approach to testing: **generated files are regenerated before every test run**.
+
+### How It Works
+
+The `test/dummy` Rails application uses a mix of **generated** and **hand-crafted** files:
+
+```bash
+rake test
+# 1. Runs bunko:install (creates migrations, models, initializer)
+# 2. Runs db:migrate (sets up database)
+# 3. Runs bunko:setup (generates controllers and views from .tt templates)
+# 4. Runs test suite
+```
+
+**Files regenerated on every test run** (`.gitignore`d):
+- `app/models/post.rb` and `post_type.rb` - From install templates
+- `app/controllers/blog_controller.rb` - From setup template
+- `app/controllers/pages_controller.rb` - From setup template
+- `app/views/blog/**/*.erb` - From setup templates
+- `app/views/shared/**/*.erb` - From setup templates
+- `config/initializers/bunko.rb` - From install template
+- `db/migrate/*_create_bunko_*.rb` - From install templates
+
+**Files committed for specific test purposes:**
+- `app/controllers/docs_controller.rb` - Custom `per_page: 5` for pagination tests
+- `app/controllers/articles_controller.rb` - For routing tests
+- `app/controllers/videos_controller.rb` - For routing tests
+- `app/controllers/all_content_controller.rb` - For collection tests
+- `app/controllers/long_reads_controller.rb` - For collection tests
+- `app/controllers/nonexistent_controller.rb` - For error handling tests
+- `app/controllers/legal/pages_controller.rb` - For namespaced routing tests
+- `config/initializers/bunko_test_config.rb` - Adds test-specific post_types and collections
+- `config/routes.rb` - Test routes and root route
+
+### Why This Approach?
+
+**Benefits:**
+- ✅ Tests verify templates generate working code
+- ✅ Template changes are automatically tested
+- ✅ No stale committed files getting out of sync
+- ✅ If a template breaks, tests fail immediately
+
+**Example:** If someone modifies `lib/tasks/templates/controller.rb.tt` and introduces a bug, the test suite catches it because controllers are regenerated from that template.
+
+### Running Tests
+
+```bash
+# Run all tests (includes prepare step)
+bundle exec rake test
+
+# Run a specific test file
+bundle exec ruby test/models/post_slug_test.rb
+
+# Run with coverage
+bundle exec rake test
+
+# Run linter
+bundle exec rake standard
+```
+
+### Test Structure
+
+```
+test/
+├── models/              # Post and PostType behavior tests
+├── controllers/         # Collection concern and pagination tests
+├── routing/             # Routing DSL tests
+├── tasks/               # Generator and rake task tests
+├── configuration/       # Configuration system tests
+└── dummy/               # Minimal Rails app (mix of generated + committed files)
+    ├── app/
+    │   ├── models/      # ⚡ Generated on test run
+    │   ├── controllers/
+    │   │   ├── blog_controller.rb        # ⚡ Generated from template
+    │   │   ├── docs_controller.rb        # ✓ Committed (custom per_page)
+    │   │   ├── articles_controller.rb    # ✓ Committed (test routes)
+    │   │   └── ...                       # ✓ More test controllers
+    │   └── views/
+    │       ├── blog/    # ⚡ Generated from templates
+    │       └── shared/  # ⚡ Generated from templates
+    └── config/
+        ├── routes.rb    # ✓ Committed (test routes + root route)
+        └── initializers/
+            ├── bunko.rb           # ⚡ Generated from install template
+            └── bunko_test_config.rb  # ✓ Committed (test-specific config)
+```
+
+**Legend:**
+- ⚡ = Regenerated on every test run (`.gitignore`d)
+- ✓ = Committed (hand-crafted for specific test scenarios)
+
+### CI Testing
+
+GitHub Actions runs the full test suite on every PR:
+- Ruby versions: 3.2, 3.3, 3.4, 3.5
+- All tests with fresh generated code
+- StandardRB linting
+- Brakeman security scans (Rails 8.0.x and 8.1.x)
+
+## Security
+
+Bunko includes automated security scanning using [Brakeman](https://brakemanscanner.org/).
+
+**What we scan:**
+- ✅ Gem source code (models, controllers, routing)
+- ✅ Generated code from templates (controllers, views)
+- ✅ Tested against Rails 8.0.x and 8.1.x
+
+**CI Security Checks:**
+
+Every PR triggers parallel scans across Rails versions. Builds fail if security warnings are detected.
+
+**Run scans locally:**
+
+```bash
+bundle exec rake brakeman:vendor_scan
+RAILS_VERSION="~> 8.1.0" bundle exec rake brakeman:vendor_scan
+```
+
+**Reporting Security Issues:**
+
+Please report vulnerabilities privately via email rather than public GitHub issues.
+
+**Security Best Practices:**
+
+1. Sanitize user input with Rails' `sanitize` helper
+2. Use strong parameters in controllers
+3. Keep Rails and Bunko updated
+4. Review generated code from `bunko:setup`
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/kanejamison/bunko. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to be kind and respectful.
