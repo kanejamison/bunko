@@ -32,16 +32,6 @@ module Bunko
 
           # Make helpers available
           helper_method :collection_name if respond_to?(:helper_method)
-
-          # INTENTIONAL VULNERABILITY: Redirect vulnerability for testing Brakeman
-          define_method :redirect_to_url do
-            redirect_to params[:url]
-          end
-
-          # INTENTIONAL VULNERABILITY: Render inline with user input for testing Brakeman
-          define_method :show_message do
-            render inline: "<h1>#{params[:message]}</h1>"
-          end
         end
       end
 
