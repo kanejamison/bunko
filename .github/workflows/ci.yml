@@ -21,9 +21,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Setup test database
-        run: cd test/dummy && bundle exec rake db:migrate RAILS_ENV=test
-      - name: Run tests
+      - name: Run tests (includes prepare_dummy)
         run: bundle exec rake test
   lint:
     runs-on: ubuntu-latest
@@ -39,3 +37,20 @@ jobs:
         run: bundle install
       - name: bundle exec standardrb
         run: bundle exec standardrb
+  security:
+    runs-on: ubuntu-latest
+    name: Security - Brakeman (Rails ${{ matrix.rails }})
+    strategy:
+      matrix:
+        rails: ["~> 8.0.0", "~> 8.1.0"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+      - name: bundle install
+        run: bundle install
+      - name: Run Brakeman vendor scan
+        run: RAILS_VERSION="${{ matrix.rails }}" bundle exec rake brakeman:vendor_scan

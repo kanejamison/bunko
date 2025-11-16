@@ -35,4 +35,5 @@ Gem::Specification.new do |spec|
 
   # Development dependencies
   spec.add_development_dependency "sqlite3", "~> 2.0"
+  spec.add_development_dependency "brakeman"
 end

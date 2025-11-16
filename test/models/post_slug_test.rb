@@ -515,7 +515,7 @@ class PostSlugTest < ActiveSupport::TestCase
       )
 
       assert_equal expected_slug, post.slug, "Title '#{title}' should generate slug '#{expected_slug}'"
-      assert_no_match(/[©®€@\$\*\(\)\[\]\{\}\|:;'"<>,\.~`]/, post.slug, "Slug should not contain special symbols")
+      assert_no_match(/[©®€@$*()\[\]{}|:;'"<>,.~`]/, post.slug, "Slug should not contain special symbols")
 
       # Clean up for next iteration
       post.destroy
