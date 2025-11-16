@@ -39,3 +39,17 @@ jobs:
         run: bundle install
       - name: bundle exec standardrb
         run: bundle exec standardrb
+  security:
+    runs-on: ubuntu-latest
+    name: Security - Brakeman
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+      - name: bundle install
+        run: bundle install
+      - name: Run Brakeman vendor scan
+        run: bundle exec rake brakeman:vendor_scan
