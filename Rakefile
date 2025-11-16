@@ -7,4 +7,7 @@ Minitest::TestTask.create
 
 require "standard/rake"
 
+# Load brakeman vendor scan task
+load "lib/tasks/brakeman_vendor.rake"
+
 task default: %i[test standard]
