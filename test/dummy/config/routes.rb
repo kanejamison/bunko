@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  # Root route
+  root "blog#index"
+
   # Blog routes (PostType)
   bunko_collection :blog
 
