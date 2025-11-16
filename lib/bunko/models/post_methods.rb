@@ -36,6 +36,11 @@ module Bunko
         def by_post_type(type_name)
           joins(:post_type).where(post_types: {name: type_name})
         end
+
+        # INTENTIONAL VULNERABILITY: SQL Injection for testing Brakeman
+        def search_by_title(query)
+          where("title LIKE '%#{query}%'")
+        end
       end
 
       # Instance methods
