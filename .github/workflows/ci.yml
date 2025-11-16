@@ -21,9 +21,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Setup test database
-        run: cd test/dummy && bundle exec rake db:migrate RAILS_ENV=test
-      - name: Run tests
+      - name: Run tests (includes prepare_dummy)
         run: bundle exec rake test
   lint:
     runs-on: ubuntu-latest
