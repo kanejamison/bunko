@@ -41,6 +41,6 @@ end
 Minitest::TestTask.create
 
 # Make test task depend on prepare_dummy
-task :test => :prepare_dummy
+task test: :prepare_dummy
 
 task default: %i[test standard]

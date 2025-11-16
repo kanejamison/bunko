@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # Test-specific Bunko configuration for test/dummy
 # This file is loaded AFTER bunko.rb and adds additional post_types needed for tests
 
