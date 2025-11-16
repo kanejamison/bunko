@@ -15,10 +15,9 @@ begin
       rails_version = ENV["RAILS_VERSION"] || ">= 8.0"
 
       puts "=" * 80
-      puts "Brakeman Vendor-Based Security Scan"
+      puts "Brakeman Security Scan"
       puts "=" * 80
-      puts "This approach copies the bunko gem into test/dummy/vendor/"
-      puts "and uses Brakeman's --no-skip-vendor flag to scan it."
+      puts "This scans both generated code (from templates) and gem source code."
       puts "Rails version: #{rails_version}\n\n"
 
       # Step 1: Generate Gemfile with specified Rails version
@@ -62,8 +61,62 @@ begin
         end
       end
 
-      # Step 3: Copy bunko source to vendor/bunko
-      puts "\nStep 3: Copying bunko source to vendor/bunko..."
+      # Step 3: Run bunko:install to generate migrations, models, initializer
+      puts "\nStep 3: Running bunko:install..."
+      puts "-" * 80
+
+      # Clean up old bunko files to ensure fresh generation
+      FileUtils.rm_rf(Dir.glob("#{dummy_path}/db/migrate/*_create_bunko_*.rb"))
+      FileUtils.rm_f("#{dummy_path}/app/models/post.rb")
+      FileUtils.rm_f("#{dummy_path}/app/models/post_type.rb")
+      FileUtils.rm_f("#{dummy_path}/config/initializers/bunko.rb")
+
+      # Run from root context so tasks are loaded
+      Dir.chdir(root_path) do
+        ENV["DUMMY_PATH"] = dummy_path
+        system("cd #{dummy_path} && RAILS_ENV=test bundle exec rake bunko:install") || abort("❌ Failed to run bunko:install")
+      end
+      puts "✓ Generated migrations, models, and initializer"
+
+      # Step 4: Run database migrations
+      puts "\nStep 4: Running database migrations..."
+      puts "-" * 80
+
+      # Clean database to ensure fresh state
+      FileUtils.rm_f("#{dummy_path}/db/development.sqlite3")
+      FileUtils.rm_f("#{dummy_path}/db/test.sqlite3")
+      FileUtils.rm_f("#{dummy_path}/db/schema.rb")
+
+      Dir.chdir(dummy_path) do
+        system("bundle exec rake db:create RAILS_ENV=test") || abort("❌ Failed to create database")
+        system("bundle exec rake db:migrate RAILS_ENV=test") || abort("❌ Failed to run migrations")
+      end
+      puts "✓ Database migrations complete"
+
+      # Step 5: Run bunko:setup to generate controllers and views from templates
+      puts "\nStep 5: Running bunko:setup to generate templates..."
+      puts "-" * 80
+
+      # Clean up old generated files
+      FileUtils.rm_rf("#{dummy_path}/app/views/blog")
+      FileUtils.rm_rf("#{dummy_path}/app/views/docs")
+      FileUtils.rm_rf("#{dummy_path}/app/views/changelog")
+      FileUtils.rm_rf("#{dummy_path}/app/views/pages")
+      FileUtils.rm_rf("#{dummy_path}/app/views/shared")
+      FileUtils.rm_f(Dir.glob("#{dummy_path}/app/controllers/{blog,docs,changelog,pages}_controller.rb"))
+
+      Dir.chdir(dummy_path) do
+        system("bundle exec rake bunko:setup RAILS_ENV=test") || abort("❌ Failed to run bunko:setup")
+      end
+
+      # Count generated files
+      controllers = Dir.glob("#{dummy_path}/app/controllers/*_controller.rb").reject { |f| f.include?("application") }.size
+      views = Dir.glob("#{dummy_path}/app/views/**/*.erb").size
+
+      puts "✓ Generated #{controllers} controllers and #{views} view templates"
+
+      # Step 6: Copy bunko source to vendor/bunko
+      puts "\nStep 6: Copying bunko source to vendor/bunko..."
       puts "-" * 80
 
       # Clean up old vendor/bunko
@@ -89,7 +142,7 @@ begin
       puts "✓ Copied #{ruby_files} Ruby files to vendor/bunko/"
       puts "✓ Total files (including templates): #{copied_files}"
 
-      puts "\nStep 4: Running Brakeman with --no-skip-vendor..."
+      puts "\nStep 7: Running Brakeman with --no-skip-vendor..."
       puts "-" * 80
 
       # Run Brakeman with --no-skip-vendor
@@ -101,7 +154,7 @@ begin
         quiet: false
       )
 
-      # Step 3: Report results
+      # Step 8: Report results
       puts "\n" + "=" * 80
       puts "Scan Complete"
       puts "=" * 80
@@ -119,11 +172,29 @@ begin
     task :vendor_clean do
       dummy_path = File.expand_path("../../test/dummy", __dir__)
 
-      puts "Cleaning up vendor/bunko and generated files..."
+      puts "Cleaning up generated files..."
+
+      # Clean vendor files
       FileUtils.rm_rf("#{dummy_path}/vendor/bunko")
+
+      # Clean generated bunko files
+      FileUtils.rm_rf(Dir.glob("#{dummy_path}/db/migrate/*_create_bunko_*.rb"))
+      FileUtils.rm_f("#{dummy_path}/app/models/post.rb")
+      FileUtils.rm_f("#{dummy_path}/app/models/post_type.rb")
+      FileUtils.rm_f("#{dummy_path}/config/initializers/bunko.rb")
+      FileUtils.rm_rf("#{dummy_path}/app/views/{blog,docs,changelog,pages,shared}")
+      FileUtils.rm_f(Dir.glob("#{dummy_path}/app/controllers/{blog,docs,changelog,pages}_controller.rb"))
+
+      # Clean database files
+      FileUtils.rm_f("#{dummy_path}/db/development.sqlite3")
+      FileUtils.rm_f("#{dummy_path}/db/test.sqlite3")
+      FileUtils.rm_f("#{dummy_path}/db/schema.rb")
+
+      # Clean bundle files
       FileUtils.rm_f("#{dummy_path}/Gemfile")
       FileUtils.rm_f("#{dummy_path}/Gemfile.lock")
-      puts "✓ Cleaned up vendor/bunko, Gemfile, and Gemfile.lock"
+
+      puts "✓ Cleaned up all generated files"
     end
   end
 rescue LoadError
