@@ -1,8 +1,21 @@
 # frozen_string_literal: true
 
 require_relative "../support/sample_data_generator"
+require_relative "helpers"
 
 namespace :bunko do
+  include Bunko::RakeHelpers
+
+  # Standard static pages to generate
+  STANDARD_PAGES = [
+    {slug: "home", title: "Home"},
+    {slug: "about", title: "About"},
+    {slug: "contact", title: "Contact"},
+    {slug: "faq", title: "FAQ"},
+    {slug: "privacy-policy", title: "Privacy Policy"},
+    {slug: "cookie-policy", title: "Cookie Policy"},
+    {slug: "terms-of-service", title: "Terms of Service"}
+  ].freeze
   desc "Generate sample posts for all configured post types"
   task sample_data: :environment do
     # Warn if running in production
@@ -117,6 +130,90 @@ namespace :bunko do
     end
     puts "=" * 79
     puts ""
+
+    # Generate static pages if allowed
+    if Bunko.configuration.allow_static_pages
+      puts "Generating static pages..."
+      puts ""
+
+      # Check if pages PostType exists
+      pages_post_type = PostType.find_by(name: "pages")
+
+      if pages_post_type.nil?
+        puts "⚠️  'pages' PostType not found. Run 'rails bunko:setup' first to enable static pages."
+        puts ""
+      else
+        # Determine which pages to create
+        pages_to_create = STANDARD_PAGES.dup
+
+        # Remove home if root route already exists
+        if root_route_exists?
+          pages_to_create.reject! { |page| page[:slug] == "home" }
+          puts "  - Skipping 'home' page (root route already exists)"
+        end
+
+        # Get existing page slugs
+        existing_slugs = Post.where(post_type: pages_post_type).pluck(:slug)
+
+        # Filter out pages that already exist
+        pages_to_create.reject! { |page| existing_slugs.include?(page[:slug]) }
+
+        if pages_to_create.empty?
+          puts "  - All standard pages already exist (skipped)"
+          puts ""
+        else
+          # Create the pages
+          pages_to_create.each do |page_def|
+            # Generate content for the page
+            target_words = rand(min_words..max_words)
+            content = Bunko::SampleDataGenerator.content_for("pages", target_words: target_words, format: format)
+
+            # Create meta description
+            meta_description = Bunko::SampleDataGenerator.sentence(word_count: rand(15..25)).chomp(".")
+
+            # Create the page
+            Post.create!(
+              post_type: pages_post_type,
+              title: page_def[:title],
+              slug: page_def[:slug],
+              content: content,
+              meta_description: meta_description,
+              title_tag: "#{page_def[:title]} | Sample Site",
+              status: "published",
+              published_at: Time.current
+            )
+
+            puts "  ✓ Created #{page_def[:title]} page"
+          end
+
+          puts ""
+          puts "Adding routes for new pages..."
+
+          # Add routes for the created pages
+          pages_to_create.each do |page_def|
+            # Home gets special treatment with path: "/"
+            if page_def[:slug] == "home"
+              if add_bunko_page_route(page_def[:slug], path: "/")
+                puts "  ✓ Added route: bunko_page :home, path: \"/\""
+              else
+                puts "  - Route for :home already exists (skipped)"
+              end
+            elsif add_bunko_page_route(page_def[:slug])
+              puts "  ✓ Added route: bunko_page :#{page_def[:slug].tr("-", "_")}"
+            else
+              puts "  - Route for :#{page_def[:slug].tr("-", "_")} already exists (skipped)"
+            end
+          end
+
+          puts ""
+          puts "Created #{pages_to_create.size} static page(s)."
+        end
+      end
+
+      puts "=" * 79
+      puts ""
+    end
+
     puts "Usage examples:"
     puts "  rake bunko:sample_data                           # 100 posts per type (HTML with images)"
     puts "  rake bunko:sample_data COUNT=50                  # 50 posts per type"
@@ -124,5 +221,44 @@ namespace :bunko do
     puts "  rake bunko:sample_data MIN_WORDS=500 MAX_WORDS=1500"
     puts "  rake bunko:sample_data CLEAR=true                # Clear existing first"
     puts ""
+  end
+
+  # Helper methods
+
+  def root_route_exists?
+    Rails.application.routes.named_routes[:root].present?
+  end
+
+  def add_bunko_page_route(slug, path: nil)
+    routes_file = Rails.root.join("config/routes.rb")
+    routes_content = File.read(routes_file)
+
+    # Build the route line
+    route_line = if path
+      "  bunko_page :#{slug.tr("-", "_")}, path: \"#{path}\""
+    else
+      "  bunko_page :#{slug.tr("-", "_")}"
+    end
+
+    # Check if this route already exists
+    slug_symbol = ":#{slug.tr("-", "_")}"
+    if routes_content.match?(/bunko_page\s+#{Regexp.escape(slug_symbol)}/)
+      return false
+    end
+
+    # Find the last 'end' in the file and insert before it
+    lines = routes_content.lines
+    last_end_index = lines.rindex { |line| line.match?(/^end\s*$/) }
+
+    if last_end_index
+      lines.insert(last_end_index, "#{route_line}\n")
+      updated_content = lines.join
+    else
+      # Fallback: append before the last line if no 'end' found
+      updated_content = routes_content.sub(/\z/, "#{route_line}\n")
+    end
+
+    File.write(routes_file, updated_content)
+    true
   end
 end
