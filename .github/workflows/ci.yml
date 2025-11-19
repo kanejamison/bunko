@@ -12,7 +12,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     name: Tests - Ruby ${{ matrix.ruby }}
-    strategy: { matrix: { ruby: [3.2, 3.3, 3.4, 3.5] } }
+    strategy: { matrix: { ruby: [3.2, 3.3, 3.4, 4.0] } }
 
     steps:
       - uses: actions/checkout@v4
