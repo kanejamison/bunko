@@ -3,19 +3,20 @@
 require_relative "../support/sample_data_generator"
 require_relative "helpers"
 
+# Standard static pages to generate
+BUNKO_STANDARD_PAGES = [
+  {slug: "home", title: "Home"},
+  {slug: "about", title: "About"},
+  {slug: "contact", title: "Contact"},
+  {slug: "faq", title: "FAQ"},
+  {slug: "privacy-policy", title: "Privacy Policy"},
+  {slug: "cookie-policy", title: "Cookie Policy"},
+  {slug: "terms-of-service", title: "Terms of Service"}
+].freeze
+
 namespace :bunko do
   include Bunko::RakeHelpers
 
-  # Standard static pages to generate
-  STANDARD_PAGES = [
-    {slug: "home", title: "Home"},
-    {slug: "about", title: "About"},
-    {slug: "contact", title: "Contact"},
-    {slug: "faq", title: "FAQ"},
-    {slug: "privacy-policy", title: "Privacy Policy"},
-    {slug: "cookie-policy", title: "Cookie Policy"},
-    {slug: "terms-of-service", title: "Terms of Service"}
-  ].freeze
   desc "Generate sample posts for all configured post types"
   task sample_data: :environment do
     # Warn if running in production
@@ -154,7 +155,7 @@ namespace :bunko do
         puts ""
       else
         # Determine which pages to create
-        pages_to_create = STANDARD_PAGES.dup
+        pages_to_create = BUNKO_STANDARD_PAGES.dup
 
         # Remove home if root route already exists
         if root_route_exists?
