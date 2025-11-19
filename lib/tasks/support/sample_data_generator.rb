@@ -161,20 +161,20 @@ module Bunko
       def default_content(target_words, format = :plain)
         section_words = target_words / 5
         [
-          paragraphs(target_words: section_words * 0.5, format: format),
+          paragraphs(target_words: section_words * 0.8, format: format),
           format_hero_image(format),
           format_heading("#{ADJECTIVES.sample.capitalize} #{NOUNS.sample.capitalize}", format),
-          paragraphs(target_words: section_words * 0.5, format: format),
+          paragraphs(target_words: section_words * 0.7, format: format),
           format_subheading("Key Points", format),
-          paragraphs(target_words: section_words * 0.4, format: format),
+          paragraphs(target_words: section_words * 0.7, format: format),
           format_heading("#{VERBS.sample.capitalize} #{NOUNS.sample.capitalize}", format),
-          paragraphs(target_words: section_words * 0.6, format: format),
+          paragraphs(target_words: section_words * 0.9, format: format),
           format_heading("#{ADJECTIVES.sample.capitalize} Approach", format),
-          paragraphs(target_words: section_words * 0.5, format: format),
+          paragraphs(target_words: section_words * 0.7, format: format),
           format_subheading("Implementation Details", format),
-          paragraphs(target_words: section_words * 0.5, format: format),
+          paragraphs(target_words: section_words * 0.7, format: format),
           format_heading("Summary", format),
-          paragraphs(target_words: section_words * 0.4, format: format)
+          paragraphs(target_words: section_words * 0.7, format: format)
         ].join("\n\n")
       end
 
