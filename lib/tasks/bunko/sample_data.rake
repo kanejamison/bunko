@@ -59,8 +59,8 @@ namespace :bunko do
       puts ""
     end
 
-    # Get all post types from database
-    post_types = PostType.all
+    # Get all post types from database (excluding "pages" which are handled separately)
+    post_types = PostType.where.not(name: "pages")
 
     if post_types.empty?
       puts "⚠️  No post types found. Please run 'rails bunko:setup' first."
@@ -128,6 +128,16 @@ namespace :bunko do
       avg_words = Post.where(post_type: post_type).average(:word_count).to_i
       puts "  #{post_type.title}: #{count} posts (#{future_count} scheduled, avg #{avg_words} words)"
     end
+
+    # Show pages summary if they exist
+    pages_post_type = PostType.find_by(name: "pages")
+    if pages_post_type
+      pages_count = Post.where(post_type: pages_post_type).count
+      if pages_count > 0
+        puts "  Pages: #{pages_count} static page(s)"
+      end
+    end
+
     puts "=" * 79
     puts ""
 
