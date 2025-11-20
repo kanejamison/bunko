@@ -8,6 +8,9 @@ class Avo::Actions::PublishPost < Avo::BaseAction
 
   def handle(**args)
     args[:records].each do |post|
+      # Updates status to published
+      # Note: published_at is auto-set by Bunko callback if blank
+      # If published_at is already set (e.g. scheduled post), it will be preserved
       post.update(status: "published")
     end
 
