@@ -1,0 +1,76 @@
+# frozen_string_literal: true
+
+class Avo::Resources::Post < Avo::BaseResource
+  self.title = :title
+  self.includes = [:post_type]
+  self.search = {
+    query: -> { query.ransack(id_eq: params[:q], title_cont: params[:q], slug_cont: params[:q], m: "or").result(distinct: false) }
+  }
+
+  def fields
+    # Main content area - Title and Content
+    main_panel do
+      field :title, as: :text, required: true, placeholder: "Add title"
+
+      # Content editor - configurable type
+      <% if editor_type == "markdown" %>
+      field :content, as: :markdown
+      <% elsif editor_type == "rhino" %>
+      field :content, as: :rhino
+      <% elsif editor_type == "tiptap" %>
+      field :content, as: :tiptap
+      <% elsif editor_type == "trix" %>
+      field :content, as: :trix
+      <% else %>
+      field :content, as: :textarea, rows: 20
+      <% end %>
+    end
+
+    # Sidebar - All metadata
+    sidebar do
+      # Status badge (show only)
+      field :status, as: :badge, only_on: :show do
+        success :published
+        info :draft
+        warning :scheduled
+      end
+
+      # Publishing
+      field :status, as: :select, enum: ::Bunko.configuration.valid_statuses, required: true, hide_on: :show
+      field :published_at, as: :date_time, picker_format: "Y-m-d H:i:S", format: "yyyy-LL-dd TT", help: "Auto-set when status changes to published"
+
+      # Post Type
+      field :post_type, as: :belongs_to, searchable: true, placeholder: "Select post type"
+
+      # Slug
+      field :slug, as: :text, help: "Auto-generated from title if left blank"
+
+      # SEO Fields (conditional)
+      field :meta_title, as: :text, help: "Defaults to title if blank"
+      field :meta_description, as: :textarea, rows: 3, help: "Recommended: 150-160 characters"
+
+      # Content Stats (show only)
+      field :word_count, as: :number, only_on: :show, help: "Auto-calculated"
+      field :reading_time, as: :text, only_on: :show do
+        post.reading_time_text if post.word_count.present?
+      end
+
+      # Timestamps
+      field :created_at, as: :date_time, only_on: :show, format: "relative"
+      field :updated_at, as: :date_time, only_on: :show, format: "relative"
+    end
+  end
+
+  # Filters for post types
+  <% if post_types.any? %>
+  def filters
+    filter Avo::Filters::PostTypeFilter
+  end
+  <% end %>
+
+  # Actions
+  def actions
+    action Avo::Actions::PublishPost
+    action Avo::Actions::UnpublishPost
+  end
+end
