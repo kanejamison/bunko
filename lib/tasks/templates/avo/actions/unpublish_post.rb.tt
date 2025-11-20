@@ -1,0 +1,19 @@
+# frozen_string_literal: true
+
+class Avo::Actions::UnpublishPost < Avo::BaseAction
+  self.name = "Unpublish"
+  self.visible = -> { record.status == "published" }
+  self.message = "Are you sure you want to unpublish this post?"
+  self.confirm_button_label = "Unpublish"
+
+  def handle(**args)
+    args[:records].each do |post|
+      # Updates status to draft
+      # Note: published_at is preserved for re-publishing with original date
+      # To reset published_at, clear it manually before re-publishing
+      post.update(status: "draft")
+    end
+
+    succeed "Post(s) unpublished successfully!"
+  end
+end

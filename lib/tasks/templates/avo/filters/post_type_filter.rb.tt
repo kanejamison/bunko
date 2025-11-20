@@ -1,0 +1,23 @@
+# frozen_string_literal: true
+
+class Avo::Filters::PostTypeFilter < Avo::Filters::SelectFilter
+  self.name = "Post Type"
+  self.visible = -> { true }
+
+  def apply(request, query, value)
+    return query if value.blank?
+
+    post_type = PostType.find_by(name: value)
+    return query if post_type.nil?
+
+    query.by_post_type(post_type)
+  end
+
+  def options
+    {
+<% post_types.each_with_index do |pt, index| -%>
+      "<%= pt.titleize %>" => "<%= pt %>"<%= index < post_types.length - 1 ? "," : "" %>
+<% end -%>
+    }
+  end
+end
