@@ -7,7 +7,10 @@ class Avo::Filters::PostTypeFilter < Avo::Filters::SelectFilter
   def apply(request, query, value)
     return query if value.blank?
 
-    query.by_post_type(value)
+    post_type = PostType.find_by(name: value)
+    return query if post_type.nil?
+
+    query.by_post_type(post_type)
   end
 
   def options

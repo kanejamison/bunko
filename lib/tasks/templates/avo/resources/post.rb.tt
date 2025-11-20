@@ -52,7 +52,7 @@ class Avo::Resources::Post < Avo::BaseResource
       # Content Stats (show only)
       field :word_count, as: :number, only_on: :show, help: "Auto-calculated"
       field :reading_time, as: :text, only_on: :show do
-        post.reading_time_text if post.word_count.present?
+        record.reading_time_text if record.word_count.present?
       end
 
       # Timestamps

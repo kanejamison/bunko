@@ -60,6 +60,12 @@ namespace :bunko do
       resources_dir = Rails.root.join("app/avo/resources")
       resource_file = resources_dir.join("post.rb")
 
+      if File.exist?(resource_file)
+        puts "  - app/avo/resources/post.rb already exists (skipped)"
+        puts "    To regenerate, delete the file and run again"
+        return false
+      end
+
       FileUtils.mkdir_p(resources_dir)
 
       resource_content = render_template(
@@ -74,11 +80,17 @@ namespace :bunko do
       puts "    - Main content area with #{editor_type} editor"
       puts "    - Metadata sidebar with publishing, SEO, and stats"
       puts "    - Post type filters: #{post_types.join(", ")}" if post_types.any?
+      true
     end
 
     def generate_avo_post_type_filter(post_types)
       filters_dir = Rails.root.join("app/avo/filters")
       filter_file = filters_dir.join("post_type_filter.rb")
+
+      if File.exist?(filter_file)
+        puts "  - app/avo/filters/post_type_filter.rb already exists (skipped)"
+        return false
+      end
 
       FileUtils.mkdir_p(filters_dir)
 
@@ -90,6 +102,7 @@ namespace :bunko do
       File.write(filter_file, filter_content)
 
       puts "  ✓ Created app/avo/filters/post_type_filter.rb"
+      true
     end
 
     def generate_avo_actions
@@ -98,15 +111,23 @@ namespace :bunko do
 
       # Generate PublishPost action
       publish_action = actions_dir.join("publish_post.rb")
-      publish_content = render_template("avo/actions/publish_post.rb.tt", {})
-      File.write(publish_action, publish_content)
-      puts "  ✓ Created app/avo/actions/publish_post.rb"
+      if File.exist?(publish_action)
+        puts "  - app/avo/actions/publish_post.rb already exists (skipped)"
+      else
+        publish_content = render_template("avo/actions/publish_post.rb.tt", {})
+        File.write(publish_action, publish_content)
+        puts "  ✓ Created app/avo/actions/publish_post.rb"
+      end
 
       # Generate UnpublishPost action
       unpublish_action = actions_dir.join("unpublish_post.rb")
-      unpublish_content = render_template("avo/actions/unpublish_post.rb.tt", {})
-      File.write(unpublish_action, unpublish_content)
-      puts "  ✓ Created app/avo/actions/unpublish_post.rb"
+      if File.exist?(unpublish_action)
+        puts "  - app/avo/actions/unpublish_post.rb already exists (skipped)"
+      else
+        unpublish_content = render_template("avo/actions/unpublish_post.rb.tt", {})
+        File.write(unpublish_action, unpublish_content)
+        puts "  ✓ Created app/avo/actions/unpublish_post.rb"
+      end
     end
   end
 end
