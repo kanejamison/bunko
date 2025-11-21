@@ -49,6 +49,9 @@ module Bunko
           path_value = collection_name.to_s.dasherize
         end
 
+        # Register this resource for path helper override (so blog_path(@post) works ergonomically)
+        Bunko.configuration.register_path_helper(resource_name)
+
         # Define the routes
         resources resource_name,
           controller: controller,
