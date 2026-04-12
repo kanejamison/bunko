@@ -17,9 +17,11 @@ namespace :bunko do
 
     # Step 1: Create migrations
     puts "Creating migrations..."
-    create_post_types_migration(skip_seo: skip_seo, json_content: json_content)
-    sleep 1 # Ensure different timestamps
-    create_posts_migration(skip_seo: skip_seo, json_content: json_content)
+    base_time = Time.now.utc
+    timestamp1 = base_time.strftime("%Y%m%d%H%M%S")
+    timestamp2 = (base_time + 1).strftime("%Y%m%d%H%M%S")
+    create_post_types_migration(timestamp: timestamp1, skip_seo: skip_seo, json_content: json_content)
+    create_posts_migration(timestamp: timestamp2, skip_seo: skip_seo, json_content: json_content)
     puts ""
 
     # Step 2: Create models
@@ -38,8 +40,7 @@ namespace :bunko do
 
   # Helper methods
 
-  def create_post_types_migration(skip_seo:, json_content:)
-    timestamp = Time.now.utc.strftime("%Y%m%d%H%M%S")
+  def create_post_types_migration(timestamp:, skip_seo:, json_content:)
     migration_file = Rails.root.join("db/migrate/#{timestamp}_create_post_types.rb")
 
     if Dir.glob(Rails.root.join("db/migrate/*_create_post_types.rb")).any?
@@ -57,8 +58,7 @@ namespace :bunko do
     true
   end
 
-  def create_posts_migration(skip_seo:, json_content:)
-    timestamp = Time.now.utc.strftime("%Y%m%d%H%M%S")
+  def create_posts_migration(timestamp:, skip_seo:, json_content:)
     migration_file = Rails.root.join("db/migrate/#{timestamp}_create_posts.rb")
 
     if Dir.glob(Rails.root.join("db/migrate/*_create_posts.rb")).any?

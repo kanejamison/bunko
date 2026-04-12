@@ -1,0 +1,19 @@
+# frozen_string_literal: true
+
+class Avo::Actions::PublishPost < Avo::BaseAction
+  self.name = "Publish"
+  self.visible = -> { record.status != "published" }
+  self.message = "Are you sure you want to publish this post?"
+  self.confirm_button_label = "Publish"
+
+  def handle(**args)
+    args[:records].each do |post|
+      # Updates status to published
+      # Note: published_at is auto-set by Bunko callback if blank
+      # If published_at is already set (e.g. scheduled post), it will be preserved
+      post.update(status: "published")
+    end
+
+    succeed "Post(s) published successfully!"
+  end
+end

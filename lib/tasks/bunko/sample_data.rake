@@ -202,12 +202,12 @@ namespace :bunko do
 
           # Add routes for the created pages
           pages_to_create.each do |page_def|
-            # Home gets special treatment with path: "/"
+            # Home gets special treatment - add as root route
             if page_def[:slug] == "home"
-              if add_bunko_page_route(page_def[:slug], path: "/")
-                puts "  ✓ Added route: bunko_page :home, path: \"/\""
+              if add_root_route(page_def[:slug])
+                puts "  ✓ Added route: root \"pages#show\", defaults: { page: \"home\" }"
               else
-                puts "  - Route for :home already exists (skipped)"
+                puts "  - Root route already exists (skipped)"
               end
             elsif add_bunko_page_route(page_def[:slug])
               puts "  ✓ Added route: bunko_page :#{page_def[:slug].tr("-", "_")}"
@@ -238,6 +238,30 @@ namespace :bunko do
 
   def root_route_exists?
     Rails.application.routes.named_routes[:root].present?
+  end
+
+  def add_root_route(page_slug)
+    routes_file = Rails.root.join("config/routes.rb")
+    routes_content = File.read(routes_file)
+
+    # Check if root route already exists
+    if routes_content.match?(/^\s*root\s/)
+      return false
+    end
+
+    # Find the Rails.application.routes.draw block start
+    if routes_content.match?(/Rails\.application\.routes\.draw do/)
+      # Insert root route right after the 'do' line
+      updated_content = routes_content.sub(
+        /(Rails\.application\.routes\.draw do\n)/,
+        "\\1  root \"pages#show\", defaults: {page: \"#{page_slug}\"}\n\n"
+      )
+    else
+      return false
+    end
+
+    File.write(routes_file, updated_content)
+    true
   end
 
   def add_bunko_page_route(slug, path: nil)

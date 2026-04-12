@@ -2,10 +2,11 @@
 
 class PagesController < ApplicationController
   def show
-    # Extract page slug from request path (not user-controllable params)
+    # Extract page slug from route defaults (set by bunko_page routing helper)
+    # Falls back to extracting from request path for custom routes
     # This prevents path traversal attacks via query string manipulation
     # e.g., GET /about?page=../../admin/users
-    page_slug = request.path.split('/').reject(&:empty?).last
+    page_slug = params[:page] || request.path.split('/').reject(&:empty?).last
 
     @post = Post.published.find_by(
       post_type: PostType.find_by(name: "pages"),

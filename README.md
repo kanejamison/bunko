@@ -439,6 +439,74 @@ end
 
 **Note:** The `"pages"` post_type name is reserved for this feature. If you try to create a post_type named "pages", Bunko will raise an error.
 
+### Avo Admin Panel Integration
+
+Bunko provides a generator for creating an [Avo](https://avohq.io) admin panel with a clean editor layout.
+
+**Prerequisites:**
+
+1. Install Avo gem:
+```ruby
+# Gemfile
+gem "avo"
+```
+
+2. Install and configure Avo:
+```bash
+bundle install
+rails generate avo:install
+```
+
+**Generate Bunko Avo Resource:**
+
+```bash
+rails bunko:avo:install
+```
+
+This creates:
+- `app/avo/resources/post.rb` - Post resource with main content area and metadata sidebar
+- `app/avo/filters/post_type_filter.rb` - Filter posts by type
+- `app/avo/actions/publish_post.rb` - Quick publish action
+- `app/avo/actions/unpublish_post.rb` - Quick unpublish action
+
+**Editor Options:**
+
+Bunko defaults to Avo's markdown field (powered by [Marksmith](https://github.com/avo-hq/marksmith)), but supports multiple editors:
+
+```bash
+# Default: Markdown field (GitHub-style editor with Marksmith)
+rails bunko:avo:install
+
+# Rhino (TipTap-based WYSIWYG editor)
+EDITOR=rhino rails bunko:avo:install
+
+# TipTap (WYSIWYG editor)
+EDITOR=tiptap rails bunko:avo:install
+
+# Trix (Rails default rich text editor)
+EDITOR=trix rails bunko:avo:install
+
+# Plain textarea (simple text input)
+EDITOR=textarea rails bunko:avo:install
+```
+
+**Required gems for rich editors:**
+
+- **Markdown**: Add `gem "marksmith"` and `gem "commonmarker"` to your Gemfile
+- **Rhino**: Add `gem "avo-rhino_field"` to your Gemfile
+- **TipTap**: Add `gem "avo-tiptap_field"` to your Gemfile (if available)
+- **Trix**: Built into Rails (no additional gems needed)
+
+See the [Avo fields documentation](https://docs.avohq.io) for detailed setup instructions.
+
+**Layout:**
+
+The generated resource features:
+- **Main content area:** Title and content editor
+- **Sidebar:** Status, publishing options, post type, slug, SEO fields, content stats, and timestamps
+
+Visit `http://localhost:3000/avo` to access your admin panel.
+
 ### Configuration
 
 ```ruby

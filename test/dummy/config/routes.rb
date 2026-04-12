@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   # Root route
   root "blog#index"
 
+  # Home page - for testing bunko_page with path: "/"
+  bunko_page :home, path: "/home"
+
   # Blog routes (PostType)
   bunko_collection :blog
 

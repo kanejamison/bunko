@@ -42,6 +42,15 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
       status: "published",
       published_at: 1.day.ago
     )
+
+    @home_page = Post.create!(
+      title: "Home",
+      slug: "home",
+      content: "Welcome to our site",
+      post_type: @pages_type,
+      status: "published",
+      published_at: 1.day.ago
+    )
   end
 
   test "bunko_page finds page with hyphenated slug" do
@@ -148,5 +157,23 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     # Should load privacy-policy, not terms-and-conditions
     assert_match "Our privacy policy", response.body
     assert_no_match "Our terms", response.body
+  end
+
+  # Custom path tests
+  test "bunko_page with custom path loads correct page" do
+    # Route defined as: bunko_page :home, path: "/home"
+    # Should find Post with slug "home" using params[:page] default
+    get "/home"
+    assert_response :success
+    assert_match "Welcome to our site", response.body
+  end
+
+  test "custom path route ignores malicious query string params" do
+    # Attack: Try to override the home page via query string
+    get "/home?page=about-us"
+    assert_response :success
+    # Should still load the home page (params[:page] from route defaults takes precedence)
+    assert_match "Welcome to our site", response.body
+    assert_no_match "About our company", response.body
   end
 end

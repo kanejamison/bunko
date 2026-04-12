@@ -298,6 +298,56 @@ class BunkoSampleDataTaskTest < Minitest::Test
     ENV.delete("COUNT")
   end
 
+  def test_sample_data_adds_root_route_for_home_page
+    # Set up a temporary routes file
+    @routes_destination = File.expand_path("../../tmp/sample_data_routes_test", __dir__)
+    FileUtils.rm_rf(@routes_destination)
+    FileUtils.mkdir_p(File.join(@routes_destination, "config"))
+
+    routes_file = File.join(@routes_destination, "config/routes.rb")
+    File.write(routes_file, <<~RUBY)
+      Rails.application.routes.draw do
+      end
+    RUBY
+
+    # Create pages PostType
+    pages_type = PostType.create!(name: "pages", title: "Pages")
+
+    # Configure Bunko to allow static pages
+    Bunko.configuration.allow_static_pages = true
+
+    ENV["COUNT"] = "1"
+
+    # Mock Rails.root to point to our temp directory
+    original_root = Rails.root
+    destination = @routes_destination
+    Rails.singleton_class.class_eval do
+      define_method(:root) { Pathname.new(destination) }
+    end
+
+    # Run the task
+    run_rake_task("bunko:sample_data")
+
+    # Verify root route was added
+    routes_content = File.read(routes_file)
+    assert_match(/root "pages#show", defaults: \{page: "home"\}/, routes_content)
+
+    # Verify home page was created
+    home_page = Post.find_by(post_type: pages_type, slug: "home")
+    refute_nil home_page
+    assert_equal "Home", home_page.title
+  ensure
+    ENV.delete("COUNT")
+
+    # Restore Rails.root
+    Rails.singleton_class.class_eval do
+      define_method(:root) { original_root }
+    end
+
+    # Clean up
+    FileUtils.rm_rf(@routes_destination) if @routes_destination && File.exist?(@routes_destination)
+  end
+
   private
 
   def run_rake_task(task_name, *args)
