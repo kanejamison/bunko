@@ -54,7 +54,8 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
     # Test with a collection that doesn't have a PostType or Collection configured
     get "/nonexistent"
     assert_response :not_found
-    assert_match(/Collection 'nonexistent' not found/, response.body)
+    # Internal setup guidance must not leak to visitors (logged instead)
+    assert_no_match(/bunko:setup|initializers/, response.body)
   end
 
   test "index shows all published posts for the collection" do
@@ -103,7 +104,8 @@ class BunkoCollectionControllerTest < ActionDispatch::IntegrationTest
     # Test with a collection that doesn't have a PostType or Collection configured
     get "/nonexistent/any-slug"
     assert_response :not_found
-    assert_match(/Collection 'nonexistent' not found/, response.body)
+    # Internal setup guidance must not leak to visitors (logged instead)
+    assert_no_match(/bunko:setup|initializers/, response.body)
   end
 
   test "show finds post by slug" do

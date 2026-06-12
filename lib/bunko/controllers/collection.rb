@@ -48,8 +48,7 @@ module Bunko
           # Single PostType collection
           @post_type = PostType.find_by(name: @collection_name)
           unless @post_type
-            render plain: "PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]", status: :not_found
-            return
+            bunko_not_found!("PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]")
           end
 
           base_query = post_model.published.by_post_type(@collection_name)
@@ -62,8 +61,7 @@ module Bunko
             base_query = base_query.instance_exec(&collection_config[:scope])
           end
         else
-          render plain: "Collection '#{@collection_name}' not found. Add it to config/initializers/bunko.rb", status: :not_found
-          return
+          bunko_not_found!("Collection '#{@collection_name}' not found. Add it to config/initializers/bunko.rb")
         end
 
         # Apply ordering
@@ -83,30 +81,35 @@ module Bunko
 
         # Collections should not have show routes (posts are accessed via their canonical PostType URL)
         if collection_config
-          render plain: "Posts in this collection can only be accessed through their PostType URL. This collection only supports index.", status: :not_found
-          return
+          bunko_not_found!("Posts in collection '#{@collection_name}' can only be accessed through their PostType URL. This collection only supports index.")
         end
 
         if post_type_config
           # Single PostType collection
           @post_type = PostType.find_by(name: @collection_name)
           unless @post_type
-            render plain: "PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]", status: :not_found
-            return
+            bunko_not_found!("PostType '#{@collection_name}' not found in database. Run: rails bunko:setup[#{@collection_name}]")
           end
 
           base_query = post_model.published.by_post_type(@collection_name)
         else
-          render plain: "Collection '#{@collection_name}' not found. Add it to config/initializers/bunko.rb", status: :not_found
-          return
+          bunko_not_found!("Collection '#{@collection_name}' not found. Add it to config/initializers/bunko.rb")
         end
 
         # Find post by slug within this collection
         @post = base_query.find_by(slug: params[:slug])
 
         unless @post
-          render plain: "Post not found", status: :not_found
+          bunko_not_found!("Post with slug '#{params[:slug]}' not found in '#{@collection_name}'")
         end
+      end
+
+      # Raises a standard 404 so the host app's not-found handling applies.
+      # The detailed reason is logged for developers but never sent to visitors,
+      # since these messages reference internal setup commands and config paths.
+      def bunko_not_found!(reason)
+        Rails.logger.warn("[Bunko] #{reason}")
+        raise ActiveRecord::RecordNotFound, reason
       end
 
       def post_model
