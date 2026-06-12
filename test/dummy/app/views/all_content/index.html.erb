@@ -7,7 +7,7 @@
         <article class="post-preview">
           <h2>
             <%# Collections link to canonical PostType URLs %>
-            <%= link_to post.title, send("#{post.post_type.name.singularize}_path", post.slug) %>
+            <%= link_to post.title, public_send("#{post.post_type.name.singularize}_path", post.slug) %>
           </h2>
 
           <div class="post-meta">

@@ -25,6 +25,27 @@ class PostTypeTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:name], "has already been taken"
   end
 
+  test "rejects names with characters outside lowercase letters, numbers, and underscores" do
+    ["Blog", "case-study", "blog posts", "blog/admin", "blog;drop", "blog_path "].each do |invalid_name|
+      post_type = PostType.new(name: invalid_name, title: "Test")
+      refute post_type.valid?, "expected name #{invalid_name.inspect} to be invalid"
+      assert_includes post_type.errors[:name], "must contain only lowercase letters, numbers, and underscores"
+    end
+  end
+
+  test "allows names with lowercase letters, numbers, and underscores" do
+    %w[blog case_study docs2].each do |valid_name|
+      post_type = PostType.new(name: valid_name, title: "Test")
+      assert post_type.valid?, "expected name #{valid_name.inspect} to be valid: #{post_type.errors.full_messages}"
+    end
+  end
+
+  test "rejects names longer than 100 characters" do
+    post_type = PostType.new(name: "a" * 101, title: "Test")
+    refute post_type.valid?
+    assert post_type.errors[:name].any? { |e| e.include?("too long") }
+  end
+
   test "allows different names for different post types" do
     PostType.create!(name: "blog", title: "Blog")
 
@@ -113,13 +134,14 @@ class PostTypeTest < ActiveSupport::TestCase
     assert_equal "case_study", post_type.name
   end
 
-  test "name is case sensitive for uniqueness" do
+  test "uppercase name variants are rejected by format validation" do
     PostType.create!(name: "blog", title: "Blog")
 
-    # Different case - should be considered different in most DBs
-    # But this depends on DB collation settings
+    # Format validation only allows lowercase, so case-variant duplicates
+    # (e.g. "BLOG" vs "blog") cannot exist regardless of DB collation
     uppercase = PostType.new(name: "BLOG", title: "BLOG")
-    assert uppercase.valid?
+    refute uppercase.valid?
+    assert_includes uppercase.errors[:name], "must contain only lowercase letters, numbers, and underscores"
   end
 
   test "handles very long titles" do

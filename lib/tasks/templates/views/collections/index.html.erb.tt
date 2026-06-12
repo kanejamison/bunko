@@ -11,7 +11,7 @@
           <h2>
             <% if is_collection %>
             <%# Collections link to canonical PostType URLs %>
-            <%%= link_to post.title, send("#{post.post_type.name.singularize}_path", post.slug) %>
+            <%%= link_to post.title, public_send("#{post.post_type.name.singularize}_path", post.slug) %>
             <% else %>
             <%# PostTypes link to their own show page %>
             <%%= link_to post.title, <%= path_helper %>(post.slug) %>
