@@ -152,6 +152,17 @@ class CollectionConcernTest < ActiveSupport::TestCase
     assert_nothing_raised { @controller.pagination_metadata }
   end
 
+  test "paginate treats negative per_page as 1" do
+    @controller.instance_variable_set(:@bunko_collection_options, {per_page: -5})
+    @controller.params = {page: 1}
+
+    query = Post.published
+    paginated = @controller.paginate(query)
+
+    assert_equal 1, paginated.count
+    assert_equal 1, @controller.instance_variable_get(:@_per_page)
+  end
+
   test "paginate clamps page beyond last page" do
     @controller.instance_variable_set(:@bunko_collection_options, {per_page: 2})
     @controller.params = {page: 9_999_999}

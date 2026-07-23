@@ -198,6 +198,18 @@ class PaginationTest < ActionDispatch::IntegrationTest
     assert_equal 1, pagination[:current_page], "Non-scalar page should fall back to page 1"
   end
 
+  test "page parameter on empty collection does not raise" do
+    Post.where(post_type: @blog_type).destroy_all
+
+    get "/blog", params: {page: 5}
+    assert_response :success
+
+    pagination = controller.instance_variable_get(:@pagination)
+    assert_equal 1, pagination[:current_page]
+    assert_equal 0, pagination[:total_count]
+    assert_nil pagination[:next_page]
+  end
+
   test "non-numeric page parameter is treated as page 1" do
     get "/blog", params: {page: "abc"}
     assert_response :success
