@@ -5,7 +5,7 @@ class PagesController < ApplicationController
     # Extract page slug from request path (not user-controllable params)
     # This prevents path traversal attacks via query string manipulation
     # e.g., GET /about?page=../../admin/users
-    page_slug = request.path.split('/').reject(&:empty?).last
+    page_slug = request.path.split("/").reject(&:empty?).last
 
     @post = Post.published.find_by(
       post_type: PostType.find_by(name: "pages"),

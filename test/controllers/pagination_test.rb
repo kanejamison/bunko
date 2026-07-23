@@ -162,16 +162,60 @@ class PaginationTest < ActionDispatch::IntegrationTest
     assert_equal 1, pagination[:current_page], "Negative page should be normalized to page 1"
   end
 
-  test "page beyond last page shows empty results" do
+  test "page beyond last page is clamped to last page" do
     get "/blog", params: {page: 99}
     assert_response :success
 
     pagination = controller.instance_variable_get(:@pagination)
     posts = controller.instance_variable_get(:@posts)
 
-    assert_equal 99, pagination[:current_page]
-    assert_equal 0, posts.count, "Page beyond last should show no posts"
-    assert_nil pagination[:next_page], "Page beyond last should have no next_page"
+    assert_equal 3, pagination[:current_page], "Page beyond last should clamp to last page"
+    assert_equal 5, posts.count, "Clamped page should show last page's posts"
+    assert_nil pagination[:next_page], "Last page should have no next_page"
+  end
+
+  test "extremely large page number is clamped instead of producing unbounded offset" do
+    get "/blog", params: {page: "99999999999999999999"}
+    assert_response :success
+
+    pagination = controller.instance_variable_get(:@pagination)
+    assert_equal 3, pagination[:current_page]
+  end
+
+  test "array page parameter does not raise" do
+    get "/blog", params: {page: [1]}
+    assert_response :success
+
+    pagination = controller.instance_variable_get(:@pagination)
+    assert_equal 1, pagination[:current_page], "Non-scalar page should fall back to page 1"
+  end
+
+  test "hash page parameter does not raise" do
+    get "/blog", params: {page: {injected: 1}}
+    assert_response :success
+
+    pagination = controller.instance_variable_get(:@pagination)
+    assert_equal 1, pagination[:current_page], "Non-scalar page should fall back to page 1"
+  end
+
+  test "page parameter on empty collection does not raise" do
+    Post.where(post_type: @blog_type).destroy_all
+
+    get "/blog", params: {page: 5}
+    assert_response :success
+
+    pagination = controller.instance_variable_get(:@pagination)
+    assert_equal 1, pagination[:current_page]
+    assert_equal 0, pagination[:total_count]
+    assert_nil pagination[:next_page]
+  end
+
+  test "non-numeric page parameter is treated as page 1" do
+    get "/blog", params: {page: "abc"}
+    assert_response :success
+
+    pagination = controller.instance_variable_get(:@pagination)
+    assert_equal 1, pagination[:current_page]
   end
 
   # Total Pages Calculation Tests

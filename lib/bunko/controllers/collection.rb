@@ -129,16 +129,18 @@ module Bunko
       end
 
       def paginate(query)
-        page_number = [params[:page].to_i, 1].max
-        per_page = bunko_collection_options[:per_page]
+        # to_s guards against non-scalar params (?page[]=1 arrives as an Array),
+        # and clamping to total_pages keeps the OFFSET bounded by real data.
+        per_page = [bunko_collection_options[:per_page].to_i, 1].max
+        total_count = query.count
+        total_pages = [(total_count.to_f / per_page).ceil, 1].max
+        page_number = params[:page].to_s.to_i.clamp(1, total_pages)
 
-        offset = (page_number - 1) * per_page
-
-        @_total_count = query.count
+        @_total_count = total_count
         @_current_page = page_number
         @_per_page = per_page
 
-        query.limit(per_page).offset(offset)
+        query.limit(per_page).offset((page_number - 1) * per_page)
       end
 
       def pagination_metadata
