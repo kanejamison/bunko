@@ -12,7 +12,10 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     name: Tests - Ruby ${{ matrix.ruby }}
-    strategy: { matrix: { ruby: [3.2, 3.3, 3.4, 4.0] } }
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ["4.0"]
 
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +34,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4
+          ruby-version: "4.0"
           bundler-cache: true
       - name: bundle install
         run: bundle install
@@ -48,7 +51,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4
+          ruby-version: "4.0"
           bundler-cache: true
       - name: bundle install
         run: bundle install

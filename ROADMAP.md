@@ -462,7 +462,7 @@ New developer can:
 
 **Compatibility:**
 - Works with Rails 8.0+ and follows Rails EOL maintenance policy
-- Works with Ruby 3.2, 3.3, 3.4 and follows Ruby EOL maintenance policy
+- Works with Ruby 4.0+ and follows Ruby EOL maintenance policy
 - Works with PostgreSQL, SQLite, MySQL
 - Test coverage > 90%
 - All Standard linter checks pass
