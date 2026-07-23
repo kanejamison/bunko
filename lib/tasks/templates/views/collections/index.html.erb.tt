@@ -45,7 +45,7 @@
     </div>
 
     <%% if @pagination[:total_pages] > 1 %>
-      <section class="pagination" style=display: flex; justify-content: space-between;">
+      <section class="pagination" style="display: flex; justify-content: space-between;">
         <%% if @pagination[:prev_page] %>
           <%%= link_to "← Previous", <%= index_path_helper %>(page: @pagination[:current_page] - 1), class: "pagination-prev" %>
         <%% end %>
