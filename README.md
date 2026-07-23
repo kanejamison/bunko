@@ -728,7 +728,7 @@ test/
 ### CI Testing
 
 GitHub Actions runs the full test suite on every PR:
-- Ruby versions: 4.0 (4.1 forward/experimental)
+- Ruby versions: 4.0
 - All tests with fresh generated code
 - StandardRB linting
 - Brakeman security scans (Rails 8.0.x and 8.1.x)

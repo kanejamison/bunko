@@ -12,16 +12,10 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     name: Tests - Ruby ${{ matrix.ruby }}
-    # Ruby 4.1 is forward/experimental testing and is allowed to fail without
-    # failing the workflow (e.g. before it ships a stable release).
-    continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       fail-fast: false
       matrix:
         ruby: ["4.0"]
-        include:
-          - ruby: "4.1"
-            experimental: true
 
     steps:
       - uses: actions/checkout@v4
