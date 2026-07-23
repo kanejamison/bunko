@@ -72,6 +72,9 @@ bundle exec rake build
 bundle exec rake release
 ```
 
+**On each release, also update:**
+- `SECURITY.md` - Update the "Supported Versions" table to reflect the currently supported release(s).
+
 ## Project Structure
 
 ```
