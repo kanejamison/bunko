@@ -29,7 +29,7 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 
 ## Requirements
 
-- Ruby >= 3.2.0
+- Ruby >= 4.0
 - Rails >= 8.0
 
 ## Quick Start
@@ -728,7 +728,7 @@ test/
 ### CI Testing
 
 GitHub Actions runs the full test suite on every PR:
-- Ruby versions: 3.2, 3.3, 3.4, 3.5
+- Ruby versions: 4.0 (4.1 forward/experimental)
 - All tests with fresh generated code
 - StandardRB linting
 - Brakeman security scans (Rails 8.0.x and 8.1.x)

@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Bunko provides a lightweight CMS structure for Rails based on a 'one model, infinite collections' philosophy. Create multiple content collections (blog, docs, changelog) without duplicate code or migrations."
   spec.homepage = "https://github.com/kanejamison/bunko"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2"
+  spec.required_ruby_version = ">= 4.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["changelog_uri"] = "https://github.com/kanejamison/bunko/blob/main/CHANGELOG.md"
