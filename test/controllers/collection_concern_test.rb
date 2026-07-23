@@ -140,6 +140,38 @@ class CollectionConcernTest < ActiveSupport::TestCase
     assert_equal 1, @controller.instance_variable_get(:@_current_page)
   end
 
+  test "paginate treats per_page 0 as 1 instead of dividing by zero" do
+    @controller.instance_variable_set(:@bunko_collection_options, {per_page: 0})
+    @controller.params = {page: 1}
+
+    query = Post.published
+    paginated = @controller.paginate(query)
+
+    assert_equal 1, paginated.count
+    assert_equal 1, @controller.instance_variable_get(:@_per_page)
+    assert_nothing_raised { @controller.pagination_metadata }
+  end
+
+  test "paginate clamps page beyond last page" do
+    @controller.instance_variable_set(:@bunko_collection_options, {per_page: 2})
+    @controller.params = {page: 9_999_999}
+
+    query = Post.published
+    @controller.paginate(query)
+
+    assert_equal 2, @controller.instance_variable_get(:@_current_page)
+  end
+
+  test "paginate handles non-scalar page param" do
+    @controller.instance_variable_set(:@bunko_collection_options, {per_page: 2})
+    @controller.params = {page: ["1"]}
+
+    query = Post.published
+    @controller.paginate(query)
+
+    assert_equal 1, @controller.instance_variable_get(:@_current_page)
+  end
+
   test "pagination_metadata returns correct hash structure" do
     @controller.instance_variable_set(:@_current_page, 2)
     @controller.instance_variable_set(:@_per_page, 5)
