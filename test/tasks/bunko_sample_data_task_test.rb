@@ -298,6 +298,128 @@ class BunkoSampleDataTaskTest < Minitest::Test
     ENV.delete("COUNT")
   end
 
+  def test_sample_data_clear_preserves_static_pages
+    original_allow = Bunko.configuration.allow_static_pages
+    Bunko.configuration.allow_static_pages = false
+
+    pages_type = PostType.create!(name: "pages", title: "Pages")
+    Post.create!(
+      post_type: pages_type,
+      title: "About",
+      slug: "about",
+      content: "Hand-authored page content",
+      status: "published",
+      published_at: Time.now
+    )
+    Post.create!(
+      post_type: @blog_type,
+      title: "Old Post",
+      slug: "old-post",
+      content: "Old content",
+      status: "published",
+      published_at: Time.now
+    )
+
+    ENV["COUNT"] = "1"
+    ENV["CLEAR"] = "true"
+
+    run_rake_task("bunko:sample_data")
+
+    assert Post.exists?(slug: "about"), "Hand-authored page should survive CLEAR=true"
+    refute Post.exists?(slug: "old-post"), "Non-page posts should be cleared"
+  ensure
+    ENV.delete("COUNT")
+    ENV.delete("CLEAR")
+    Bunko.configuration.allow_static_pages = original_allow
+  end
+
+  def test_sample_data_clear_reports_actual_deleted_count
+    3.times do |i|
+      Post.create!(
+        post_type: @blog_type,
+        title: "Existing Post #{i}",
+        slug: "existing-post-#{i}",
+        content: "Test content",
+        status: "published",
+        published_at: Time.now
+      )
+    end
+
+    ENV["COUNT"] = "1"
+    ENV["CLEAR"] = "true"
+
+    output = capture_io do
+      run_rake_task("bunko:sample_data")
+    end
+
+    assert_match(/Cleared 3 posts/, output.join)
+  ensure
+    ENV.delete("COUNT")
+    ENV.delete("CLEAR")
+  end
+
+  def test_sample_data_aborts_in_production_with_non_interactive_stdin
+    $stdin = StringIO.new("") # StringIO is not a TTY, simulating CI/cron/piped stdin
+
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+      error = assert_raises(SystemExit) do
+        capture_io { run_rake_task("bunko:sample_data") }
+      end
+
+      assert_match(/CONFIRM_PRODUCTION/, error.message)
+    end
+
+    assert_equal 0, Post.count, "No posts should be created when the production guard aborts"
+  end
+
+  def test_sample_data_aborts_in_production_when_interactive_stdin_returns_eof
+    stdin = StringIO.new("") # gets returns nil (EOF)
+    stdin.define_singleton_method(:tty?) { true }
+    $stdin = stdin
+
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+      error = assert_raises(SystemExit) do
+        capture_io { run_rake_task("bunko:sample_data") }
+      end
+
+      assert_match(/no confirmation received/, error.message)
+    end
+
+    assert_equal 0, Post.count, "EOF must not be treated as consent"
+  end
+
+  def test_sample_data_runs_in_production_with_confirm_production_env
+    ENV["CONFIRM_PRODUCTION"] = "true"
+    ENV["COUNT"] = "1"
+    $stdin = StringIO.new("") # non-interactive
+
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+      capture_io { run_rake_task("bunko:sample_data") }
+    end
+
+    assert_equal 3, Post.count # 1 post × 3 post types
+  ensure
+    ENV.delete("CONFIRM_PRODUCTION")
+    ENV.delete("COUNT")
+  end
+
+  def test_sample_data_prompts_in_production_with_interactive_stdin
+    stdin = StringIO.new("\n") # Simulates pressing Enter
+    stdin.define_singleton_method(:tty?) { true }
+    $stdin = stdin
+    ENV["COUNT"] = "1"
+
+    output = nil
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+      output = capture_io { run_rake_task("bunko:sample_data") }
+    end
+
+    assert_match(/PRODUCTION/, output.join)
+    assert_equal 3, Post.count # 1 post × 3 post types
+  ensure
+    ENV.delete("COUNT")
+  end
+
   private
 
   def run_rake_task(task_name, *args)

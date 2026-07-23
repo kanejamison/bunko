@@ -19,12 +19,18 @@ namespace :bunko do
 
   desc "Generate sample posts for all configured post types"
   task sample_data: :environment do
-    # Warn if running in production
-    if Rails.env.production?
+    # Guard against accidental runs in production
+    if Rails.env.production? && ENV.fetch("CONFIRM_PRODUCTION", "false").downcase != "true"
+      unless $stdin.tty?
+        abort "⚠️  Refusing to run bunko:sample_data in PRODUCTION with non-interactive stdin.\n" \
+          "    Re-run with CONFIRM_PRODUCTION=true to proceed."
+      end
+
       puts ""
       puts "⚠️  WARNING: You're about to generate sample data in PRODUCTION"
       puts "    Press Ctrl+C to cancel, or Enter to continue..."
-      $stdin.gets
+      # EOF (nil) is not consent — abort unless we actually received input
+      abort "Aborted: no confirmation received." if $stdin.gets.nil?
       puts ""
     end
 
@@ -52,11 +58,16 @@ namespace :bunko do
     puts "  Clear existing: #{clear_existing ? "Yes" : "No"}"
     puts ""
 
-    # Clear existing posts if requested
+    # Clear existing posts if requested (static pages are preserved —
+    # generation never recreates hand-authored pages, so clearing them would be asymmetric)
     if clear_existing
-      puts "Clearing existing posts..."
-      Post.destroy_all
-      puts "✓ Cleared #{Post.count} posts"
+      pages_post_type = PostType.find_by(name: "pages")
+      posts_to_clear = pages_post_type ? Post.where.not(post_type: pages_post_type) : Post.all
+      cleared_count = posts_to_clear.count
+
+      puts "Clearing #{cleared_count} existing post(s) (static pages are preserved)..."
+      posts_to_clear.destroy_all
+      puts "✓ Cleared #{cleared_count} posts"
       puts ""
     end
 
