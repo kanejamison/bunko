@@ -2,11 +2,19 @@
 
 module Legal
   class PagesController < ApplicationController
+    # Matches Bunko's slug format (lowercase letters, digits, hyphens)
+    PAGE_SLUG_FORMAT = /\A[a-z0-9-]+\z/
+
     def show
-      # Extract page slug from request path (not user-controllable params)
-      # This prevents path traversal attacks via query string manipulation
-      # e.g., GET /legal/privacy-policy?page=../../admin/users
-      page_slug = request.path.split("/").reject(&:empty?).last
+      # The bunko_page route supplies the slug via defaults: {page: ...}.
+      # Route defaults become path parameters, which take precedence over
+      # query string params in Rails, so a visitor cannot override the slug
+      # with e.g. GET /legal/privacy-policy?page=other-page
+      page_slug = params[:page].to_s
+
+      unless page_slug.match?(PAGE_SLUG_FORMAT)
+        raise ActiveRecord::RecordNotFound, "Page not found"
+      end
 
       @post = Post.published.find_by(
         post_type: PostType.find_by(name: "pages"),

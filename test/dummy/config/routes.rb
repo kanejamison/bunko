@@ -29,6 +29,9 @@ Rails.application.routes.draw do
   bunko_page :draft_page
   bunko_page :non_existent
 
+  # Custom path - URL differs from the page slug (issue #57 regression)
+  bunko_page :our_mission, path: "mission-statement"
+
   # Namespaced pages - test bunko_page in namespace
   namespace :legal do
     bunko_page :privacy_policy

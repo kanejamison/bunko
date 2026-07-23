@@ -42,6 +42,15 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
       status: "published",
       published_at: 1.day.ago
     )
+
+    @mission_page = Post.create!(
+      title: "Our Mission",
+      slug: "our-mission",  # Route uses a custom path: "mission-statement"
+      content: "Our mission statement",
+      post_type: @pages_type,
+      status: "published",
+      published_at: 1.day.ago
+    )
   end
 
   test "bunko_page finds page with hyphenated slug" do
@@ -65,6 +74,67 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get "/terms-and-conditions"
     assert_response :success
     assert_match "Terms and Conditions", response.body
+  end
+
+  # Custom path tests (issue #57)
+  test "bunko_page with custom path finds page by slug, not path" do
+    # Route defined as bunko_page :our_mission, path: "mission-statement"
+    # URL is /mission-statement, but the post's slug is "our-mission"
+    get "/mission-statement"
+    assert_response :success
+    assert_match "Our mission statement", response.body
+  end
+
+  test "bunko_page with custom path ignores query string params" do
+    get "/mission-statement?page=privacy-policy"
+    assert_response :success
+    assert_match "Our mission statement", response.body
+    assert_no_match "Our privacy policy", response.body
+  end
+
+  # Root path tests (issue #57)
+  test "bunko_page with root path renders the home page" do
+    Post.create!(
+      title: "Home",
+      slug: "home",
+      content: "Welcome to the home page",
+      post_type: @pages_type,
+      status: "published",
+      published_at: 1.day.ago
+    )
+
+    # bunko:sample_data generates this route setup: a home page at "/"
+    # The nav partial needs root_path and the collection helpers, so draw
+    # a complete route set
+    Rails.application.routes.draw do
+      bunko_page :home, path: "/"
+      root "blog#index"
+      bunko_collection :blog
+      bunko_collection :docs
+      bunko_collection :articles
+      bunko_collection :videos
+      bunko_collection :long_reads
+      bunko_collection :all_content
+    end
+
+    get "/"
+    assert_response :success
+    assert_match "Welcome to the home page", response.body
+  ensure
+    Rails.application.reload_routes!
+  end
+
+  test "pages controller rejects malformed page slugs with 404" do
+    # A route misconfigured with an unsafe default should 404, not query
+    # or render anything
+    Rails.application.routes.draw do
+      get "/evil", to: "pages#show", defaults: {page: "../../etc/passwd"}
+    end
+
+    get "/evil"
+    assert_response :not_found
+  ensure
+    Rails.application.reload_routes!
   end
 
   test "bunko_page returns 404 for non-existent page" do
