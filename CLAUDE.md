@@ -144,6 +144,14 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 - Tests use **Minitest** framework
 - CI runs on GitHub Actions (`.github/workflows/main.yml`) and executes `bundle exec rake`
 
+### Linking Work to GitHub Issues
+
+When working on a GitHub issue/ticket, always include a closing keyword so the issue closes automatically on merge:
+
+- Add `Closes #xx` (or `Fixes #xx`) to the **pull request description** — this is what GitHub uses to auto-close the issue when the PR merges
+- Also include it in the commit message body when the commit resolves the issue
+- Use one line per issue if a change resolves multiple issues (e.g., `Closes #12`, `Closes #34`)
+
 ## Current Features (Implemented)
 
 **Milestone 1 - Post Model Behavior:**
