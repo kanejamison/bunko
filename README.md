@@ -755,7 +755,7 @@ RAILS_VERSION="~> 8.1.0" bundle exec rake brakeman:vendor_scan
 
 **Reporting Security Issues:**
 
-Please report vulnerabilities privately via email rather than public GitHub issues.
+Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md) — rather than via public GitHub issues.
 
 **Security Best Practices:**
 
