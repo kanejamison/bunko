@@ -2,6 +2,9 @@
 
 Building toward 1.0.0 release. Using 0.x versions during active development.
 
+**Fixed:**
+- `PagesController` now reads the page slug from the route's `defaults: {page: ...}` (via `params[:page]`) instead of parsing `request.path`, fixing 404s for root-path pages (`bunko_page :home, path: "/"`) and pages with custom paths (`bunko_page :about, path: "about-us"`) (#57)
+
 ## [0.2.0] - 2025-11-14
 
 First functional release of Bunko - a lightweight Rails CMS based on the "one model, infinite collections" philosophy.

@@ -149,4 +149,92 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_match "Our privacy policy", response.body
     assert_no_match "Our terms", response.body
   end
+
+  # Regression tests for slug derivation (GitHub issue #57)
+  # The slug must come from the route's defaults, not from request.path
+
+  test "bunko_page with root path renders the home page" do
+    Post.create!(
+      title: "Home",
+      slug: "home",
+      content: "Welcome to the home page",
+      post_type: @pages_type,
+      status: "published",
+      published_at: 1.day.ago
+    )
+
+    draw_dummy_routes_with do
+      bunko_page :home, path: "/"
+    end
+
+    get "/"
+    assert_response :success
+    assert_match "Welcome to the home page", response.body
+  ensure
+    Rails.application.reload_routes!
+  end
+
+  test "bunko_page with custom path finds post by page name, not path" do
+    Post.create!(
+      title: "About",
+      slug: "about",
+      content: "All about the company",
+      post_type: @pages_type,
+      status: "published",
+      published_at: 1.day.ago
+    )
+
+    draw_dummy_routes_with do
+      bunko_page :about, path: "company-info"
+    end
+
+    get "/company-info"
+    assert_response :success
+    assert_match "All about the company", response.body
+  ensure
+    Rails.application.reload_routes!
+  end
+
+  test "query param cannot override route default on custom-path page" do
+    Post.create!(
+      title: "About",
+      slug: "about",
+      content: "All about the company",
+      post_type: @pages_type,
+      status: "published",
+      published_at: 1.day.ago
+    )
+
+    draw_dummy_routes_with do
+      bunko_page :about, path: "about-us"
+    end
+
+    get "/about-us?page=privacy-policy"
+    assert_response :success
+    # Route default (page: "about") wins over the query string param
+    assert_match "All about the company", response.body
+    assert_no_match "Our privacy policy", response.body
+  ensure
+    Rails.application.reload_routes!
+  end
+
+  private
+
+  # Redraws the dummy app's routes with extra routes prepended, so tests can
+  # exercise bunko_page options (root path, custom paths) the committed routes
+  # file doesn't use. The shared nav partial links to every collection, so the
+  # full set from test/dummy/config/routes.rb must stay present.
+  def draw_dummy_routes_with(&extra)
+    Rails.application.routes.draw do
+      instance_exec(&extra)
+
+      root "blog#index"
+      bunko_collection :blog
+      bunko_collection :docs
+      bunko_collection :articles
+      bunko_collection :videos
+      bunko_collection :long_reads
+      bunko_collection :all_content
+    end
+  end
 end

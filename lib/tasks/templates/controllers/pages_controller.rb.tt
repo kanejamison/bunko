@@ -2,10 +2,16 @@
 
 class PagesController < ApplicationController
   def show
-    # Extract page slug from request path (not user-controllable params)
-    # This prevents path traversal attacks via query string manipulation
-    # e.g., GET /about?page=../../admin/users
-    page_slug = request.path.split("/").reject(&:empty?).last
+    # The page slug comes from the route's defaults (bunko_page sets
+    # defaults: {page: ...}). Route defaults are path parameters, which
+    # take precedence over query string params in Rails, so
+    # e.g. GET /about?page=../../admin/users cannot override the slug.
+    page_slug = params[:page].to_s
+
+    # Format guard in case this action is wired up without a :page default
+    unless page_slug.match?(/\A[a-z0-9-]+\z/)
+      raise ActiveRecord::RecordNotFound, "Page not found"
+    end
 
     @post = Post.published.find_by(
       post_type: PostType.find_by(name: "pages"),
