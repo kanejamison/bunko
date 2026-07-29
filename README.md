@@ -501,6 +501,19 @@ Valid `BUNKO_EDITOR` values are `markdown`, `rhino`, `tiptap`, `trix`, and `text
 
 See the [Avo fields documentation](https://docs.avohq.io) for detailed setup instructions.
 
+**Search (Ransack):**
+
+The generated resource's search block uses [Ransack](https://github.com/activerecord-hackery/ransack). Two things to know:
+
+1. Ransack is not installed by this generator. If it's missing from your bundle, searching the resource will raise — add `gem "ransack"` to your Gemfile, or remove the `self.search` block from `app/avo/resources/post.rb` (Avo will simply not offer search for the resource).
+2. Ransack 4+ requires an explicit allowlist on the model. Add this to `app/models/post.rb`:
+
+```ruby
+def self.ransackable_attributes(auth_object = nil) = %w[id title slug]
+```
+
+Keep the allowlist to `id`/`title`/`slug` only — never `status` or `content`, since Avo search also runs over unpublished drafts.
+
 **Layout:**
 
 The generated resource features:

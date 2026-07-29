@@ -222,6 +222,14 @@ class BunkoAvoTaskTest < Minitest::Test
     assert_match(/field :content, as: :markdown/, content)
   end
 
+  def test_avo_install_prints_ransack_allowlist_next_step
+    output = capture_io { run_rake_task("bunko:avo:install") }.join
+
+    # Explicit allowlist instructions - id/title/slug only, never status/content
+    assert_match(/def self\.ransackable_attributes\(auth_object = nil\) = %w\[id title slug\]/, output)
+    assert_match(/never status or content/, output)
+  end
+
   def test_avo_install_aborts_on_invalid_bunko_editor
     output = StringIO.new
     original_stdout = $stdout
