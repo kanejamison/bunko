@@ -222,6 +222,15 @@ class BunkoAvoTaskTest < Minitest::Test
     assert_match(/field :content, as: :markdown/, content)
   end
 
+  def test_avo_install_prints_authentication_security_warning
+    output = capture_io { run_rake_task("bunko:avo:install") }.join
+
+    # The admin panel is unauthenticated until Avo auth is configured
+    assert_match(/SECURITY/, output)
+    assert_match(/authenticate_with/, output)
+    assert_match(%r{https://docs\.avohq\.io/3\.0/authentication\.html}, output)
+  end
+
   def test_avo_install_prints_ransack_allowlist_next_step
     output = capture_io { run_rake_task("bunko:avo:install") }.join
 

@@ -522,6 +522,8 @@ The generated resource features:
 
 Visit `http://localhost:3000/avo` to access your admin panel.
 
+> **⚠️ Security:** The generated admin panel is wide open until you configure Avo's authentication. Set up `authenticate_with` (and authorization) in `config/initializers/avo.rb` before deploying — see [Avo's authentication docs](https://docs.avohq.io/3.0/authentication.html).
+
 ### Configuration
 
 ```ruby
