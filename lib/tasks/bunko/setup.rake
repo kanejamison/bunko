@@ -4,8 +4,6 @@ require "fileutils"
 require_relative "helpers"
 
 namespace :bunko do
-  include Bunko::RakeHelpers
-
   desc "Set up Bunko by creating all configured PostTypes and Collections"
   task setup: :environment do
     puts "Setting up Bunko..."
@@ -31,15 +29,15 @@ namespace :bunko do
 
     # Generate shared partials once
     puts "Generating shared partials..."
-    generate_shared_nav
-    generate_shared_styles
-    generate_shared_footer
+    Bunko::RakeHelpers.generate_shared_nav
+    Bunko::RakeHelpers.generate_shared_styles
+    Bunko::RakeHelpers.generate_shared_footer
     puts ""
 
     # Set up static pages if enabled
     if allow_static_pages
       puts "Setting up static pages..."
-      setup_static_pages
+      Bunko::RakeHelpers.setup_static_pages
       puts ""
     end
 
@@ -79,108 +77,5 @@ namespace :bunko do
     puts "To add more later, update your initializer and run:"
     puts "  rails bunko:add[name]"
     puts "=" * 79
-  end
-
-  # Helper methods
-
-  def generate_shared_nav
-    shared_dir = Rails.root.join("app/views/shared")
-    nav_file = shared_dir.join("_bunko_nav.html.erb")
-
-    if File.exist?(nav_file)
-      puts "  - _bunko_nav.html.erb already exists (skipped)"
-      return false
-    end
-
-    FileUtils.mkdir_p(shared_dir)
-
-    nav_content = render_template("views/layouts/bunko_nav.html.erb.tt", {})
-    File.write(nav_file, nav_content)
-
-    puts "  ✓ Created shared/_bunko_nav.html.erb"
-    true
-  end
-
-  def generate_shared_styles
-    shared_dir = Rails.root.join("app/views/shared")
-    styles_file = shared_dir.join("_bunko_styles.html.erb")
-
-    if File.exist?(styles_file)
-      puts "  - _bunko_styles.html.erb already exists (skipped)"
-      return false
-    end
-
-    FileUtils.mkdir_p(shared_dir)
-
-    styles_content = render_template("views/layouts/bunko_styles.html.erb.tt", {})
-    File.write(styles_file, styles_content)
-
-    puts "  ✓ Created shared/_bunko_styles.html.erb"
-    true
-  end
-
-  def generate_shared_footer
-    shared_dir = Rails.root.join("app/views/shared")
-    footer_file = shared_dir.join("_bunko_footer.html.erb")
-
-    if File.exist?(footer_file)
-      puts "  - _bunko_footer.html.erb already exists (skipped)"
-      return false
-    end
-
-    FileUtils.mkdir_p(shared_dir)
-
-    footer_content = render_template("views/layouts/bunko_footer.html.erb.tt", {})
-    File.write(footer_file, footer_content)
-
-    puts "  ✓ Created shared/_bunko_footer.html.erb"
-    true
-  end
-
-  def setup_static_pages
-    # Create "pages" PostType in database
-    PostType.find_or_create_by!(name: "pages") do |pt|
-      pt.title = "Pages"
-    end
-    puts "  ✓ Created 'pages' PostType in database"
-
-    # Generate PagesController
-    generate_pages_controller
-
-    # Generate pages/show.html.erb view
-    generate_pages_show_view
-  end
-
-  def generate_pages_controller
-    controller_path = Rails.root.join("app/controllers/pages_controller.rb")
-
-    if File.exist?(controller_path)
-      puts "  - pages_controller.rb already exists (skipped)"
-      return false
-    end
-
-    controller_content = render_template("controllers/pages_controller.rb.tt", {})
-    File.write(controller_path, controller_content)
-
-    puts "  ✓ Created app/controllers/pages_controller.rb"
-    true
-  end
-
-  def generate_pages_show_view
-    views_dir = Rails.root.join("app/views/pages")
-    show_file = views_dir.join("show.html.erb")
-
-    if File.exist?(show_file)
-      puts "  - pages/show.html.erb already exists (skipped)"
-      return false
-    end
-
-    FileUtils.mkdir_p(views_dir)
-
-    show_content = render_template("views/pages/show.html.erb.tt", {})
-    File.write(show_file, show_content)
-
-    puts "  ✓ Created app/views/pages/show.html.erb"
-    true
   end
 end
