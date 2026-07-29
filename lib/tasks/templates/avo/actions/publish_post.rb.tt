@@ -7,13 +7,24 @@ class Avo::Actions::PublishPost < Avo::BaseAction
   self.confirm_button_label = "Publish"
 
   def handle(**args)
-    args[:records].each do |post|
+    records = Array(args[:records])
+    failures = []
+
+    records.each do |post|
       # Updates status to published
       # Note: published_at is auto-set by Bunko callback if blank
       # If published_at is already set (e.g. scheduled post), it will be preserved
-      post.update(status: "published")
+      unless post.update(status: "published")
+        failures << "#{post.title.presence || "Post ##{post.id}"}: #{post.errors.full_messages.join(", ")}"
+      end
     end
 
-    succeed "Post(s) published successfully!"
+    if failures.empty?
+      succeed "Post(s) published successfully!"
+    elsif failures.length == records.length
+      error "Failed to publish #{failures.length} post(s). #{failures.join("; ")}"
+    else
+      warn "Published #{records.length - failures.length} post(s), #{failures.length} failed. #{failures.join("; ")}"
+    end
   end
 end

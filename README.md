@@ -478,17 +478,19 @@ Bunko defaults to Avo's markdown field (powered by [Marksmith](https://github.co
 rails bunko:avo:install
 
 # Rhino (TipTap-based WYSIWYG editor)
-EDITOR=rhino rails bunko:avo:install
+BUNKO_EDITOR=rhino rails bunko:avo:install
 
 # TipTap (WYSIWYG editor)
-EDITOR=tiptap rails bunko:avo:install
+BUNKO_EDITOR=tiptap rails bunko:avo:install
 
 # Trix (Rails default rich text editor)
-EDITOR=trix rails bunko:avo:install
+BUNKO_EDITOR=trix rails bunko:avo:install
 
 # Plain textarea (simple text input)
-EDITOR=textarea rails bunko:avo:install
+BUNKO_EDITOR=textarea rails bunko:avo:install
 ```
+
+Valid `BUNKO_EDITOR` values are `markdown`, `rhino`, `tiptap`, `trix`, and `textarea` — anything else aborts with an error. (The variable is intentionally named `BUNKO_EDITOR` rather than `EDITOR` so it doesn't collide with your shell's `$EDITOR`.)
 
 **Required gems for rich editors:**
 
@@ -499,6 +501,19 @@ EDITOR=textarea rails bunko:avo:install
 
 See the [Avo fields documentation](https://docs.avohq.io) for detailed setup instructions.
 
+**Search (Ransack):**
+
+The generated resource's search block uses [Ransack](https://github.com/activerecord-hackery/ransack). Two things to know:
+
+1. Ransack is not installed by this generator. If it's missing from your bundle, searching the resource will raise — add `gem "ransack"` to your Gemfile, or remove the `self.search` block from `app/avo/resources/post.rb` (Avo will simply not offer search for the resource).
+2. Ransack 4+ requires an explicit allowlist on the model. Add this to `app/models/post.rb`:
+
+```ruby
+def self.ransackable_attributes(auth_object = nil) = %w[id title slug]
+```
+
+Keep the allowlist to `id`/`title`/`slug` only — never `status` or `content`, since Avo search also runs over unpublished drafts.
+
 **Layout:**
 
 The generated resource features:
@@ -506,6 +521,8 @@ The generated resource features:
 - **Sidebar:** Status, publishing options, post type, slug, SEO fields, content stats, and timestamps
 
 Visit `http://localhost:3000/avo` to access your admin panel.
+
+> **⚠️ Security:** The generated admin panel is wide open until you configure Avo's authentication. Set up `authenticate_with` (and authorization) in `config/initializers/avo.rb` before deploying — see [Avo's authentication docs](https://docs.avohq.io/3.0/authentication.html).
 
 ### Configuration
 

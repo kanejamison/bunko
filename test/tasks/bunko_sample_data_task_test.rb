@@ -325,6 +325,13 @@ class BunkoSampleDataTaskTest < Minitest::Test
       define_method(:root) { Pathname.new(destination) }
     end
 
+    # Clear the live route set: if an earlier test loaded the dummy app's
+    # routes (which define a root route), root_route_exists? would be true
+    # and the task would skip the home page, making this test order-dependent
+    Rails.application.routes.draw do
+      get "/__sample_data_test_placeholder", to: "pages#show"
+    end
+
     # Run the task
     run_rake_task("bunko:sample_data")
 
@@ -343,6 +350,9 @@ class BunkoSampleDataTaskTest < Minitest::Test
     Rails.singleton_class.class_eval do
       define_method(:root) { original_root }
     end
+
+    # Restore the dummy app's routes from config/routes.rb
+    Rails.application.reload_routes!
 
     # Clean up
     FileUtils.rm_rf(@routes_destination) if @routes_destination && File.exist?(@routes_destination)

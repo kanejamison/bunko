@@ -34,7 +34,16 @@ namespace :bunko do
       post_types = Bunko.configuration.post_types.map { |pt| pt[:name] }
 
       # Detect editor preference (Avo-specific editors)
-      editor_type = ENV.fetch("EDITOR", "markdown") # Options: markdown (marksmith), rhino, tiptap, trix, textarea
+      # Uses BUNKO_EDITOR to avoid colliding with the shell's $EDITOR variable
+      valid_editors = %w[markdown rhino tiptap trix textarea]
+      editor_type = ENV.fetch("BUNKO_EDITOR", "markdown")
+
+      unless valid_editors.include?(editor_type)
+        puts "⚠️  Invalid BUNKO_EDITOR value: #{editor_type.inspect}"
+        puts "   Valid options: #{valid_editors.join(", ")}"
+        puts "   Example: BUNKO_EDITOR=rhino rails bunko:avo:install"
+        exit 1
+      end
 
       # Generate Avo resource, filters, and actions
       generate_avo_post_resource(post_types, editor_type)
@@ -46,10 +55,22 @@ namespace :bunko do
       puts ""
       puts "Next steps:"
       puts "  1. Visit http://localhost:3000/avo to access your admin panel"
-      puts "  2. Customize app/avo/resources/post.rb as needed"
+      puts "  2. ⚠️  SECURITY: The generated admin panel is wide open by default!"
+      puts "     Configure Avo's authenticate_with (and authorization) before deploying:"
+      puts "     https://docs.avohq.io/3.0/authentication.html"
+      puts "  3. Enable search: the generated resource uses Ransack, which Ransack 4+"
+      puts "     only allows with an explicit allowlist. Add 'gem \"ransack\"' to your"
+      puts "     Gemfile (if not already present) and add this to app/models/post.rb:"
+      puts ""
+      puts "       def self.ransackable_attributes(auth_object = nil) = %w[id title slug]"
+      puts ""
+      puts "     Keep the allowlist to id/title/slug only — never status or content,"
+      puts "     since Avo search also runs over drafts. If you don't want ransack,"
+      puts "     remove the self.search block from app/avo/resources/post.rb instead."
+      puts "  4. Customize app/avo/resources/post.rb as needed"
       puts ""
       puts "Editor type: #{editor_type}"
-      puts "  To change, run: EDITOR=rhino rails bunko:avo:install"
+      puts "  To change, run: BUNKO_EDITOR=rhino rails bunko:avo:install"
       puts "  Options: markdown (default, uses Marksmith), rhino, tiptap, trix, textarea"
       puts "=" * 79
     end

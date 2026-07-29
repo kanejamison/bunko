@@ -117,7 +117,10 @@ class BunkoAvoTaskTest < Minitest::Test
     assert_match(/class Avo::Filters::PostTypeFilter < Avo::Filters::SelectFilter/, content)
     assert_match(/def apply\(request, query, value\)/, content)
     assert_match(/post_type = PostType\.find_by\(name: value\)/, content)
-    assert_match(/query\.by_post_type\(post_type\)/, content)
+    # by_post_type expects a name string, so the filter must query the
+    # association directly instead of passing a PostType record to it
+    assert_match(/query\.where\(post_type: post_type\)/, content)
+    refute_match(/query\.by_post_type/, content)
   end
 
   def test_avo_install_creates_publish_action
@@ -128,8 +131,15 @@ class BunkoAvoTaskTest < Minitest::Test
 
     content = File.read(action_file)
     assert_match(/class Avo::Actions::PublishPost < Avo::BaseAction/, content)
-    assert_match(/post\.update\(status: "published"\)/, content)
+    assert_match(/unless post\.update\(status: "published"\)/, content)
     assert_match(/published_at is auto-set by Bunko callback/, content)
+
+    # Failed updates must be collected and reported, not silently swallowed
+    assert_match(/failures << /, content)
+    assert_match(/post\.errors\.full_messages/, content)
+    assert_match(/if failures\.empty\?\s*\n\s*succeed/, content)
+    assert_match(/error "Failed to publish/, content)
+    assert_match(/warn "Published/, content)
   end
 
   def test_avo_install_creates_unpublish_action
@@ -140,12 +150,19 @@ class BunkoAvoTaskTest < Minitest::Test
 
     content = File.read(action_file)
     assert_match(/class Avo::Actions::UnpublishPost < Avo::BaseAction/, content)
-    assert_match(/post\.update\(status: "draft"\)/, content)
+    assert_match(/unless post\.update\(status: "draft"\)/, content)
     assert_match(/published_at is preserved/, content)
+
+    # Failed updates must be collected and reported, not silently swallowed
+    assert_match(/failures << /, content)
+    assert_match(/post\.errors\.full_messages/, content)
+    assert_match(/if failures\.empty\?\s*\n\s*succeed/, content)
+    assert_match(/error "Failed to unpublish/, content)
+    assert_match(/warn "Unpublished/, content)
   end
 
   def test_avo_install_with_markdown_editor
-    with_env("EDITOR" => "markdown") do
+    with_env("BUNKO_EDITOR" => "markdown") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -155,7 +172,7 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_rhino_editor
-    with_env("EDITOR" => "rhino") do
+    with_env("BUNKO_EDITOR" => "rhino") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -165,7 +182,7 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_tiptap_editor
-    with_env("EDITOR" => "tiptap") do
+    with_env("BUNKO_EDITOR" => "tiptap") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -175,7 +192,7 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_trix_editor
-    with_env("EDITOR" => "trix") do
+    with_env("BUNKO_EDITOR" => "trix") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -185,13 +202,62 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_textarea_editor
-    with_env("EDITOR" => "textarea") do
+    with_env("BUNKO_EDITOR" => "textarea") do
       run_rake_task("bunko:avo:install")
     end
 
     resource_file = File.join(@destination, "app/avo/resources/post.rb")
     content = File.read(resource_file)
     assert_match(/field :content, as: :textarea/, content)
+  end
+
+  def test_avo_install_ignores_shell_editor_variable
+    # The universal shell $EDITOR (e.g. vim) must not affect editor selection
+    with_env("EDITOR" => "vim") do
+      run_rake_task("bunko:avo:install")
+    end
+
+    resource_file = File.join(@destination, "app/avo/resources/post.rb")
+    content = File.read(resource_file)
+    assert_match(/field :content, as: :markdown/, content)
+  end
+
+  def test_avo_install_prints_authentication_security_warning
+    output = capture_io { run_rake_task("bunko:avo:install") }.join
+
+    # The admin panel is unauthenticated until Avo auth is configured
+    assert_match(/SECURITY/, output)
+    assert_match(/authenticate_with/, output)
+    assert_match(%r{https://docs\.avohq\.io/3\.0/authentication\.html}, output)
+  end
+
+  def test_avo_install_prints_ransack_allowlist_next_step
+    output = capture_io { run_rake_task("bunko:avo:install") }.join
+
+    # Explicit allowlist instructions - id/title/slug only, never status/content
+    assert_match(/def self\.ransackable_attributes\(auth_object = nil\) = %w\[id title slug\]/, output)
+    assert_match(/never status or content/, output)
+  end
+
+  def test_avo_install_aborts_on_invalid_bunko_editor
+    output = StringIO.new
+    original_stdout = $stdout
+    $stdout = output
+
+    error = assert_raises(SystemExit) do
+      with_env("BUNKO_EDITOR" => "wordstar") do
+        run_rake_task("bunko:avo:install")
+      end
+    end
+
+    assert_equal 1, error.status
+    assert_match(/Invalid BUNKO_EDITOR value: "wordstar"/, output.string)
+    assert_match(/markdown, rhino, tiptap, trix, textarea/, output.string)
+
+    resource_file = File.join(@destination, "app/avo/resources/post.rb")
+    refute File.exist?(resource_file), "No resource should be generated on invalid editor"
+  ensure
+    $stdout = original_stdout
   end
 
   def test_avo_install_includes_configured_post_types_in_filter

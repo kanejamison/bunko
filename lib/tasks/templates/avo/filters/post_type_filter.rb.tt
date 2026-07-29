@@ -10,7 +10,9 @@ class Avo::Filters::PostTypeFilter < Avo::Filters::SelectFilter
     post_type = PostType.find_by(name: value)
     return query if post_type.nil?
 
-    query.by_post_type(post_type)
+    # NOTE: Post.by_post_type expects a name string, not a record —
+    # filter on the association directly to avoid silently matching nothing.
+    query.where(post_type: post_type)
   end
 
   def options
