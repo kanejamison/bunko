@@ -117,7 +117,10 @@ class BunkoAvoTaskTest < Minitest::Test
     assert_match(/class Avo::Filters::PostTypeFilter < Avo::Filters::SelectFilter/, content)
     assert_match(/def apply\(request, query, value\)/, content)
     assert_match(/post_type = PostType\.find_by\(name: value\)/, content)
-    assert_match(/query\.by_post_type\(post_type\)/, content)
+    # by_post_type expects a name string, so the filter must query the
+    # association directly instead of passing a PostType record to it
+    assert_match(/query\.where\(post_type: post_type\)/, content)
+    refute_match(/query\.by_post_type/, content)
   end
 
   def test_avo_install_creates_publish_action
