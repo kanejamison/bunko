@@ -86,6 +86,9 @@ module Bunko
         block.call(customizer)
       end
 
+      # Validate title after the block runs so titles set via the customizer are covered too
+      validate_title!(post_type[:title], "PostType")
+
       @post_types << post_type
     end
 
@@ -135,6 +138,9 @@ module Bunko
         block.call(customizer)
       end
 
+      # Validate title after the block runs so titles set via the customizer are covered too
+      validate_title!(collection[:title], "Collection")
+
       # Validate that post_types was set
       if collection[:post_types].empty?
         raise ArgumentError, "Collection '#{name_str}' must specify at least one post_type"
@@ -152,6 +158,25 @@ module Bunko
     end
 
     private
+
+    # Titles are interpolated into generated view code (e.g., link_to "Title" in the
+    # shared nav partial), so characters that could corrupt or inject code into the
+    # generated ERB templates are not allowed.
+    def validate_title!(title, label)
+      title_str = title.to_s
+
+      if title_str.include?('"')
+        raise ArgumentError, "#{label} title '#{title_str}' cannot contain double quotes. Titles are used in generated view templates (e.g., link_to \"Title\", ...). Use single quotes or typographic quotes instead."
+      end
+
+      if title_str.include?("<%") || title_str.include?("%>")
+        raise ArgumentError, "#{label} title '#{title_str}' cannot contain ERB delimiters ('<%' or '%>'). Titles are used in generated view templates."
+      end
+
+      if title_str.match?(/[\r\n]/)
+        raise ArgumentError, "#{label} title cannot contain newlines or carriage returns. Titles are used in generated view templates."
+      end
+    end
 
     def post_type_exists?(name)
       @post_types.any? { |pt| pt[:name] == name.to_s }
