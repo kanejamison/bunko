@@ -478,17 +478,19 @@ Bunko defaults to Avo's markdown field (powered by [Marksmith](https://github.co
 rails bunko:avo:install
 
 # Rhino (TipTap-based WYSIWYG editor)
-EDITOR=rhino rails bunko:avo:install
+BUNKO_EDITOR=rhino rails bunko:avo:install
 
 # TipTap (WYSIWYG editor)
-EDITOR=tiptap rails bunko:avo:install
+BUNKO_EDITOR=tiptap rails bunko:avo:install
 
 # Trix (Rails default rich text editor)
-EDITOR=trix rails bunko:avo:install
+BUNKO_EDITOR=trix rails bunko:avo:install
 
 # Plain textarea (simple text input)
-EDITOR=textarea rails bunko:avo:install
+BUNKO_EDITOR=textarea rails bunko:avo:install
 ```
+
+Valid `BUNKO_EDITOR` values are `markdown`, `rhino`, `tiptap`, `trix`, and `textarea` — anything else aborts with an error. (The variable is intentionally named `BUNKO_EDITOR` rather than `EDITOR` so it doesn't collide with your shell's `$EDITOR`.)
 
 **Required gems for rich editors:**
 

@@ -34,7 +34,16 @@ namespace :bunko do
       post_types = Bunko.configuration.post_types.map { |pt| pt[:name] }
 
       # Detect editor preference (Avo-specific editors)
-      editor_type = ENV.fetch("EDITOR", "markdown") # Options: markdown (marksmith), rhino, tiptap, trix, textarea
+      # Uses BUNKO_EDITOR to avoid colliding with the shell's $EDITOR variable
+      valid_editors = %w[markdown rhino tiptap trix textarea]
+      editor_type = ENV.fetch("BUNKO_EDITOR", "markdown")
+
+      unless valid_editors.include?(editor_type)
+        puts "⚠️  Invalid BUNKO_EDITOR value: #{editor_type.inspect}"
+        puts "   Valid options: #{valid_editors.join(", ")}"
+        puts "   Example: BUNKO_EDITOR=rhino rails bunko:avo:install"
+        exit 1
+      end
 
       # Generate Avo resource, filters, and actions
       generate_avo_post_resource(post_types, editor_type)
@@ -49,7 +58,7 @@ namespace :bunko do
       puts "  2. Customize app/avo/resources/post.rb as needed"
       puts ""
       puts "Editor type: #{editor_type}"
-      puts "  To change, run: EDITOR=rhino rails bunko:avo:install"
+      puts "  To change, run: BUNKO_EDITOR=rhino rails bunko:avo:install"
       puts "  Options: markdown (default, uses Marksmith), rhino, tiptap, trix, textarea"
       puts "=" * 79
     end

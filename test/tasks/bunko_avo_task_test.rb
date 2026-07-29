@@ -145,7 +145,7 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_markdown_editor
-    with_env("EDITOR" => "markdown") do
+    with_env("BUNKO_EDITOR" => "markdown") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -155,7 +155,7 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_rhino_editor
-    with_env("EDITOR" => "rhino") do
+    with_env("BUNKO_EDITOR" => "rhino") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -165,7 +165,7 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_tiptap_editor
-    with_env("EDITOR" => "tiptap") do
+    with_env("BUNKO_EDITOR" => "tiptap") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -175,7 +175,7 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_trix_editor
-    with_env("EDITOR" => "trix") do
+    with_env("BUNKO_EDITOR" => "trix") do
       run_rake_task("bunko:avo:install")
     end
 
@@ -185,13 +185,45 @@ class BunkoAvoTaskTest < Minitest::Test
   end
 
   def test_avo_install_with_textarea_editor
-    with_env("EDITOR" => "textarea") do
+    with_env("BUNKO_EDITOR" => "textarea") do
       run_rake_task("bunko:avo:install")
     end
 
     resource_file = File.join(@destination, "app/avo/resources/post.rb")
     content = File.read(resource_file)
     assert_match(/field :content, as: :textarea/, content)
+  end
+
+  def test_avo_install_ignores_shell_editor_variable
+    # The universal shell $EDITOR (e.g. vim) must not affect editor selection
+    with_env("EDITOR" => "vim") do
+      run_rake_task("bunko:avo:install")
+    end
+
+    resource_file = File.join(@destination, "app/avo/resources/post.rb")
+    content = File.read(resource_file)
+    assert_match(/field :content, as: :markdown/, content)
+  end
+
+  def test_avo_install_aborts_on_invalid_bunko_editor
+    output = StringIO.new
+    original_stdout = $stdout
+    $stdout = output
+
+    error = assert_raises(SystemExit) do
+      with_env("BUNKO_EDITOR" => "wordstar") do
+        run_rake_task("bunko:avo:install")
+      end
+    end
+
+    assert_equal 1, error.status
+    assert_match(/Invalid BUNKO_EDITOR value: "wordstar"/, output.string)
+    assert_match(/markdown, rhino, tiptap, trix, textarea/, output.string)
+
+    resource_file = File.join(@destination, "app/avo/resources/post.rb")
+    refute File.exist?(resource_file), "No resource should be generated on invalid editor"
+  ensure
+    $stdout = original_stdout
   end
 
   def test_avo_install_includes_configured_post_types_in_filter
