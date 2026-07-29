@@ -131,8 +131,15 @@ class BunkoAvoTaskTest < Minitest::Test
 
     content = File.read(action_file)
     assert_match(/class Avo::Actions::PublishPost < Avo::BaseAction/, content)
-    assert_match(/post\.update\(status: "published"\)/, content)
+    assert_match(/unless post\.update\(status: "published"\)/, content)
     assert_match(/published_at is auto-set by Bunko callback/, content)
+
+    # Failed updates must be collected and reported, not silently swallowed
+    assert_match(/failures << /, content)
+    assert_match(/post\.errors\.full_messages/, content)
+    assert_match(/if failures\.empty\?\s*\n\s*succeed/, content)
+    assert_match(/error "Failed to publish/, content)
+    assert_match(/warn "Published/, content)
   end
 
   def test_avo_install_creates_unpublish_action
@@ -143,8 +150,15 @@ class BunkoAvoTaskTest < Minitest::Test
 
     content = File.read(action_file)
     assert_match(/class Avo::Actions::UnpublishPost < Avo::BaseAction/, content)
-    assert_match(/post\.update\(status: "draft"\)/, content)
+    assert_match(/unless post\.update\(status: "draft"\)/, content)
     assert_match(/published_at is preserved/, content)
+
+    # Failed updates must be collected and reported, not silently swallowed
+    assert_match(/failures << /, content)
+    assert_match(/post\.errors\.full_messages/, content)
+    assert_match(/if failures\.empty\?\s*\n\s*succeed/, content)
+    assert_match(/error "Failed to unpublish/, content)
+    assert_match(/warn "Unpublished/, content)
   end
 
   def test_avo_install_with_markdown_editor

@@ -7,13 +7,24 @@ class Avo::Actions::UnpublishPost < Avo::BaseAction
   self.confirm_button_label = "Unpublish"
 
   def handle(**args)
-    args[:records].each do |post|
+    records = Array(args[:records])
+    failures = []
+
+    records.each do |post|
       # Updates status to draft
       # Note: published_at is preserved for re-publishing with original date
       # To reset published_at, clear it manually before re-publishing
-      post.update(status: "draft")
+      unless post.update(status: "draft")
+        failures << "#{post.title.presence || "Post ##{post.id}"}: #{post.errors.full_messages.join(", ")}"
+      end
     end
 
-    succeed "Post(s) unpublished successfully!"
+    if failures.empty?
+      succeed "Post(s) unpublished successfully!"
+    elsif failures.length == records.length
+      error "Failed to unpublish #{failures.length} post(s). #{failures.join("; ")}"
+    else
+      warn "Unpublished #{records.length - failures.length} post(s), #{failures.length} failed. #{failures.join("; ")}"
+    end
   end
 end
