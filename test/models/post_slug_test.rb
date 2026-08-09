@@ -95,17 +95,6 @@ class PostSlugTest < ActiveSupport::TestCase
     assert_equal "custom-slug", post.slug
   end
 
-  test "to_param returns slug for URL generation" do
-    post = Post.create!(
-      title: "Hello World",
-      content: "Content",
-      post_type: @blog_type
-    )
-
-    assert_equal post.slug, post.to_param
-    assert_equal "hello-world", post.to_param
-  end
-
   test "slug generation skips when title is blank" do
     post = Post.new(post_type: @blog_type)
     post.send(:generate_slug)

@@ -42,6 +42,7 @@ module Bunko
     end
 
     attr_accessor :reading_speed, :excerpt_length, :auto_update_word_count, :valid_statuses, :post_types, :collections, :allow_static_pages
+    attr_reader :collection_path_helpers
 
     def initialize
       @reading_speed = 250 # words per minute
@@ -51,6 +52,12 @@ module Bunko
       @post_types = [] # Must be configured in initializer
       @collections = [] # Multi-type collections
       @allow_static_pages = true # Enable standalone pages feature by default
+      @collection_path_helpers = [] # Track which path helpers to override
+    end
+
+    # Register a collection path helper for override (called by routing DSL)
+    def register_path_helper(resource_name)
+      @collection_path_helpers << resource_name.to_s unless @collection_path_helpers.include?(resource_name.to_s)
     end
 
     def post_type(name, title: nil, &block)

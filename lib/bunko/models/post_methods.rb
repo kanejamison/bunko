@@ -39,9 +39,6 @@ module Bunko
       end
 
       # Instance methods
-      def to_param
-        slug
-      end
 
       def excerpt(length: nil, omission: "...")
         return nil unless content.present?
