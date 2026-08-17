@@ -18,6 +18,8 @@
 - [ ] **Milestone 8: Documentation** - 🚧 PENDING
 - [ ] **Milestone 9: Release** - 🚧 PENDING
 
+**Post-1.0:** Flat-file storage mode (content as markdown files in the repo, no database, agent-native authoring) is planned for a 1.x release — see [FLAT_FILE_ROADMAP.md](FLAT_FILE_ROADMAP.md).
+
 ---
 
 ## Success Criteria
