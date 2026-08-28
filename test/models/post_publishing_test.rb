@@ -68,9 +68,12 @@ class PostPublishingTest < ActiveSupport::TestCase
       post_type: @blog_type
     )
 
-    assert_raises(ArgumentError) do
+    assert_raises(ActiveRecord::RecordInvalid) do
       post.update!(status: "invalid_status")
     end
+
+    refute post.update(status: "invalid_status")
+    assert_includes post.errors[:status], "invalid_status is not a valid status"
   end
 
   test "posts with published status but future published_at are treated as scheduled" do
@@ -109,28 +112,25 @@ class PostPublishingTest < ActiveSupport::TestCase
     refute post.send(:should_set_published_at?)
   end
 
-  test "validate_status_value raises error for invalid status" do
-    post = Post.new(status: "invalid", post_type: @blog_type)
+  test "invalid status adds a validation error instead of raising" do
+    post = Post.new(title: "Test", content: "Content", status: "invalid", post_type: @blog_type)
 
-    error = assert_raises(ArgumentError) do
-      post.send(:validate_status_value)
-    end
-
-    assert_match(/invalid is not a valid status/, error.message)
+    refute post.valid?
+    assert_includes post.errors[:status], "invalid is not a valid status"
   end
 
-  test "validate_status_value does not raise error for valid status" do
-    post = Post.new(status: "published", post_type: @blog_type)
-    assert_nothing_raised do
-      post.send(:validate_status_value)
-    end
+  test "valid status produces no status errors" do
+    post = Post.new(title: "Test", content: "Content", status: "published", post_type: @blog_type)
+
+    post.valid?
+    assert_empty post.errors[:status]
   end
 
-  test "validate_status_value returns early if status is blank" do
-    post = Post.new(post_type: @blog_type)
-    assert_nothing_raised do
-      post.send(:validate_status_value)
-    end
+  test "blank status adds a presence error instead of raising" do
+    post = Post.new(title: "Test", content: "Content", status: nil, post_type: @blog_type)
+
+    refute post.valid?
+    assert_includes post.errors[:status], "can't be blank"
   end
 
   test "scheduled? returns true for published posts with future published_at" do
