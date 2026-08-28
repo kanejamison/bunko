@@ -2,6 +2,7 @@
 
 require_relative "../test_helper"
 require "rake"
+require "minitest/mock"
 
 class BunkoSampleDataTaskTest < Minitest::Test
   def setup
@@ -85,6 +86,144 @@ class BunkoSampleDataTaskTest < Minitest::Test
   ensure
     ENV.delete("COUNT")
     ENV.delete("CLEAR")
+  end
+
+  def test_sample_data_clear_message_reports_actual_deleted_count
+    3.times do |i|
+      Post.create!(
+        post_type: @blog_type,
+        title: "Existing Post #{i}",
+        slug: "existing-post-#{i}",
+        content: "Test content",
+        status: "published",
+        published_at: Time.now
+      )
+    end
+
+    ENV["COUNT"] = "1"
+    ENV["CLEAR"] = "true"
+
+    output = capture_io do
+      run_rake_task("bunko:sample_data")
+    end
+
+    # Message must reflect the number of posts actually deleted (not the
+    # post-deletion count, which is always 0)
+    assert_match(/Deleting 3 post\(s\) from all post types except 'pages'/, output.join)
+    assert_match(/Cleared 3 post\(s\)/, output.join)
+  ensure
+    ENV.delete("COUNT")
+    ENV.delete("CLEAR")
+  end
+
+  def test_sample_data_clear_preserves_static_pages
+    pages_type = PostType.create!(name: "pages", title: "Pages")
+
+    Post.create!(
+      post_type: pages_type,
+      title: "About Us",
+      slug: "about-us",
+      content: "Hand-authored page content",
+      status: "published",
+      published_at: Time.now
+    )
+
+    Post.create!(
+      post_type: @blog_type,
+      title: "Old Blog Post",
+      slug: "old-blog-post",
+      content: "Test content",
+      status: "published",
+      published_at: Time.now
+    )
+
+    ENV["COUNT"] = "1"
+    ENV["CLEAR"] = "true"
+
+    # Disable static page generation so the task doesn't create standard
+    # pages or modify the dummy app's routes file
+    original_allow = Bunko.configuration.allow_static_pages
+    Bunko.configuration.allow_static_pages = false
+
+    capture_io do
+      run_rake_task("bunko:sample_data")
+    end
+
+    # Static pages must survive CLEAR=true
+    assert Post.exists?(slug: "about-us"), "Static page should not be deleted by CLEAR=true"
+    # Non-page posts are cleared
+    refute Post.exists?(slug: "old-blog-post")
+  ensure
+    Bunko.configuration.allow_static_pages = original_allow
+    ENV.delete("COUNT")
+    ENV.delete("CLEAR")
+  end
+
+  def test_sample_data_production_non_interactive_aborts_without_confirmation
+    ENV["COUNT"] = "1"
+    ENV.delete("CONFIRM_PRODUCTION")
+
+    # $stdin is a StringIO in tests, so $stdin.tty? is false (non-interactive)
+    production_env = ActiveSupport::StringInquirer.new("production")
+
+    output = Rails.stub(:env, production_env) do
+      capture_io do
+        assert_raises(SystemExit) do
+          run_rake_task("bunko:sample_data")
+        end
+      end
+    end
+
+    assert_match(/WARNING: You're about to generate sample data in PRODUCTION/, output.join)
+    assert_match(/CONFIRM_PRODUCTION=true/, output.join)
+    assert_equal 0, Post.count, "No posts should be created when the production guard aborts"
+  ensure
+    ENV.delete("COUNT")
+  end
+
+  def test_sample_data_production_non_interactive_proceeds_with_confirmation
+    ENV["COUNT"] = "1"
+    ENV["CONFIRM_PRODUCTION"] = "true"
+
+    production_env = ActiveSupport::StringInquirer.new("production")
+
+    Rails.stub(:env, production_env) do
+      capture_io do
+        run_rake_task("bunko:sample_data")
+      end
+    end
+
+    assert_equal 3, Post.count # 1 post × 3 post types
+  ensure
+    ENV.delete("COUNT")
+    ENV.delete("CONFIRM_PRODUCTION")
+  end
+
+  def test_sample_data_production_eof_on_gets_aborts
+    ENV["COUNT"] = "1"
+    ENV.delete("CONFIRM_PRODUCTION")
+
+    # Simulate a TTY whose gets returns nil (EOF) — EOF is never consent
+    eof_stdin = StringIO.new("")
+    def eof_stdin.tty?
+      true
+    end
+    $stdin = eof_stdin
+
+    production_env = ActiveSupport::StringInquirer.new("production")
+
+    output = Rails.stub(:env, production_env) do
+      capture_io do
+        assert_raises(SystemExit) do
+          run_rake_task("bunko:sample_data")
+        end
+      end
+    end
+
+    assert_match(/CONFIRM_PRODUCTION=true/, output.join)
+    assert_equal 0, Post.count
+  ensure
+    ENV.delete("COUNT")
   end
 
   def test_sample_data_preserves_existing_by_default

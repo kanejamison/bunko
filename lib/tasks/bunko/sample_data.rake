@@ -23,8 +23,21 @@ namespace :bunko do
     if Rails.env.production?
       puts ""
       puts "⚠️  WARNING: You're about to generate sample data in PRODUCTION"
-      puts "    Press Ctrl+C to cancel, or Enter to continue..."
-      $stdin.gets
+
+      confirmed = ENV["CONFIRM_PRODUCTION"] == "true"
+
+      if !confirmed && $stdin.tty?
+        puts "    Press Ctrl+C to cancel, or Enter to continue..."
+        # EOF (nil) is never treated as consent
+        confirmed = !$stdin.gets.nil?
+      end
+
+      unless confirmed
+        puts "    Cannot confirm interactively (no TTY or stdin closed)."
+        puts "    Re-run with CONFIRM_PRODUCTION=true to proceed."
+        exit 1
+      end
+
       puts ""
     end
 
@@ -52,11 +65,16 @@ namespace :bunko do
     puts "  Clear existing: #{clear_existing ? "Yes" : "No"}"
     puts ""
 
-    # Clear existing posts if requested
+    # Clear existing posts if requested (static pages are preserved, matching
+    # the generator which manages the "pages" post type separately)
     if clear_existing
+      posts_to_clear = Post.joins(:post_type).where.not(post_types: {name: "pages"})
+      clear_count = posts_to_clear.count
+
       puts "Clearing existing posts..."
-      Post.destroy_all
-      puts "✓ Cleared #{Post.count} posts"
+      puts "  Deleting #{clear_count} post(s) from all post types except 'pages'"
+      posts_to_clear.destroy_all
+      puts "✓ Cleared #{clear_count} post(s)"
       puts ""
     end
 
