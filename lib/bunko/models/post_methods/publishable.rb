@@ -15,7 +15,6 @@ module Bunko
 
           # Callbacks
           before_validation :set_published_at, if: :should_set_published_at?
-          validate :validate_status_value
 
           # Scopes
           scope :published, -> { where(status: "published").where("published_at <= ?", Time.current).order(published_at: :desc) }
@@ -36,14 +35,6 @@ module Bunko
 
         def set_published_at
           self.published_at = Time.current
-        end
-
-        def validate_status_value
-          return if status.blank?
-
-          unless Bunko.configuration.valid_statuses.include?(status)
-            raise ArgumentError, "#{status} is not a valid status"
-          end
         end
       end
     end
