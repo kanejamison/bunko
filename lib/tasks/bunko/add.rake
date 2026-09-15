@@ -4,8 +4,6 @@ require "fileutils"
 require_relative "helpers"
 
 namespace :bunko do
-  include Bunko::RakeHelpers
-
   desc "Add a PostType or Collection (automatically detects which)"
   task :add, [:name] => :environment do |t, args|
     unless args[:name]
@@ -59,18 +57,18 @@ namespace :bunko do
 
     # Step 1: If it's a PostType, create DB entry
     if pt_config
-      create_post_type_in_database(name, pt_config[:title])
+      Bunko::RakeHelpers.create_post_type_in_database(name, pt_config[:title])
     end
 
     # Step 2: Always generate artifacts (for both PostTypes and Collections)
     is_collection = collection_config.present?
-    generate_artifacts(name, format: format, is_collection: is_collection)
+    Bunko::RakeHelpers.generate_artifacts(name, format: format, is_collection: is_collection)
 
     # Step 3: Add to nav
     if pt_config
-      add_to_nav(name, title: pt_config[:title])
+      Bunko::RakeHelpers.add_to_nav(name, title: pt_config[:title])
     else
-      add_to_nav(name, title: collection_config[:title])
+      Bunko::RakeHelpers.add_to_nav(name, title: collection_config[:title])
     end
 
     # Success message
@@ -81,179 +79,5 @@ namespace :bunko do
       puts "Collection '#{name}' added successfully!"
     end
     puts "Visit: http://localhost:3000/#{name.tr("_", "-")}"
-  end
-
-  # Helper methods
-
-  def create_post_type_in_database(name, title)
-    post_type = PostType.find_by(name: name)
-
-    if post_type
-      puts "  ✓ PostType already exists: #{title} (#{name})"
-    else
-      PostType.create!(name: name, title: title)
-      puts "  ✓ Created PostType: #{title} (#{name})"
-    end
-    puts ""
-  end
-
-  def generate_artifacts(name, format:, is_collection:)
-    # Step 1: Generate controller
-    puts "Generating controller..."
-    generate_controller(name)
-    puts ""
-
-    # Step 2: Generate views
-    puts "Generating views..."
-    generate_views(name, format: format, is_collection: is_collection)
-    puts ""
-
-    # Step 3: Add route
-    puts "Adding route..."
-    add_route(name)
-  end
-
-  def generate_controller(collection_name)
-    controller_name = "#{collection_name.camelize}Controller"
-    controller_file = Rails.root.join("app/controllers/#{collection_name}_controller.rb")
-
-    if File.exist?(controller_file)
-      puts "  - #{collection_name}_controller.rb already exists (skipped)"
-      return false
-    end
-
-    controller_content = render_template("controllers/controller.rb.tt", {
-      controller_name: controller_name,
-      collection_name: collection_name
-    })
-
-    File.write(controller_file, controller_content)
-    puts "  ✓ Created #{collection_name}_controller.rb"
-    true
-  end
-
-  def generate_views(collection_name, format:, is_collection:)
-    views_dir = Rails.root.join("app/views/#{collection_name}")
-
-    if Dir.exist?(views_dir) && Dir.glob("#{views_dir}/*").any?
-      puts "  - #{collection_name} views already exist (skipped)"
-      return false
-    end
-
-    FileUtils.mkdir_p(views_dir)
-
-    # Generate index.html.erb
-    index_content = generate_index_view(collection_name, is_collection: is_collection)
-    File.write(File.join(views_dir, "index.html.erb"), index_content)
-
-    # Collections only get index view, PostTypes get both index and show
-    if is_collection
-      puts "  ✓ Created views for #{collection_name} (index only - collection)"
-    else
-      # Generate show.html.erb for PostTypes only
-      show_content = generate_show_view(collection_name, format: format)
-      File.write(File.join(views_dir, "show.html.erb"), show_content)
-      puts "  ✓ Created views for #{collection_name} (index, show)"
-    end
-
-    true
-  end
-
-  def generate_index_view(collection_name, is_collection:)
-    is_plural = collection_name.pluralize == collection_name
-
-    render_template("views/collections/index.html.erb.tt", {
-      collection_name: collection_name,
-      collection_title: collection_name.titleize,
-      path_helper: "#{collection_name.singularize}_path",
-      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path",
-      is_collection: is_collection
-    })
-  end
-
-  def generate_show_view(collection_name, format:)
-    is_plural = collection_name.pluralize == collection_name
-
-    render_template("views/collections/show.html.erb.tt", {
-      collection_name: collection_name,
-      collection_title: collection_name.titleize,
-      index_path_helper: is_plural ? "#{collection_name}_path" : "#{collection_name}_index_path",
-      format: format
-    })
-  end
-
-  def add_route(collection_name)
-    routes_file = Rails.root.join("config/routes.rb")
-    routes_content = File.read(routes_file)
-
-    route_line = "  bunko_collection :#{collection_name}"
-
-    if routes_content.include?(route_line.strip)
-      puts "  - Route for :#{collection_name} already exists (skipped)"
-      return false
-    end
-
-    # Find the last 'end' in the file and insert before it
-    lines = routes_content.lines
-    last_end_index = lines.rindex { |line| line.match?(/^end\s*$/) }
-
-    if last_end_index
-      lines.insert(last_end_index, "#{route_line}\n")
-      updated_content = lines.join
-    else
-      # Fallback: append before the last line if no 'end' found
-      updated_content = routes_content.sub(/\z/, "#{route_line}\n")
-    end
-
-    File.write(routes_file, updated_content)
-    puts "  ✓ Added route for :#{collection_name}"
-    true
-  end
-
-  def add_to_nav(name, title:)
-    shared_dir = Rails.root.join("app/views/shared")
-    nav_file = shared_dir.join("_bunko_nav.html.erb")
-
-    # If nav doesn't exist, generate from scratch (edge case)
-    unless File.exist?(nav_file)
-      FileUtils.mkdir_p(shared_dir)
-      nav_content = render_template("views/layouts/bunko_nav.html.erb.tt", {
-        post_types: Bunko.configuration.post_types,
-        collections: Bunko.configuration.collections
-      })
-      File.write(nav_file, nav_content)
-      puts "  ✓ Created shared/_bunko_nav.html.erb"
-      return true
-    end
-
-    # Nav exists - append new link to existing file
-    nav_content = File.read(nav_file)
-
-    # Generate the new link
-    is_plural = name.pluralize == name
-    path_helper = is_plural ? "#{name}_path" : "#{name}_index_path"
-    new_link = "      <%= link_to \"#{title}\", #{path_helper} %>\n"
-
-    # Check if link already exists (check for the title and path, not exact match)
-    if nav_content.match?(/link_to\s+"#{Regexp.escape(title)}",\s+#{path_helper}/)
-      puts "  - #{title} already in nav (skipped)"
-      return false
-    end
-
-    # Try to insert before the marker comment (preferred)
-    marker = "<%# bunko_collection_links - additional collections will be added here unless you delete this line %>"
-    nav_content = if nav_content.include?(marker)
-      nav_content.sub(marker, "#{new_link}      #{marker}")
-    else
-      # Fallback: Find the closing </div> before </nav> and insert the new link before it
-      nav_content.sub(/(\s*)<\/div>\s*<\/nav>/) do
-        indent = $1
-        "#{new_link}#{indent}</div>\n</nav>"
-      end
-    end
-
-    File.write(nav_file, nav_content)
-    puts "  ✓ Added #{title} to shared/_bunko_nav.html.erb"
-    true
   end
 end
