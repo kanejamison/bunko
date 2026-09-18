@@ -135,7 +135,7 @@ Integration tests run against a minimal Rails app in `test/dummy/`:
 ## Requirements
 
 - Ruby >= 4.0
-- Rails >= 8.0
+- Rails >= 8.1
 - Bundler
 
 ## Development Notes

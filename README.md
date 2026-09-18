@@ -30,7 +30,7 @@ Bunko (文庫) in Japanese means a small personal library or book collection - a
 ## Requirements
 
 - Ruby >= 4.0
-- Rails >= 8.0
+- Rails >= 8.1
 
 ## Quick Start
 
@@ -731,7 +731,7 @@ GitHub Actions runs the full test suite on every PR:
 - Ruby versions: 4.0
 - All tests with fresh generated code
 - StandardRB linting
-- Brakeman security scans (Rails 8.0.x and 8.1.x)
+- Brakeman security scans (Rails 8.1.x)
 
 ## Security
 
@@ -740,11 +740,11 @@ Bunko includes automated security scanning using [Brakeman](https://brakemanscan
 **What we scan:**
 - ✅ Gem source code (models, controllers, routing)
 - ✅ Generated code from templates (controllers, views)
-- ✅ Tested against Rails 8.0.x and 8.1.x
+- ✅ Tested against Rails 8.1.x
 
 **CI Security Checks:**
 
-Every PR triggers parallel scans across Rails versions. Builds fail if security warnings are detected.
+Every PR triggers a Brakeman scan against the supported Rails series. Builds fail if security warnings are detected.
 
 **Run scans locally:**
 

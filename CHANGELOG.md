@@ -2,6 +2,9 @@
 
 Building toward 1.0.0 release. Using 0.x versions during active development.
 
+**Changed:**
+- **Breaking:** the minimum supported Rails version is now 8.1. Rails 8.0 reaches end of security support in late 2026, so it is no longer claimed as supported, scanned in CI, or accepted by the gemspec. Apps on Rails 8.0 should upgrade to 8.1 before updating Bunko.
+
 **Fixed:**
 - `PagesController` now reads the page slug from the route's `defaults: {page: ...}` (via `params[:page]`) instead of parsing `request.path`, fixing 404s for root-path pages (`bunko_page :home, path: "/"`) and pages with custom paths (`bunko_page :about, path: "about-us"`) (#57)
 

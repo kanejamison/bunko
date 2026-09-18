@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     bunko (0.2.0)
-      rails (>= 8.0)
+      rails (>= 8.1)
 
 GEM
   remote: https://rubygems.org/

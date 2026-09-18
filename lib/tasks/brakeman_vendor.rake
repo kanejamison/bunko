@@ -12,7 +12,7 @@ begin
       gemfile_path = File.join(dummy_path, "Gemfile")
 
       # Determine Rails version to test (from ENV or default)
-      rails_version = ENV["RAILS_VERSION"] || ">= 8.0"
+      rails_version = ENV["RAILS_VERSION"] || ">= 8.1"
 
       puts "=" * 80
       puts "Brakeman Security Scan"

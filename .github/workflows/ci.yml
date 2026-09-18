@@ -45,7 +45,7 @@ jobs:
     name: Security - Brakeman (Rails ${{ matrix.rails }})
     strategy:
       matrix:
-        rails: ["~> 8.0.0", "~> 8.1.0"]
+        rails: ["~> 8.1.0"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
